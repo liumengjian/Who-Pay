@@ -1,0 +1,82 @@
+<!--pages/user/profile.wxml-->
+<view class="profile-page">
+  <!-- 用户信息卡片 -->
+  <view class="user-card">
+    <view class="user-header">
+      <image 
+        class="avatar" 
+        src="{{userInfo.avatarUrl || '/images/default-avatar.png'}}" 
+        mode="aspectFill"
+        bindtap="editAvatar"
+      ></image>
+      <view class="user-info">
+        <text class="nickname" bindtap="editNickname">{{userInfo.nickName || '未设置'}}</text>
+        <text class="phone">{{userInfo.phone || ''}}</text>
+      </view>
+      <text class="edit-icon" bindtap="editAvatar">✏️</text>
+    </view>
+  </view>
+
+  <!-- 功能列表 -->
+  <view class="menu-list">
+    <view class="menu-item" bindtap="goToHistory">
+      <view class="menu-left">
+        <text class="menu-icon">📜</text>
+        <text class="menu-text">历史活动</text>
+      </view>
+      <text class="menu-arrow">></text>
+    </view>
+    <view class="menu-item" bindtap="goToPaymentManage">
+      <view class="menu-left">
+        <text class="menu-icon">💰</text>
+        <text class="menu-text">我的支付记录</text>
+      </view>
+      <text class="menu-arrow">></text>
+    </view>
+  </view>
+
+  <!-- 退出登录 -->
+  <view class="logout-section">
+    <button class="logout-btn" bindtap="handleLogout">退出登录</button>
+  </view>
+
+  <!-- 编辑昵称弹窗 -->
+  <view class="modal {{showEditNickname ? 'show' : ''}}" catchtap="hideEditNickname">
+    <view class="modal-content" catchtap="stopPropagation">
+      <view class="modal-header">
+        <text class="modal-title">修改昵称</text>
+        <text class="modal-close" bindtap="hideEditNickname">×</text>
+      </view>
+      <view class="modal-body">
+        <input 
+          class="input" 
+          type="text" 
+          placeholder="请输入昵称"
+          value="{{editNickname}}"
+          bindinput="onNicknameInput"
+          maxlength="20"
+        />
+      </view>
+      <view class="modal-footer">
+        <button class="btn-secondary" bindtap="hideEditNickname">取消</button>
+        <button class="btn-primary" bindtap="handleUpdateNickname">确定</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 编辑头像弹窗 -->
+  <view class="modal {{showEditAvatar ? 'show' : ''}}" catchtap="hideEditAvatar">
+    <view class="modal-content" catchtap="stopPropagation">
+      <view class="modal-header">
+        <text class="modal-title">修改头像</text>
+        <text class="modal-close" bindtap="hideEditAvatar">×</text>
+      </view>
+      <view class="modal-body">
+        <view class="avatar-options">
+          <button class="option-btn" bindtap="chooseFromAlbum">从相册选择</button>
+          <button class="option-btn" bindtap="getFromWechat">从微信获取</button>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

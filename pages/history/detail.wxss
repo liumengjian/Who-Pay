@@ -1,0 +1,9 @@
+/* pages/history/detail.wxss */
+@import '../activity/detail.wxss';
+
+.end-time {
+  margin-top: 20rpx;
+  text-align: center;
+  font-size: 24rpx;
+  opacity: 0.8;
+}

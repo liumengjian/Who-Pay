@@ -1,0 +1,20 @@
+<!--pages/login/login.wxml-->
+<view class="login-container">
+  <view class="logo-section">
+    <image class="logo" src="/images/logo.png" mode="aspectFit"></image>
+    <text class="app-name">Who Pay</text>
+    <text class="app-desc">团队活动费用分摊</text>
+  </view>
+
+  <view class="login-section">
+    <button 
+      class="login-btn" 
+      open-type="getPhoneNumber" 
+      bindgetphonenumber="onGetPhoneNumber"
+      hover-class="btn-hover"
+    >
+      手机号快捷登录
+    </button>
+    <text class="login-tip">使用微信手机号快速登录，开始使用</text>
+  </view>
+</view>

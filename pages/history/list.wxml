@@ -1,0 +1,43 @@
+<!--pages/history/list.wxml-->
+<view class="history-page">
+  <view class="history-list">
+    <view wx:if="{{activities.length > 0}}">
+      <view 
+        class="activity-card" 
+        wx:for="{{activities}}" 
+        wx:key="_id"
+        bindtap="goToDetail"
+        data-id="{{item._id}}"
+      >
+        <view class="card-header">
+          <text class="activity-name">{{item.name}}</text>
+          <text class="activity-status">已结束</text>
+        </view>
+        <view class="card-body">
+          <view class="info-item">
+            <text class="info-label">邀请码</text>
+            <text class="info-value">{{item.inviteCode}}</text>
+          </view>
+          <view class="info-item">
+            <text class="info-label">总花费</text>
+            <text class="info-value">¥{{item.totalAmount || '0.00'}}</text>
+          </view>
+          <view class="info-item">
+            <text class="info-label">均摊额</text>
+            <text class="info-value">¥{{item.shareAmount || '0.00'}}</text>
+          </view>
+          <view class="info-item">
+            <text class="info-label">结束时间</text>
+            <text class="info-value">{{item.endTime}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 空状态 -->
+    <view wx:else class="empty-state">
+      <text class="empty-icon">📜</text>
+      <text class="empty-text">暂无历史活动</text>
+    </view>
+  </view>
+</view>

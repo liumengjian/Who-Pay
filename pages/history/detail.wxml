@@ -1,0 +1,93 @@
+<!--pages/history/detail.wxml-->
+<view class="detail-page">
+  <!-- 概览区 -->
+  <view class="overview-section">
+    <view class="activity-header">
+      <text class="activity-name">{{activityInfo.name || ''}}</text>
+      <view class="invite-code-box" bindtap="copyInviteCode">
+        <text class="invite-code">{{activityInfo.inviteCode || ''}}</text>
+        <text class="copy-icon">📋</text>
+      </view>
+    </view>
+    <view class="amount-info">
+      <view class="amount-item">
+        <text class="amount-label">总花费</text>
+        <text class="amount-value">¥{{totalAmount}}</text>
+      </view>
+      <view class="amount-item">
+        <text class="amount-label">团队均摊</text>
+        <text class="amount-value">¥{{shareAmount}}</text>
+      </view>
+    </view>
+    <view class="end-time" wx:if="{{activityInfo.endTime}}">
+      <text>结束时间: {{activityInfo.endTime}}</text>
+    </view>
+  </view>
+
+  <!-- 团队看板 -->
+  <view class="teams-section">
+    <view 
+      class="team-card" 
+      wx:for="{{teams}}" 
+      wx:key="team"
+      wx:for-item="team"
+    >
+      <view class="team-header">
+        <text class="team-name">{{team.team}}组</text>
+        <view class="team-stats">
+          <text class="team-total">支付: ¥{{team.totalAmount}}</text>
+          <text class="team-diff {{team.diffAmount >= 0 ? 'positive' : 'negative'}}">
+            {{team.diffAmount >= 0 ? '应收' : '应付'}}: ¥{{team.diffAmount >= 0 ? team.diffAmount : (-team.diffAmount)}}
+          </text>
+        </view>
+      </view>
+      <view class="members-list">
+        <view 
+          class="member-item" 
+          wx:for="{{team.members}}" 
+          wx:key="userId"
+          wx:for-item="member"
+          bindtap="viewMemberPayments"
+          data-userid="{{member.userId}}"
+        >
+          <image class="member-avatar" src="{{member.avatarUrl || '/images/default-avatar.png'}}" mode="aspectFill"></image>
+          <view class="member-info">
+            <text class="member-name">{{member.nickName}}</text>
+            <text class="member-amount">¥{{member.totalAmount}}</text>
+          </view>
+        </view>
+        <view wx:if="{{team.members.length === 0}}" class="empty-members">
+          <text>暂无成员</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 成员支付记录弹窗 -->
+  <view class="modal {{showMemberPayments ? 'show' : ''}}" catchtap="hideMemberPayments">
+    <view class="modal-content payment-list-content" catchtap="stopPropagation">
+      <view class="modal-header">
+        <text class="modal-title">{{selectedMemberName}}的支付记录</text>
+        <text class="modal-close" bindtap="hideMemberPayments">×</text>
+      </view>
+      <view class="modal-body">
+        <view wx:if="{{memberPayments.length > 0}}">
+          <view 
+            class="payment-item" 
+            wx:for="{{memberPayments}}" 
+            wx:key="_id"
+          >
+            <view class="payment-info">
+              <text class="payment-amount">¥{{item.amount}}</text>
+              <text class="payment-remark" wx:if="{{item.remark}}">{{item.remark}}</text>
+            </view>
+            <text class="payment-time">{{item.createTime}}</text>
+          </view>
+        </view>
+        <view wx:else class="empty-payments">
+          <text>暂无支付记录</text>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

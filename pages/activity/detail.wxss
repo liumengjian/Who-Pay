@@ -1,0 +1,361 @@
+/* pages/activity/detail.wxss */
+.detail-page {
+  min-height: 100vh;
+  padding-bottom: 120rpx;
+}
+
+/* 概览区 */
+.overview-section {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 40rpx;
+  color: #fff;
+}
+
+.activity-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30rpx;
+}
+
+.activity-name {
+  font-size: 40rpx;
+  font-weight: bold;
+}
+
+.invite-code-box {
+  display: flex;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.2);
+  padding: 12rpx 20rpx;
+  border-radius: 8rpx;
+}
+
+.invite-code {
+  font-size: 28rpx;
+  margin-right: 10rpx;
+}
+
+.copy-icon {
+  font-size: 28rpx;
+}
+
+.amount-info {
+  display: flex;
+  justify-content: space-around;
+}
+
+.amount-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.amount-label {
+  font-size: 24rpx;
+  opacity: 0.9;
+  margin-bottom: 12rpx;
+}
+
+.amount-value {
+  font-size: 48rpx;
+  font-weight: bold;
+}
+
+/* 团队看板 */
+.teams-section {
+  padding: 20rpx;
+}
+
+.team-card {
+  background-color: #fff;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.08);
+}
+
+.team-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24rpx;
+  padding-bottom: 20rpx;
+  border-bottom: 2rpx solid #f5f5f5;
+}
+
+.team-name {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.team-stats {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.team-total {
+  font-size: 24rpx;
+  color: #666;
+  margin-bottom: 8rpx;
+}
+
+.team-diff {
+  font-size: 28rpx;
+  font-weight: bold;
+}
+
+.team-diff.positive {
+  color: #07c160;
+}
+
+.team-diff.negative {
+  color: #fa5151;
+}
+
+.members-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.member-item {
+  display: flex;
+  align-items: center;
+  padding: 16rpx;
+  background-color: #f9f9f9;
+  border-radius: 12rpx;
+}
+
+.member-avatar {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  margin-right: 20rpx;
+}
+
+.member-info {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.member-name {
+  font-size: 28rpx;
+  color: #333;
+}
+
+.member-amount {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #07c160;
+}
+
+.empty-members {
+  text-align: center;
+  padding: 40rpx;
+  color: #999;
+  font-size: 24rpx;
+}
+
+/* 底部操作栏 */
+.action-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  padding: 20rpx;
+  background-color: #fff;
+  box-shadow: 0 -2rpx 12rpx rgba(0, 0, 0, 0.08);
+  z-index: 100;
+}
+
+.add-btn {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 50%;
+  background-color: #07c160;
+  color: #fff;
+  font-size: 48rpx;
+  line-height: 88rpx;
+  text-align: center;
+  border: none;
+  margin-right: 20rpx;
+}
+
+.end-btn {
+  flex: 1;
+  height: 88rpx;
+  line-height: 88rpx;
+  background-color: #fa5151;
+  color: #fff;
+  border-radius: 44rpx;
+  font-size: 32rpx;
+  border: none;
+}
+
+/* 弹窗样式 */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s;
+}
+
+.modal.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.modal-content {
+  width: 80%;
+  max-width: 600rpx;
+  max-height: 80vh;
+  background-color: #fff;
+  border-radius: 16rpx;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.team-select-content,
+.payment-list-content {
+  max-height: 70vh;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 30rpx;
+  border-bottom: 2rpx solid #f5f5f5;
+}
+
+.modal-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.modal-close {
+  font-size: 48rpx;
+  color: #999;
+  line-height: 1;
+  width: 48rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-body {
+  padding: 30rpx;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.modal-footer {
+  display: flex;
+  padding: 20rpx 30rpx 30rpx;
+  gap: 20rpx;
+}
+
+.modal-footer button {
+  flex: 1;
+}
+
+.required {
+  color: #fa5151;
+}
+
+/* 团队选择 */
+.team-option {
+  padding: 30rpx;
+  border: 2rpx solid #e5e5e5;
+  border-radius: 12rpx;
+  margin-bottom: 20rpx;
+  background-color: #fff;
+}
+
+.team-option.disabled {
+  opacity: 0.5;
+  background-color: #f5f5f5;
+}
+
+.team-option-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12rpx;
+}
+
+.team-option-name {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.team-option-count {
+  font-size: 28rpx;
+  color: #666;
+}
+
+.team-full {
+  font-size: 24rpx;
+  color: #fa5151;
+}
+
+/* 支付记录列表 */
+.payment-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24rpx;
+  border-bottom: 2rpx solid #f5f5f5;
+}
+
+.payment-item:last-child {
+  border-bottom: none;
+}
+
+.payment-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.payment-amount {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #07c160;
+  margin-bottom: 8rpx;
+}
+
+.payment-remark {
+  font-size: 24rpx;
+  color: #666;
+}
+
+.payment-time {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.empty-payments {
+  text-align: center;
+  padding: 60rpx;
+  color: #999;
+}

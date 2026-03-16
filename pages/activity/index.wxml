@@ -1,0 +1,105 @@
+<!--pages/activity/index.wxml-->
+<view class="activity-page">
+  <!-- 头部用户信息 -->
+  <view class="header-section">
+    <view class="user-info" bindtap="goToProfile">
+      <image class="avatar" src="{{userInfo.avatarUrl || '/images/default-avatar.png'}}" mode="aspectFill"></image>
+      <text class="nickname">{{userInfo.nickName || '未登录'}}</text>
+    </view>
+  </view>
+
+  <!-- 活动列表 -->
+  <view class="activity-list">
+    <view wx:if="{{activities.length > 0}}">
+      <view 
+        class="activity-card" 
+        wx:for="{{activities}}" 
+        wx:key="_id"
+        bindtap="goToDetail"
+        data-id="{{item._id}}"
+      >
+        <view class="card-header">
+          <text class="activity-name">{{item.name}}</text>
+          <text class="invite-code">邀请码: {{item.inviteCode}}</text>
+        </view>
+        <view class="card-body">
+          <view class="stat-item">
+            <text class="stat-label">总花费</text>
+            <text class="stat-value">¥{{item.totalAmount || '0.00'}}</text>
+          </view>
+          <view class="stat-item">
+            <text class="stat-label">均摊额</text>
+            <text class="stat-value">¥{{item.shareAmount || '0.00'}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 空状态 -->
+    <view wx:else class="empty-state">
+      <text class="empty-icon">📋</text>
+      <text class="empty-text">暂无进行中的活动</text>
+      <text class="empty-tip">创建或加入一个活动开始使用吧</text>
+    </view>
+  </view>
+
+  <!-- 底部操作按钮 -->
+  <view class="action-bar">
+    <button class="action-btn create-btn" bindtap="showCreateModal">创建活动</button>
+    <button class="action-btn join-btn" bindtap="showJoinModal">加入活动</button>
+  </view>
+
+  <!-- 创建活动弹窗 -->
+  <view class="modal {{showCreate ? 'show' : ''}}" catchtap="hideCreateModal">
+    <view class="modal-content" catchtap="stopPropagation">
+      <view class="modal-header">
+        <text class="modal-title">创建活动</text>
+        <text class="modal-close" bindtap="hideCreateModal">×</text>
+      </view>
+      <view class="modal-body">
+        <view class="input-group">
+          <text class="input-label">活动名称</text>
+          <input 
+            class="input" 
+            type="text" 
+            placeholder="请输入活动名称"
+            value="{{activityName}}"
+            bindinput="onActivityNameInput"
+            maxlength="20"
+          />
+        </view>
+      </view>
+      <view class="modal-footer">
+        <button class="btn-secondary" bindtap="hideCreateModal">取消</button>
+        <button class="btn-primary" bindtap="handleCreate">创建</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 加入活动弹窗 -->
+  <view class="modal {{showJoin ? 'show' : ''}}" catchtap="hideJoinModal">
+    <view class="modal-content" catchtap="stopPropagation">
+      <view class="modal-header">
+        <text class="modal-title">加入活动</text>
+        <text class="modal-close" bindtap="hideJoinModal">×</text>
+      </view>
+      <view class="modal-body">
+        <view class="input-group">
+          <text class="input-label">邀请码</text>
+          <input 
+            class="input" 
+            type="text" 
+            placeholder="请输入6位邀请码"
+            value="{{inviteCode}}"
+            bindinput="onInviteCodeInput"
+            maxlength="6"
+          />
+        </view>
+      </view>
+      <view class="modal-footer">
+        <button class="btn-secondary" bindtap="hideJoinModal">取消</button>
+        <button class="btn-primary" bindtap="handleJoin">加入</button>
+      </view>
+    </view>
+  </view>
+</view>
