@@ -1,19 +1,25 @@
-/* pages/payment/manage.wxss */
+/* pages/payment/manage.wxss - ColorUI 年轻活泼 */
 .manage-page {
   min-height: 100vh;
   padding-bottom: 120rpx;
+  background: #f7f8fa;
 }
 
 .payment-list {
-  padding: 20rpx;
+  padding: 24rpx;
 }
 
 .payment-card {
   background-color: #fff;
-  border-radius: 16rpx;
+  border-radius: 20rpx;
   padding: 30rpx;
-  margin-bottom: 20rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.08);
+  margin-bottom: 24rpx;
+  box-shadow: 0 4rpx 20rpx rgba(102, 126, 234, 0.1);
+  transition: transform 0.2s ease;
+}
+
+.payment-card:active {
+  transform: scale(0.99);
 }
 
 .payment-header {
@@ -28,7 +34,7 @@
 .payment-amount {
   font-size: 40rpx;
   font-weight: bold;
-  color: #07c160;
+  color: #667eea;
 }
 
 .payment-actions {
@@ -43,8 +49,14 @@
 }
 
 .edit-btn {
-  color: #07c160;
-  background-color: rgba(7, 193, 96, 0.1);
+  color: #667eea;
+  background-color: rgba(102, 126, 234, 0.12);
+  transition: transform 0.2s ease;
+}
+
+.edit-btn:active,
+.delete-btn:active {
+  opacity: 0.8;
 }
 
 .delete-btn {
@@ -101,11 +113,16 @@
   width: 100%;
   height: 88rpx;
   line-height: 88rpx;
-  background-color: #07c160;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: #fff;
   border-radius: 44rpx;
   font-size: 32rpx;
   border: none;
+  transition: transform 0.2s ease;
+}
+
+.add-btn:active {
+  transform: scale(0.98);
 }
 
 /* 弹窗样式 */

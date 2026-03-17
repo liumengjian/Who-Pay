@@ -75,6 +75,7 @@ Page({
 
   // 跳转到活动详情
   goToDetail(e) {
+    wx.vibrateShort({ type: 'light' });
     const activityId = e.currentTarget.dataset.id;
     wx.navigateTo({
       url: `/pages/activity/detail?id=${activityId}`
@@ -83,6 +84,7 @@ Page({
 
   // 显示创建活动弹窗
   showCreateModal() {
+    wx.vibrateShort({ type: 'light' });
     this.setData({
       showCreate: true,
       activityName: ''
@@ -98,6 +100,7 @@ Page({
 
   // 显示加入活动弹窗
   showJoinModal() {
+    wx.vibrateShort({ type: 'light' });
     this.setData({
       showJoin: true,
       inviteCode: ''
@@ -133,6 +136,7 @@ Page({
 
   // 创建活动
   async handleCreate() {
+    wx.vibrateShort({ type: 'light' });
     const { activityName } = this.data;
     if (!activityName || activityName.trim() === '') {
       showError('请输入活动名称');
@@ -164,6 +168,7 @@ Page({
 
   // 加入活动
   async handleJoin() {
+    wx.vibrateShort({ type: 'light' });
     const { inviteCode } = this.data;
     const error = validateInviteCode(inviteCode);
     if (error) {
@@ -176,17 +181,11 @@ Page({
       const result = await joinActivity(inviteCode);
       hideLoading();
       
-      // 如果返回了team信息，说明需要选择团队
-      if (result.needSelectTeam) {
+      // 加入活动后，需要选择团队（创建或加入）
+      if (result.activityId) {
         this.hideJoinModal();
         wx.navigateTo({
           url: `/pages/activity/detail?id=${result.activityId}&needSelectTeam=true`
-        });
-      } else if (result.activityId) {
-        // 已加入，直接跳转
-        this.hideJoinModal();
-        wx.navigateTo({
-          url: `/pages/activity/detail?id=${result.activityId}`
         });
       } else {
         showSuccess('加入成功');

@@ -19,6 +19,26 @@
         <text class="amount-value">¥{{shareAmount}}</text>
       </view>
     </view>
+    
+    <!-- 我的结算信息 -->
+    <view class="my-settlement" wx:if="{{myTeam}}">
+      <view class="settlement-item team-settlement">
+        <text class="settlement-label">您的团队</text>
+        <text class="settlement-value {{myTeamDiff >= 0 ? 'positive' : 'negative'}}">
+          <text wx:if="{{myTeamDiff < 0}}">需要向其他团队支付</text>
+          <text wx:else>可以从其他团队收款</text>
+          <text class="amount">¥{{myTeamDiff >= 0 ? myTeamDiff : (-myTeamDiff)}}</text>
+        </text>
+      </view>
+      <view class="settlement-item personal-settlement">
+        <text class="settlement-label">您个人</text>
+        <text class="settlement-value {{myTeamDiff >= 0 ? 'positive' : 'negative'}}">
+          <text wx:if="{{myTeamDiff < 0}}">需要支付</text>
+          <text wx:else>可以收款</text>
+          <text class="amount">¥{{myPersonalDiff}}</text>
+        </text>
+      </view>
+    </view>
   </view>
 
   <!-- 团队看板 -->
@@ -30,11 +50,14 @@
       wx:for-item="team"
     >
       <view class="team-header">
-        <text class="team-name">{{team.team}}组</text>
+        <text class="team-name">{{team.name}}</text>
         <view class="team-stats">
           <text class="team-total">支付: ¥{{team.totalAmount}}</text>
           <text class="team-diff {{team.diffAmount >= 0 ? 'positive' : 'negative'}}">
             {{team.diffAmount >= 0 ? '应收' : '应付'}}: ¥{{team.diffAmount >= 0 ? team.diffAmount : (-team.diffAmount)}}
+          </text>
+          <text class="team-member-share" wx:if="{{team.memberCount > 0}}">
+            人均: ¥{{team.memberShareAmount}}
           </text>
         </view>
       </view>
@@ -71,22 +94,66 @@
     <view class="modal-content team-select-content" catchtap="stopPropagation">
       <view class="modal-header">
         <text class="modal-title">选择团队</text>
+        <text class="modal-close" bindtap="hideTeamSelect">×</text>
       </view>
       <view class="modal-body">
-        <view 
-          class="team-option {{item.members.length >= 3 ? 'disabled' : ''}}" 
-          wx:for="{{teams}}" 
-          wx:key="team"
-          wx:for-item="item"
-          bindtap="selectTeam"
-          data-team="{{item.team}}"
-        >
-          <view class="team-option-header">
-            <text class="team-option-name">{{item.team}}组</text>
-            <text class="team-option-count">{{item.members.length}}/3</text>
-          </view>
-          <text wx:if="{{item.members.length >= 3}}" class="team-full">已满</text>
+        <!-- 创建新团队按钮 -->
+        <view class="create-team-btn" bindtap="showCreateTeamModal">
+          <text class="create-icon">+</text>
+          <text>创建新团队</text>
         </view>
+        
+        <!-- 现有团队列表 -->
+        <view wx:if="{{teams.length > 0}}" class="teams-list">
+          <text class="section-title">加入现有团队</text>
+          <view 
+            class="team-option" 
+            wx:for="{{teams}}" 
+            wx:key="_id"
+            wx:for-item="item"
+            bindtap="handleJoinTeam"
+            data-teamid="{{item._id}}"
+          >
+            <view class="team-option-header">
+              <text class="team-option-name">{{item.name}}</text>
+              <text class="team-option-count">{{item.memberCount}}人</text>
+            </view>
+            <view class="team-option-info">
+              <text class="team-option-amount">已支付: ¥{{item.totalAmount}}</text>
+            </view>
+          </view>
+        </view>
+        
+        <view wx:else class="empty-teams">
+          <text>暂无团队，请创建新团队</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 创建团队弹窗 -->
+  <view class="modal {{showCreateTeam ? 'show' : ''}}" catchtap="hideCreateTeamModal">
+    <view class="modal-content" catchtap="stopPropagation">
+      <view class="modal-header">
+        <text class="modal-title">创建新团队</text>
+        <text class="modal-close" bindtap="hideCreateTeamModal">×</text>
+      </view>
+      <view class="modal-body">
+        <view class="input-group">
+          <text class="input-label">团队名称 <text class="required">*</text></text>
+          <input 
+            class="input" 
+            type="text" 
+            placeholder="请输入团队名称"
+            value="{{teamName}}"
+            bindinput="onTeamNameInput"
+            maxlength="20"
+          />
+        </view>
+      </view>
+      <view class="modal-footer">
+        <button class="btn-secondary" bindtap="hideCreateTeamModal">取消</button>
+        <button class="btn-primary" bindtap="handleCreateTeam">创建</button>
       </view>
     </view>
   </view>

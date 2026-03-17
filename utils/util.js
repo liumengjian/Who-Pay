@@ -109,7 +109,7 @@ function chooseImage() {
 }
 
 /**
- * 上传图片到服务器
+ * 上传图片到服务器（需已登录）
  */
 function uploadImage(filePath) {
   return new Promise((resolve, reject) => {
@@ -121,6 +121,32 @@ function uploadImage(filePath) {
       header: {
         'Authorization': `Bearer ${openid}`
       },
+      success: res => {
+        try {
+          const data = JSON.parse(res.data);
+          if (data.success && data.url) {
+            resolve(data.url);
+          } else {
+            reject(new Error(data.message || '上传失败'));
+          }
+        } catch (e) {
+          reject(new Error('上传失败'));
+        }
+      },
+      fail: reject
+    });
+  });
+}
+
+/**
+ * 注册时上传头像（无需登录态，用于新用户注册）
+ */
+function uploadImageForRegister(filePath) {
+  return new Promise((resolve, reject) => {
+    wx.uploadFile({
+      url: 'https://www.pluto0.com/api/upload/avatar',
+      filePath: filePath,
+      name: 'file',
       success: res => {
         try {
           const data = JSON.parse(res.data);
@@ -204,6 +230,7 @@ module.exports = {
   copyToClipboard,
   chooseImage,
   uploadImage,
+  uploadImageForRegister,
   getUserProfile,
   validateAmount,
   validateInviteCode

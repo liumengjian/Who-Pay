@@ -1,4 +1,7 @@
 {
+  "usingComponents": {
+    "cu-custom": "/colorui/components/cu-custom"
+  },
   "pages": [
     "pages/login/login",
     "pages/activity/index",
@@ -9,16 +12,17 @@
     "pages/history/detail"
   ],
   "window": {
-    "backgroundTextStyle": "light",
-    "navigationBarBackgroundColor": "#07c160",
+    "backgroundTextStyle": "dark",
+    "navigationBarBackgroundColor": "#667eea",
     "navigationBarTitleText": "Who Pay",
     "navigationBarTextStyle": "white",
-    "enablePullDownRefresh": false
+    "enablePullDownRefresh": false,
+    "backgroundColor": "#f7f8fa"
   },
   "tabBar": {
-    "color": "#7A7E83",
-    "selectedColor": "#07c160",
-    "borderStyle": "black",
+    "color": "#909399",
+    "selectedColor": "#667eea",
+    "borderStyle": "white",
     "backgroundColor": "#ffffff",
     "list": [
       {

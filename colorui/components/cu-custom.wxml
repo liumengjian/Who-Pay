@@ -1,0 +1,11 @@
+<view class="cu-custom" style="height:{{CustomBar}}px; padding-top:{{StatusBar}}px;">
+  <view class="cu-bar bg-white" style="height:{{CustomBar}}px; padding-top:{{StatusBar}}px;">
+    <view wx:if="{{isBack}}" class="action" bindtap="BackPage">
+      <text class="cuIcon-back"></text>
+    </view>
+    <view class="content" style="top:{{StatusBar}}px;">
+      <slot name="content"></slot>
+    </view>
+    <slot name="right"></slot>
+  </view>
+</view>

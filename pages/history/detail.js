@@ -56,26 +56,32 @@ Page({
 
       const activityInfo = result.activityInfo;
 
-      // 计算总花费和均摊额
+      // 获取团队列表（动态，不固定）
+      const teamsData = result.teams || [];
+      const teamCount = teamsData.length || 1;
+      
+      // 计算总花费和团队均摊额
       const totalAmount = parseFloat(result.totalAmount || 0);
-      const shareAmount = totalAmount / 3;
+      const shareAmount = teamCount > 0 ? totalAmount / teamCount : 0;
 
       // 处理团队数据
-      const teams = ['A', 'B', 'C'].map(team => {
-        const teamData = result.teams.find(t => t.team === team) || {
-          team: team,
-          totalAmount: 0,
-          members: []
-        };
-        
+      const teams = teamsData.map(teamData => {
         const teamTotal = parseFloat(teamData.totalAmount || 0);
         const diffAmount = teamTotal - shareAmount;
+        const memberCount = (teamData.members || []).length || 1;
+        const memberShareAmount = memberCount > 0 ? Math.abs(diffAmount) / memberCount : 0;
 
         return {
-          team: team,
+          _id: teamData._id || teamData.id,
+          name: teamData.name || teamData.teamName || '未命名团队',
           totalAmount: formatAmount(teamTotal),
           diffAmount: parseFloat(diffAmount.toFixed(2)),
-          members: teamData.members || []
+          memberCount: memberCount,
+          memberShareAmount: formatAmount(memberShareAmount),
+          members: (teamData.members || []).map(m => ({
+            ...m,
+            totalAmount: formatAmount(m.totalAmount || 0)
+          }))
         };
       });
 
@@ -153,7 +159,7 @@ Page({
   findMember(userId) {
     for (const team of this.data.teams) {
       const member = team.members.find(m => m.userId === userId);
-      if (member) return member;
+      if (member) return { ...member, teamName: team.name };
     }
     return null;
   },

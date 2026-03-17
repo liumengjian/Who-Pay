@@ -1,104 +1,111 @@
-<!--pages/activity/index.wxml-->
+<!--pages/activity/index.wxml - ColorUI -->
 <view class="activity-page">
   <!-- 头部用户信息 -->
-  <view class="header-section">
-    <view class="user-info" bindtap="goToProfile">
-      <image class="avatar" src="{{userInfo.avatarUrl || '/images/default-avatar.png'}}" mode="aspectFill"></image>
-      <text class="nickname">{{userInfo.nickName || '未登录'}}</text>
+  <view class="header-section bg-gradual-blue">
+    <view class="user-info animation-fade" bindtap="goToProfile">
+      <image class="cu-avatar round lg" src="{{userInfo.avatarUrl || '/images/default-avatar.png'}}" mode="aspectFill"></image>
+      <text class="nickname text-white">{{userInfo.nickName || '未登录'}}</text>
     </view>
   </view>
 
   <!-- 活动列表 -->
-  <view class="activity-list">
+  <view class="activity-list padding">
     <view wx:if="{{activities.length > 0}}">
       <view 
-        class="activity-card" 
+        class="cu-card dynamic margin-bottom cu-card-hover animation-scale-up"
         wx:for="{{activities}}" 
         wx:key="_id"
         bindtap="goToDetail"
         data-id="{{item._id}}"
       >
-        <view class="card-header">
-          <text class="activity-name">{{item.name}}</text>
-          <text class="invite-code">邀请码: {{item.inviteCode}}</text>
-        </view>
-        <view class="card-body">
-          <view class="stat-item">
-            <text class="stat-label">总花费</text>
-            <text class="stat-value">¥{{item.totalAmount || '0.00'}}</text>
+        <view class="cu-item flex padding">
+          <view class="flex-sub">
+            <view class="flex-between margin-bottom-sm">
+              <text class="text-lg text-bold text-black">{{item.name}}</text>
+              <view class="cu-tag sm round bg-blue light">邀请码: {{item.inviteCode}}</view>
+            </view>
+            <view class="flex">
+              <view class="stat-item flex-sub text-center">
+                <text class="text-gray text-sm">总花费</text>
+                <text class="text-blue text-bold block margin-top-xs">¥{{item.totalAmount || '0.00'}}</text>
+              </view>
+              <view class="stat-item flex-sub text-center">
+                <text class="text-gray text-sm">均摊额</text>
+                <text class="text-blue text-bold block margin-top-xs">¥{{item.shareAmount || '0.00'}}</text>
+              </view>
+            </view>
           </view>
-          <view class="stat-item">
-            <text class="stat-label">均摊额</text>
-            <text class="stat-value">¥{{item.shareAmount || '0.00'}}</text>
-          </view>
+          <text class="cuIcon-right text-gray margin-left"></text>
         </view>
       </view>
     </view>
 
     <!-- 空状态 -->
-    <view wx:else class="empty-state">
-      <text class="empty-icon">📋</text>
-      <text class="empty-text">暂无进行中的活动</text>
-      <text class="empty-tip">创建或加入一个活动开始使用吧</text>
+    <view wx:else class="empty-state animation-fade">
+      <text class="cuIcon-form text-blue" style="font-size: 120rpx;"></text>
+      <text class="text-df text-gray margin-top">暂无进行中的活动</text>
+      <text class="text-sm text-gray margin-top-sm">创建或加入一个活动开始使用吧 ✨</text>
     </view>
   </view>
 
   <!-- 底部操作按钮 -->
-  <view class="action-bar">
-    <button class="action-btn create-btn" bindtap="showCreateModal">创建活动</button>
-    <button class="action-btn join-btn" bindtap="showJoinModal">加入活动</button>
+  <view class="action-bar flex padding bg-white">
+    <button class="cu-btn block flex-sub bg-blue shadow round lg margin-right-sm" bindtap="showCreateModal" hover-class="button-hover">创建活动</button>
+    <button class="cu-btn block flex-sub lines-blue round lg" bindtap="showJoinModal" hover-class="button-hover">加入活动</button>
   </view>
 
   <!-- 创建活动弹窗 -->
-  <view class="modal {{showCreate ? 'show' : ''}}" catchtap="hideCreateModal">
-    <view class="modal-content" catchtap="stopPropagation">
-      <view class="modal-header">
-        <text class="modal-title">创建活动</text>
-        <text class="modal-close" bindtap="hideCreateModal">×</text>
+  <view class="cu-modal {{showCreate ? 'show' : ''}}" catchtap="hideCreateModal">
+    <view class="cu-dialog animation-scale-up" catchtap="stopPropagation">
+      <view class="cu-bar bg-white justify-end">
+        <view class="content text-black text-bold">创建活动</view>
+        <view class="action" bindtap="hideCreateModal">
+          <text class="cuIcon-close text-gray"></text>
+        </view>
       </view>
-      <view class="modal-body">
-        <view class="input-group">
-          <text class="input-label">活动名称</text>
+      <view class="padding">
+        <view class="cu-form-group">
+          <view class="title">活动名称</view>
           <input 
-            class="input" 
-            type="text" 
             placeholder="请输入活动名称"
             value="{{activityName}}"
             bindinput="onActivityNameInput"
             maxlength="20"
+            placeholder-class="text-gray"
           />
         </view>
       </view>
-      <view class="modal-footer">
-        <button class="btn-secondary" bindtap="hideCreateModal">取消</button>
-        <button class="btn-primary" bindtap="handleCreate">创建</button>
+      <view class="cu-bar padding justify-end bg-grey light">
+        <button class="cu-btn margin-right-sm" bindtap="hideCreateModal">取消</button>
+        <button class="cu-btn bg-blue" bindtap="handleCreate">创建</button>
       </view>
     </view>
   </view>
 
   <!-- 加入活动弹窗 -->
-  <view class="modal {{showJoin ? 'show' : ''}}" catchtap="hideJoinModal">
-    <view class="modal-content" catchtap="stopPropagation">
-      <view class="modal-header">
-        <text class="modal-title">加入活动</text>
-        <text class="modal-close" bindtap="hideJoinModal">×</text>
+  <view class="cu-modal {{showJoin ? 'show' : ''}}" catchtap="hideJoinModal">
+    <view class="cu-dialog animation-scale-up" catchtap="stopPropagation">
+      <view class="cu-bar bg-white justify-end">
+        <view class="content text-black text-bold">加入活动</view>
+        <view class="action" bindtap="hideJoinModal">
+          <text class="cuIcon-close text-gray"></text>
+        </view>
       </view>
-      <view class="modal-body">
-        <view class="input-group">
-          <text class="input-label">邀请码</text>
+      <view class="padding">
+        <view class="cu-form-group">
+          <view class="title">邀请码</view>
           <input 
-            class="input" 
-            type="text" 
             placeholder="请输入6位邀请码"
             value="{{inviteCode}}"
             bindinput="onInviteCodeInput"
             maxlength="6"
+            placeholder-class="text-gray"
           />
         </view>
       </view>
-      <view class="modal-footer">
-        <button class="btn-secondary" bindtap="hideJoinModal">取消</button>
-        <button class="btn-primary" bindtap="handleJoin">加入</button>
+      <view class="cu-bar padding justify-end bg-grey light">
+        <button class="cu-btn margin-right-sm" bindtap="hideJoinModal">取消</button>
+        <button class="cu-btn bg-blue" bindtap="handleJoin">加入</button>
       </view>
     </view>
   </view>

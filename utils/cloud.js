@@ -47,13 +47,34 @@ function callAPI(path, method = 'GET', data = {}) {
 }
 
 /**
- * 登录 - 获取openid和用户信息
+ * 登录 - 获取openid和用户信息（原手机号方式，保留兼容）
  */
 function login(code, encryptedData, iv) {
   return callAPI('/api/login', 'POST', {
     code,
     encryptedData,
     iv
+  });
+}
+
+/**
+ * 账号密码登录
+ */
+function loginWithAccount(account, password) {
+  return callAPI('/api/auth/login', 'POST', {
+    account,
+    password
+  });
+}
+
+/**
+ * 账号密码注册
+ */
+function register(account, password, avatarUrl = '') {
+  return callAPI('/api/auth/register', 'POST', {
+    account,
+    password,
+    avatarUrl
   });
 }
 
@@ -149,12 +170,22 @@ function getMemberPayments(activityId, userId) {
 }
 
 /**
- * 选择团队加入
+ * 创建新团队
  */
-function selectTeam(activityId, team) {
-  return callAPI('/api/activity/selectTeam', 'POST', {
+function createTeam(activityId, teamName) {
+  return callAPI('/api/team/create', 'POST', {
     activityId,
-    team
+    teamName
+  });
+}
+
+/**
+ * 加入现有团队
+ */
+function joinTeam(activityId, teamId) {
+  return callAPI('/api/team/join', 'POST', {
+    activityId,
+    teamId
   });
 }
 
@@ -162,6 +193,8 @@ function selectTeam(activityId, team) {
 module.exports = {
   callAPI,
   login,
+  loginWithAccount,
+  register,
   createActivity,
   joinActivity,
   getActivityDetail,
@@ -173,5 +206,6 @@ module.exports = {
   getMyActivities,
   getMyPayments,
   getMemberPayments,
-  selectTeam
+  createTeam,
+  joinTeam
 };

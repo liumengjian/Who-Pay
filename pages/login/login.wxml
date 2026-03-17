@@ -1,20 +1,80 @@
-<!--pages/login/login.wxml-->
-<view class="login-container">
-  <view class="logo-section">
-    <image class="logo" src="/images/logo.png" mode="aspectFit"></image>
-    <text class="app-name">Who Pay</text>
-    <text class="app-desc">团队活动费用分摊</text>
+<!--pages/login/login.wxml - ColorUI 风格 -->
+<view class="login-container bg-gradual-blue">
+  <view class="logo-section animation-scale-up">
+    <image class="logo round shadow" src="/images/logo.png" mode="aspectFit"></image>
+    <text class="app-name text-white">Who Pay</text>
+    <text class="app-desc text-white opacity-80">团队活动费用分摊 ✨</text>
   </view>
 
-  <view class="login-section">
-    <button 
-      class="login-btn" 
-      open-type="getPhoneNumber" 
-      bindgetphonenumber="onGetPhoneNumber"
-      hover-class="btn-hover"
-    >
-      手机号快捷登录
-    </button>
-    <text class="login-tip">使用微信手机号快速登录，开始使用</text>
+  <!-- 登录/注册切换 -->
+  <view class="tab-bar flex animation-fade">
+    <view 
+      class="tab-item {{currentTab === 'login' ? 'active' : ''}}"
+      bindtap="switchTab"
+      data-tab="login"
+    >登录</view>
+    <view 
+      class="tab-item {{currentTab === 'register' ? 'active' : ''}}"
+      bindtap="switchTab"
+      data-tab="register"
+    >注册</view>
+  </view>
+
+  <!-- 登录表单 -->
+  <view class="form-section {{currentTab === 'login' ? 'animation-slide-bottom' : ''}}" wx:if="{{currentTab === 'login'}}">
+    <view class="cu-form-group margin-top">
+      <view class="title"><text class="cuIcon-people text-grey"></text></view>
+      <input 
+        placeholder="请输入账号" 
+        value="{{loginForm.account}}"
+        bindinput="onLoginAccountInput"
+        placeholder-class="text-gray"
+      />
+    </view>
+    <view class="cu-form-group">
+      <view class="title"><text class="cuIcon-lock text-grey"></text></view>
+      <input 
+        type="password"
+        placeholder="请输入密码" 
+        value="{{loginForm.password}}"
+        bindinput="onLoginPasswordInput"
+        placeholder-class="text-gray"
+      />
+    </view>
+    <button class="cu-btn block bg-white text-blue shadow lg round margin-top-lg" bindtap="onLogin" hover-class="button-hover">登录</button>
+  </view>
+
+  <!-- 注册表单 -->
+  <view class="form-section {{currentTab === 'register' ? 'animation-slide-bottom' : ''}}" wx:if="{{currentTab === 'register'}}">
+    <view class="avatar-section margin-bottom">
+      <button class="avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
+        <image 
+          class="avatar-preview round"
+          src="{{registerForm.avatarUrl || '/images/default-avatar.png'}}" 
+          mode="aspectFill"
+        ></image>
+        <text class="avatar-tip text-white opacity-80">点击选择头像</text>
+      </button>
+    </view>
+    <view class="cu-form-group">
+      <view class="title"><text class="cuIcon-people text-grey"></text></view>
+      <input 
+        placeholder="请输入账号" 
+        value="{{registerForm.account}}"
+        bindinput="onRegisterAccountInput"
+        placeholder-class="text-gray"
+      />
+    </view>
+    <view class="cu-form-group">
+      <view class="title"><text class="cuIcon-lock text-grey"></text></view>
+      <input 
+        type="password"
+        placeholder="请输入密码" 
+        value="{{registerForm.password}}"
+        bindinput="onRegisterPasswordInput"
+        placeholder-class="text-gray"
+      />
+    </view>
+    <button class="cu-btn block bg-white text-blue shadow lg round margin-top-lg" bindtap="onRegister" hover-class="button-hover">注册</button>
   </view>
 </view>

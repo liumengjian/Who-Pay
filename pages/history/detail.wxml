@@ -33,11 +33,14 @@
       wx:for-item="team"
     >
       <view class="team-header">
-        <text class="team-name">{{team.team}}组</text>
+        <text class="team-name">{{team.name}}</text>
         <view class="team-stats">
           <text class="team-total">支付: ¥{{team.totalAmount}}</text>
           <text class="team-diff {{team.diffAmount >= 0 ? 'positive' : 'negative'}}">
             {{team.diffAmount >= 0 ? '应收' : '应付'}}: ¥{{team.diffAmount >= 0 ? team.diffAmount : (-team.diffAmount)}}
+          </text>
+          <text class="team-member-share" wx:if="{{team.memberCount > 0}}">
+            人均: ¥{{team.memberShareAmount}}
           </text>
         </view>
       </view>
