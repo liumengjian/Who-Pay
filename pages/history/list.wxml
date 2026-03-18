@@ -1,5 +1,12 @@
 <!--pages/history/list.wxml-->
+<cu-custom bgColor="bg-gradual-blue" isBack="{{true}}">
+  <view slot="content" class="text-white">历史活动</view>
+</cu-custom>
 <view class="history-page">
+  <view class="page-header">
+    <text class="page-header-title">历史活动</text>
+    <text class="page-header-desc">查看已结束的活动记录</text>
+  </view>
   <view class="history-list">
     <view wx:if="{{activities.length > 0}}">
       <view 

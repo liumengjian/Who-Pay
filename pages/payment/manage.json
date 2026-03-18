@@ -1,3 +1,4 @@
 {
-  "navigationBarTitleText": "支付记录"
+  "navigationBarTitleText": "支付记录",
+  "navigationStyle": "custom"
 }

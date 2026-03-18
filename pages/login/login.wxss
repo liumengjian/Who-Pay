@@ -7,6 +7,7 @@
   align-items: center;
   padding: 200rpx 40rpx 60rpx;
   box-sizing: border-box;
+  margin-top: -16rpx; /* 重叠 cu-custom 底部，与导航栏渐变连贯 */
 }
 
 .bg-gradual-blue {
@@ -28,9 +29,6 @@
   transition: transform 0.3s ease;
 }
 
-.logo:active {
-  transform: scale(0.95);
-}
 
 .app-name {
   font-size: 52rpx;
@@ -76,9 +74,6 @@
   font-weight: bold;
 }
 
-.tab-bar .tab-item:active {
-  transform: scale(0.96);
-}
 
 /* 表单区域 */
 .form-section {
@@ -95,9 +90,6 @@
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.form-section .cu-form-group:active {
-  transform: scale(0.99);
-}
 
 .margin-top { margin-top: 0; }
 .margin-top-lg { margin-top: 40rpx; }
@@ -131,9 +123,6 @@
   transition: transform 0.25s ease;
 }
 
-.avatar-btn:active .avatar-preview {
-  transform: scale(0.95);
-}
 
 .avatar-tip {
   font-size: 24rpx;

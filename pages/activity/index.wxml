@@ -1,7 +1,10 @@
 <!--pages/activity/index.wxml - ColorUI -->
+<cu-custom bgColor="bg-gradual-blue">
+  <view slot="content" class="text-white">活动</view>
+</cu-custom>
 <view class="activity-page">
   <!-- 头部用户信息 -->
-  <view class="header-section bg-gradual-blue">
+  <view class="header-section">
     <view class="user-info animation-fade" bindtap="goToProfile">
       <image class="cu-avatar round lg" src="{{userInfo.avatarUrl || '/images/default-avatar.png'}}" mode="aspectFill"></image>
       <text class="nickname text-white">{{userInfo.nickName || '未登录'}}</text>
@@ -50,8 +53,8 @@
 
   <!-- 底部操作按钮 -->
   <view class="action-bar flex padding bg-white">
-    <button class="cu-btn block flex-sub bg-blue shadow round lg margin-right-sm" bindtap="showCreateModal" hover-class="button-hover">创建活动</button>
-    <button class="cu-btn block flex-sub lines-blue round lg" bindtap="showJoinModal" hover-class="button-hover">加入活动</button>
+    <button class="cu-btn block flex-sub bg-blue shadow round lg margin-right-sm" bindtap="showCreateModal" >创建活动</button>
+    <button class="cu-btn block flex-sub lines-blue round lg" bindtap="showJoinModal" >加入活动</button>
   </view>
 
   <!-- 创建活动弹窗 -->

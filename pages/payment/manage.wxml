@@ -1,5 +1,12 @@
 <!--pages/payment/manage.wxml-->
+<cu-custom bgColor="bg-gradual-blue" isBack="{{true}}">
+  <view slot="content" class="text-white">支付记录</view>
+</cu-custom>
 <view class="manage-page">
+  <view class="page-header">
+    <text class="page-header-title">支付记录</text>
+    <text class="page-header-desc">管理您的支付明细</text>
+  </view>
   <view class="payment-list">
     <view wx:if="{{payments.length > 0}}">
       <view 

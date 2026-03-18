@@ -23,19 +23,40 @@ page {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* 按钮点击反馈 */
+/* 按钮点击反馈 - 轻量 opacity，避免界面抖动 */
 .cu-btn:active, button:active {
-  transform: scale(0.97);
-  opacity: 0.9;
+  opacity: 0.85;
 }
 
-/* 卡片悬浮反馈 */
-.cu-card-hover {
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
+/* 通用按钮样式 - 与 cu-btn 一致 */
+.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border: none;
+  border-radius: 12rpx;
+  padding: 0 32rpx;
+  font-size: 30rpx;
+  height: 72rpx;
+  line-height: 72rpx;
 }
 
-.cu-card-hover:active {
-  transform: scale(0.98);
+.btn-secondary {
+  background: #f5f5f5;
+  color: #666;
+  border: none;
+  border-radius: 12rpx;
+  padding: 0 32rpx;
+  font-size: 30rpx;
+  height: 72rpx;
+  line-height: 72rpx;
+}
+
+.btn-secondary::after, .btn-primary::after,
+.add-btn::after, .end-btn::after, .logout-btn::after, .option-btn::after { border: none; }
+
+/* 弹窗/模态框内按钮统一样式 */
+.modal-footer button, .modal .cu-bar button {
+  font-size: 30rpx;
 }
 
 /* 布局 */
@@ -50,6 +71,27 @@ page {
 .flex-sub { flex: 1; }
 .text-center { text-align: center; }
 .text-cut { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* 页面头部统一样式 - 与 cu-custom-nav 渐变连贯 */
+.page-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 48rpx 40rpx;
+  margin-top: -16rpx; /* 重叠 cu-custom 底部，消除断层 */
+  margin-bottom: 24rpx;
+  color: #fff;
+}
+
+.page-header-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #fff;
+}
+
+.page-header-desc {
+  font-size: 28rpx;
+  color: rgba(255, 255, 255, 0.85);
+  margin-top: 8rpx;
+}
 
 /* 间距 */
 .mt-10 { margin-top: 10rpx; }

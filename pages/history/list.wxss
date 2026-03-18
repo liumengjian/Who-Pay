@@ -1,7 +1,11 @@
 /* pages/history/list.wxss - ColorUI 年轻活泼 */
 .history-page {
   min-height: 100vh;
-  background: #f7f8fa;
+  background: linear-gradient(to bottom,
+    #667eea 0,
+    #764ba2 120rpx,
+    #f7f8fa 360rpx
+  );
 }
 
 .history-list {
@@ -17,9 +21,6 @@
   transition: transform 0.2s ease;
 }
 
-.activity-card:active {
-  transform: scale(0.99);
-}
 
 .card-header {
   display: flex;

@@ -29,7 +29,6 @@ Page({
   switchTab(e) {
     const tab = e.currentTarget.dataset.tab;
     if (tab === this.data.currentTab) return;
-    wx.vibrateShort({ type: 'light' });
     this.setData({ currentTab: tab });
   },
 
@@ -71,7 +70,6 @@ Page({
       showError('请输入账号和密码');
       return;
     }
-    wx.vibrateShort({ type: 'light' });
 
     // 内置管理员账号，直接登录不调接口
     if (account === 'admin' && password === '000000') {
@@ -146,7 +144,6 @@ Page({
       showError('密码长度至少6位');
       return;
     }
-    wx.vibrateShort({ type: 'light' });
 
     showLoading('注册中...');
     try {

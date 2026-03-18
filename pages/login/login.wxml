@@ -1,4 +1,5 @@
 <!--pages/login/login.wxml - ColorUI 风格 -->
+<cu-custom bgColor="bg-gradual-blue"></cu-custom>
 <view class="login-container bg-gradual-blue">
   <view class="logo-section animation-scale-up">
     <image class="logo round shadow" src="/images/logo.png" mode="aspectFit"></image>
@@ -41,7 +42,7 @@
         placeholder-class="text-gray"
       />
     </view>
-    <button class="cu-btn block bg-white text-blue shadow lg round margin-top-lg" bindtap="onLogin" hover-class="button-hover">登录</button>
+    <button class="cu-btn block bg-white text-blue shadow lg round margin-top-lg" bindtap="onLogin" >登录</button>
   </view>
 
   <!-- 注册表单 -->
@@ -75,6 +76,6 @@
         placeholder-class="text-gray"
       />
     </view>
-    <button class="cu-btn block bg-white text-blue shadow lg round margin-top-lg" bindtap="onRegister" hover-class="button-hover">注册</button>
+    <button class="cu-btn block bg-white text-blue shadow lg round margin-top-lg" bindtap="onRegister" >注册</button>
   </view>
 </view>

@@ -2,7 +2,12 @@
 .activity-page {
   min-height: 100vh;
   padding-bottom: 180rpx;
-  background: #f7f8fa;
+  /* 顶部渐变与 cu-custom 连贯，过渡到主体灰底 */
+  background: linear-gradient(to bottom,
+    #667eea 0,
+    #764ba2 120rpx,
+    #f7f8fa 360rpx
+  );
 }
 
 .bg-gradual-blue {
@@ -10,7 +15,10 @@
 }
 
 .header-section {
-  padding: 36rpx 32rpx 48rpx;
+  padding: 48rpx 40rpx;
+  margin-top: -16rpx; /* 重叠 cu-custom 底部，与导航栏渐变连贯 */
+  margin-bottom: 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
 .user-info {
@@ -33,10 +41,6 @@
   margin-top: -24rpx;
 }
 
-.cu-card-hover:active {
-  transform: scale(0.98);
-  transition: transform 0.2s ease;
-}
 
 .margin-bottom { margin-bottom: 24rpx; }
 .margin-bottom-sm { margin-bottom: 16rpx; }

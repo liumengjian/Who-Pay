@@ -1,1 +1,9 @@
-/* colorui/components/cu-custom.wxss */
+/* 导航栏 - 与页面主体渐变连贯，无断层 */
+.cu-custom-nav {
+  margin: 0;
+}
+
+/* 渐变类时确保背景与页面容器一致 */
+.cu-custom-nav.bg-gradual-blue {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}

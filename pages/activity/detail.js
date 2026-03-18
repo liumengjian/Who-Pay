@@ -168,7 +168,6 @@ Page({
 
   // 复制邀请码
   async copyInviteCode() {
-    wx.vibrateShort({ type: 'light' });
     const inviteCode = this.data.activityInfo.inviteCode;
     if (inviteCode) {
       await copyToClipboard(inviteCode);
@@ -177,7 +176,6 @@ Page({
 
   // 显示添加支付记录弹窗
   showAddPaymentModal() {
-    wx.vibrateShort({ type: 'light' });
     if (this.data.isEnded) {
       showError('活动已结束');
       return;

@@ -2,7 +2,11 @@
 .manage-page {
   min-height: 100vh;
   padding-bottom: 120rpx;
-  background: #f7f8fa;
+  background: linear-gradient(to bottom,
+    #667eea 0,
+    #764ba2 120rpx,
+    #f7f8fa 360rpx
+  );
 }
 
 .payment-list {
@@ -18,9 +22,6 @@
   transition: transform 0.2s ease;
 }
 
-.payment-card:active {
-  transform: scale(0.99);
-}
 
 .payment-header {
   display: flex;
@@ -118,12 +119,8 @@
   border-radius: 44rpx;
   font-size: 32rpx;
   border: none;
-  transition: transform 0.2s ease;
 }
 
-.add-btn:active {
-  transform: scale(0.98);
-}
 
 /* 弹窗样式 */
 .modal {

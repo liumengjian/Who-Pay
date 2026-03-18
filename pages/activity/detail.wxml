@@ -1,4 +1,7 @@
 <!--pages/activity/detail.wxml-->
+<cu-custom bgColor="bg-gradual-blue" isBack="{{true}}">
+  <view slot="content" class="text-white">活动详情</view>
+</cu-custom>
 <view class="detail-page">
   <!-- 概览区 -->
   <view class="overview-section">
