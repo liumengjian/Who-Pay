@@ -9,6 +9,7 @@
 
   <!-- 登录/注册切换 -->
   <view class="tab-bar flex animation-fade">
+    <view class="tab-slider {{currentTab === 'register' ? 'tab-slider-right' : ''}}"></view>
     <view 
       class="tab-item {{currentTab === 'login' ? 'active' : ''}}"
       bindtap="switchTab"

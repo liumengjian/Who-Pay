@@ -67,6 +67,7 @@
   z-index: 100;
   display: flex;
   gap: 40rpx;
+  height: 160rpx;
 }
 
 /* 弹窗圆角与动画 */

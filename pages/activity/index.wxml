@@ -53,8 +53,8 @@
 
   <!-- 底部操作按钮 -->
   <view class="action-bar flex padding bg-white">
-    <button class="cu-btn block flex-sub bg-blue shadow round lg margin-right-sm" bindtap="showCreateModal" >创建活动</button>
-    <button class="cu-btn block flex-sub lines-blue round lg" bindtap="showJoinModal" >加入活动</button>
+    <button class="cu-btn block flex-sub bg-blue shadow round margin-right-sm" bindtap="showCreateModal" >创建活动</button>
+    <button class="cu-btn block flex-sub lines-blue round " bindtap="showJoinModal" >加入活动</button>
   </view>
 
   <!-- 创建活动弹窗 -->
