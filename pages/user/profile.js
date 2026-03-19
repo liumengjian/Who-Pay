@@ -1,13 +1,31 @@
 // pages/user/profile.js
 const { updateUserInfo } = require('../../utils/cloud.js');
-const { showLoading, hideLoading, showSuccess, showError, chooseImage, uploadImage, getUserProfile } = require('../../utils/util.js');
+const { showLoading, hideLoading, showSuccess, showError, chooseImage, uploadImage } = require('../../utils/util.js');
+
+const DEFAULT_AVATARS = [
+  '/images/default-user-photo/animal-_1.png',
+  '/images/default-user-photo/animal-_2.png',
+  '/images/default-user-photo/animal-_3.png',
+  '/images/default-user-photo/animal-_4.png',
+  '/images/default-user-photo/animal-_5.png',
+  '/images/default-user-photo/animal-_6.png',
+  '/images/default-user-photo/animal-_7.png',
+  '/images/default-user-photo/animal-_8.png',
+  '/images/default-user-photo/animal-_9.png',
+  '/images/default-user-photo/animal-_10.png',
+  '/images/default-user-photo/animal-_11.png',
+  '/images/default-user-photo/animal-_12.png',
+  '/images/default-user-photo/animal-_13.png',
+  '/images/default-user-photo/animal-_14.png',
+];
 
 Page({
   data: {
     userInfo: {},
     showEditNickname: false,
     showEditAvatar: false,
-    editNickname: ''
+    editNickname: '',
+    defaultAvatars: DEFAULT_AVATARS
   },
 
   onLoad() {
@@ -78,37 +96,37 @@ Page({
     }
   },
 
-  // 从微信获取头像
-  async getFromWechat() {
-    try {
-      const userProfile = await getUserProfile();
-      if (userProfile && userProfile.avatarUrl) {
-        // 直接使用微信头像URL，或下载后上传
-        // 如果后端支持直接使用微信头像URL，可以直接传递
-        // 否则需要下载后上传到自己的服务器
-        const downloadRes = await new Promise((resolve, reject) => {
-          wx.downloadFile({
-            url: userProfile.avatarUrl,
-            success: resolve,
-            fail: reject
-          });
-        });
+  // 选择默认头像（包内文件需复制到临时路径后再上传）
+  async selectDefaultAvatar(e) {
+    const packagePath = e.currentTarget.dataset.url;
+    if (!packagePath) return;
 
-        if (downloadRes.tempFilePath) {
-          await this.uploadAvatar(downloadRes.tempFilePath);
-          // 同时更新昵称
-          if (userProfile.nickName) {
-            await this.updateUserInfo(userProfile.nickName, null);
-          }
-          this.hideEditAvatar();
-        }
-      }
+    showLoading('设置中...');
+    try {
+      const tempPath = await this.copyPackageFileToTemp(packagePath);
+      const avatarUrl = await uploadImage(tempPath);
+      await this.updateUserInfo(null, avatarUrl);
+      this.hideEditAvatar();
     } catch (error) {
-      if (error.errMsg && !error.errMsg.includes('cancel')) {
-        console.error('获取微信头像失败:', error);
-        showError('获取微信头像失败');
-      }
+      console.error('设置默认头像失败:', error);
+      showError(error.message || '设置失败');
+    } finally {
+      hideLoading();
     }
+  },
+
+  // 复制包内文件到临时目录（wx.uploadFile 需要可写路径）
+  copyPackageFileToTemp(packagePath) {
+    return new Promise((resolve, reject) => {
+      const ext = packagePath.split('.').pop() || 'png';
+      const tempPath = `${wx.env.USER_DATA_PATH}/default_avatar_${Date.now()}.${ext}`;
+      wx.getFileSystemManager().copyFile({
+        srcPath: packagePath,
+        destPath: tempPath,
+        success: () => resolve(tempPath),
+        fail: reject
+      });
+    });
   },
 
   // 上传头像

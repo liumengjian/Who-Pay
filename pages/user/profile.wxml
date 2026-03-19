@@ -77,7 +77,20 @@
       <view class="modal-body">
         <view class="avatar-options">
           <button class="option-btn" bindtap="chooseFromAlbum">从相册选择</button>
-          <button class="option-btn" bindtap="getFromWechat">从微信获取</button>
+          <view class="default-avatars">
+            <text class="avatar-label">默认头像</text>
+            <view class="avatar-grid">
+              <image
+                wx:for="{{defaultAvatars}}"
+                wx:key="*this"
+                class="avatar-item"
+                src="{{item}}"
+                mode="aspectFill"
+                bindtap="selectDefaultAvatar"
+                data-url="{{item}}"
+              />
+            </view>
+          </view>
         </view>
       </view>
     </view>
