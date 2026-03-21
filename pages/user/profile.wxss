@@ -1,12 +1,15 @@
 /* pages/user/profile.wxss - ColorUI 年轻活泼 */
 .profile-page {
   min-height: 100vh;
+  /* 顶部与 cu-custom 同款 135deg 渐变，下层灰底从 360rpx 开始 */
+  background: linear-gradient(to bottom, transparent 0, transparent 360rpx, #f7f8fa 360rpx, #f7f8fa 100%),
+    linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
 .user-card {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: transparent;
   padding: 48rpx 40rpx;
-  margin-top: -16rpx; /* 重叠 cu-custom 底部，与导航栏渐变连贯 */
+  margin-top: -16rpx;
 }
 
 .user-header {

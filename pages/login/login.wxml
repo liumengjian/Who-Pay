@@ -4,7 +4,7 @@
   <view class="logo-section animation-scale-up">
     <image class="logo round shadow" src="/images/logo.png" mode="aspectFit"></image>
     <text class="app-name text-white">Who Pay</text>
-    <text class="app-desc text-white opacity-80">团队活动费用分摊 ✨</text>
+    <text class="app-desc text-white opacity-80">谁付的钱？？？</text>
   </view>
 
   <!-- 登录/注册切换 -->

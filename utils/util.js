@@ -112,10 +112,11 @@ function chooseImage() {
  * 上传图片到服务器（需已登录）
  */
 function uploadImage(filePath) {
+  const { UPLOAD_BASE_URL } = require('../service/config.js');
   return new Promise((resolve, reject) => {
     const openid = wx.getStorageSync('openid');
     wx.uploadFile({
-      url: 'https://www.pluto0.com/api/upload/avatar',
+      url: `${UPLOAD_BASE_URL}/api/upload/avatar`,
       filePath: filePath,
       name: 'file',
       header: {
@@ -142,9 +143,10 @@ function uploadImage(filePath) {
  * 注册时上传头像（无需登录态，用于新用户注册）
  */
 function uploadImageForRegister(filePath) {
+  const { UPLOAD_BASE_URL } = require('../service/config.js');
   return new Promise((resolve, reject) => {
     wx.uploadFile({
-      url: 'https://www.pluto0.com/api/upload/avatar',
+      url: `${UPLOAD_BASE_URL}/api/upload/avatar`,
       filePath: filePath,
       name: 'file',
       success: res => {

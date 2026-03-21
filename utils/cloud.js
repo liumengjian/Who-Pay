@@ -1,7 +1,5 @@
-// utils/cloud.js - API调用封装
-
-// API基础域名
-const API_BASE_URL = 'https://www.pluto0.com';
+// utils/cloud.js - API调用封装（兼容层，新接口请使用 service/）
+const { API_BASE_URL } = require('../service/config.js');
 
 /**
  * 获取请求头
