@@ -92,6 +92,25 @@ function copyToClipboard(text) {
 }
 
 /**
+ * 将本地文件路径转为 base64 字符串（含 data URI 前缀）
+ * @param {string} filePath - 本地临时文件路径
+ * @returns {Promise<string>} data:image/xxx;base64,xxxx
+ */
+function filePathToBase64(filePath) {
+  return new Promise((resolve, reject) => {
+    const ext = (filePath.split('.').pop() || 'png').toLowerCase();
+    const mimeMap = { jpg: 'jpeg', jpeg: 'jpeg', png: 'png', gif: 'gif', webp: 'webp' };
+    const mime = `image/${mimeMap[ext] || 'png'}`;
+    wx.getFileSystemManager().readFile({
+      filePath: filePath,
+      encoding: 'base64',
+      success: res => resolve(`data:${mime};base64,${res.data}`),
+      fail: reject
+    });
+  });
+}
+
+/**
  * 选择图片（从相册或拍照）
  */
 function chooseImage() {
@@ -102,64 +121,6 @@ function chooseImage() {
       sourceType: ['album', 'camera'],
       success: res => {
         resolve(res.tempFilePaths[0]);
-      },
-      fail: reject
-    });
-  });
-}
-
-/**
- * 上传图片到服务器（需已登录）
- */
-function uploadImage(filePath) {
-  const { UPLOAD_BASE_URL } = require('../service/config.js');
-  return new Promise((resolve, reject) => {
-    const openid = wx.getStorageSync('openid');
-    wx.uploadFile({
-      url: `${UPLOAD_BASE_URL}/api/upload/avatar`,
-      filePath: filePath,
-      name: 'file',
-      header: {
-        'Authorization': `Bearer ${openid}`
-      },
-      success: res => {
-        try {
-          const data = JSON.parse(res.data);
-          if (data.success && data.url) {
-            resolve(data.url);
-          } else {
-            reject(new Error(data.message || '上传失败'));
-          }
-        } catch (e) {
-          reject(new Error('上传失败'));
-        }
-      },
-      fail: reject
-    });
-  });
-}
-
-/**
- * 注册时上传头像（无需登录态，用于新用户注册）
- */
-function uploadImageForRegister(filePath) {
-  const { UPLOAD_BASE_URL } = require('../service/config.js');
-  return new Promise((resolve, reject) => {
-    wx.uploadFile({
-      url: `${UPLOAD_BASE_URL}/api/upload/avatar`,
-      filePath: filePath,
-      name: 'file',
-      success: res => {
-        try {
-          const data = JSON.parse(res.data);
-          if (data.success && data.url) {
-            resolve(data.url);
-          } else {
-            reject(new Error(data.message || '上传失败'));
-          }
-        } catch (e) {
-          reject(new Error('上传失败'));
-        }
       },
       fail: reject
     });
@@ -231,9 +192,8 @@ module.exports = {
   hideLoading,
   copyToClipboard,
   chooseImage,
-  uploadImage,
-  uploadImageForRegister,
   getUserProfile,
   validateAmount,
-  validateInviteCode
+  validateInviteCode,
+  filePathToBase64
 };

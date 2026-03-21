@@ -1,6 +1,6 @@
 // pages/user/profile.js
 const { updateUserInfo } = require('../../utils/cloud.js');
-const { showLoading, hideLoading, showSuccess, showError, chooseImage, uploadImage } = require('../../utils/util.js');
+const { showLoading, hideLoading, showSuccess, showError, chooseImage, filePathToBase64 } = require('../../utils/util.js');
 
 const DEFAULT_AVATARS = [
   '/images/default-user-photo/animal-_1.png',
@@ -24,7 +24,9 @@ Page({
     userInfo: {},
     showEditNickname: false,
     showEditAvatar: false,
+    showEditRealName: false,
     editNickname: '',
+    editRealName: '',
     defaultAvatars: DEFAULT_AVATARS
   },
 
@@ -42,7 +44,8 @@ Page({
     const userInfo = wx.getStorageSync('userInfo') || app.globalData.userInfo || {};
     this.setData({
       userInfo: userInfo,
-      editNickname: userInfo.nickName || ''
+      editNickname: userInfo.nickName || '',
+      editRealName: userInfo.realName || ''
     });
   },
 
@@ -75,6 +78,26 @@ Page({
     });
   },
 
+  // 编辑真名
+  editRealName() {
+    this.setData({
+      showEditRealName: true,
+      editRealName: this.data.userInfo.realName || ''
+    });
+  },
+
+  hideEditRealName() {
+    this.setData({
+      showEditRealName: false
+    });
+  },
+
+  onRealNameInput(e) {
+    this.setData({
+      editRealName: e.detail.value
+    });
+  },
+
   // 昵称输入
   onNicknameInput(e) {
     this.setData({
@@ -96,7 +119,7 @@ Page({
     }
   },
 
-  // 选择默认头像（包内文件需复制到临时路径后再上传）
+  // 选择默认头像（转 base64 后调用更新接口）
   async selectDefaultAvatar(e) {
     const packagePath = e.currentTarget.dataset.url;
     if (!packagePath) return;
@@ -104,8 +127,8 @@ Page({
     showLoading('设置中...');
     try {
       const tempPath = await this.copyPackageFileToTemp(packagePath);
-      const avatarUrl = await uploadImage(tempPath);
-      await this.updateUserInfo(null, avatarUrl);
+      const avatar = await filePathToBase64(tempPath);
+      await this.submitUpdateUserInfo({ avatar });
       this.hideEditAvatar();
     } catch (error) {
       console.error('设置默认头像失败:', error);
@@ -129,14 +152,12 @@ Page({
     });
   },
 
-  // 上传头像
+  // 从相册选择头像（转 base64）
   async uploadAvatar(filePath) {
     showLoading('上传中...');
     try {
-      const avatarUrl = await uploadImage(filePath);
-      
-      // 更新用户信息
-      await this.updateUserInfo(null, avatarUrl);
+      const avatar = await filePathToBase64(filePath);
+      await this.submitUpdateUserInfo({ avatar });
     } catch (error) {
       console.error('上传头像失败:', error);
       showError(error.message || '上传头像失败');
@@ -145,30 +166,32 @@ Page({
     }
   },
 
-  // 更新用户信息
-  async updateUserInfo(nickName, avatarUrl) {
+  // 提交更新用户信息到后端
+  async submitUpdateUserInfo(fields) {
+    const userId = wx.getStorageSync('userId') || getApp().globalData.userId;
     const currentUserInfo = this.data.userInfo;
-    const newNickName = nickName !== null ? nickName : currentUserInfo.nickName;
-    const newAvatarUrl = avatarUrl !== null ? avatarUrl : currentUserInfo.avatarUrl;
+    if (!userId) {
+      showError('未登录');
+      return;
+    }
+
+    const id = currentUserInfo.id || parseInt(userId, 10) || userId;
+    const params = { id };
+    if (fields.nickName !== undefined) params.nickName = fields.nickName;
+    if (fields.realName !== undefined) params.realName = fields.realName;
+    if (fields.avatar !== undefined) params.avatar = fields.avatar;
 
     try {
-      await updateUserInfo(newNickName, newAvatarUrl);
-      
-      // 更新本地存储
+      await updateUserInfo(params);
       const updatedUserInfo = {
         ...currentUserInfo,
-        nickName: newNickName,
-        avatarUrl: newAvatarUrl
+        ...(fields.nickName !== undefined && { nickName: fields.nickName }),
+        ...(fields.realName !== undefined && { realName: fields.realName }),
+        ...(fields.avatar !== undefined && { avatarUrl: fields.avatar, avatar: fields.avatar })
       };
-      
       wx.setStorageSync('userInfo', updatedUserInfo);
-      const app = getApp();
-      app.setUserInfo(updatedUserInfo);
-      
-      this.setData({
-        userInfo: updatedUserInfo
-      });
-      
+      getApp().setUserInfo(updatedUserInfo);
+      this.setData({ userInfo: updatedUserInfo });
       showSuccess('更新成功');
     } catch (error) {
       console.error('更新用户信息失败:', error);
@@ -179,13 +202,23 @@ Page({
   // 更新昵称
   async handleUpdateNickname() {
     const { editNickname } = this.data;
-    if (!editNickname || editNickname.trim() === '') {
+    if (!editNickname || !editNickname.trim()) {
       showError('请输入昵称');
       return;
     }
-
-    await this.updateUserInfo(editNickname.trim(), null);
+    await this.submitUpdateUserInfo({ nickName: editNickname.trim() });
     this.hideEditNickname();
+  },
+
+  // 更新真名
+  async handleUpdateRealName() {
+    const { editRealName } = this.data;
+    if (!editRealName || !editRealName.trim()) {
+      showError('请输入真名');
+      return;
+    }
+    await this.submitUpdateUserInfo({ realName: editRealName.trim() });
+    this.hideEditRealName();
   },
 
   // 跳转到历史活动
@@ -210,11 +243,13 @@ Page({
       success: (res) => {
         if (res.confirm) {
           // 清除本地存储
-          wx.removeStorageSync('openid');
+          wx.removeStorageSync('token');
+          wx.removeStorageSync('userId');
           wx.removeStorageSync('userInfo');
           
           const app = getApp();
-          app.globalData.openid = null;
+          app.globalData.token = null;
+          app.globalData.userId = null;
           app.globalData.userInfo = null;
           
           // 跳转到登录页

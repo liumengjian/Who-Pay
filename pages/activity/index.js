@@ -33,8 +33,8 @@ Page({
 
   // 检查登录态
   checkLogin() {
-    const openid = wx.getStorageSync('openid');
-    if (!openid) {
+    const token = wx.getStorageSync('token');
+    if (!token) {
       wx.redirectTo({
         url: '/pages/login/login'
       });

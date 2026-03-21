@@ -22,7 +22,8 @@ App({
 
   globalData: {
     userInfo: null,
-    openid: null,
+    token: null,
+    userId: null,
     StatusBar: 0,
     Custom: null,
     CustomBar: 0
@@ -30,24 +31,31 @@ App({
 
   // 检查登录态
   checkLogin() {
-    const openid = wx.getStorageSync('openid');
-    if (openid) {
-      this.globalData.openid = openid;
-      // 获取用户信息
-      this.getUserInfo();
+    const token = wx.getStorageSync('token');
+    const userId = wx.getStorageSync('userId');
+    if (token && userId) {
+      this.globalData.token = token;
+      this.globalData.userId = userId;
+      // 获取用户信息（管理员不调接口）
+      if (userId !== 'admin') {
+        this.getUserInfo(userId);
+      } else {
+        const userInfo = wx.getStorageSync('userInfo');
+        if (userInfo) this.globalData.userInfo = userInfo;
+      }
     }
   },
 
   // 获取用户信息
-  async getUserInfo() {
-    const openid = wx.getStorageSync('openid');
-    if (!openid) return;
+  async getUserInfo(userId) {
+    if (!userId || userId === 'admin') return;
 
     try {
-      const result = await callAPI('/api/user/info', 'GET');
-      if (result && result.userInfo) {
-        this.globalData.userInfo = result.userInfo;
-        wx.setStorageSync('userInfo', result.userInfo);
+      const result = await callAPI(`/api/user/${userId}`, 'GET');
+      if (result) {
+        const userInfo = result.userInfo || result;
+        this.globalData.userInfo = userInfo;
+        wx.setStorageSync('userInfo', userInfo);
       }
     } catch (err) {
       console.error('获取用户信息失败', err);

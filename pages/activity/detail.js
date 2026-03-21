@@ -81,8 +81,8 @@ Page({
       }
 
       const activityInfo = result.activityInfo;
-      const openid = wx.getStorageSync('openid');
-      const isCreator = activityInfo.creatorId === openid;
+      const userId = wx.getStorageSync('userId');
+      const isCreator = activityInfo.creatorId === userId;
       const isEnded = activityInfo.status === 'ended';
 
       // 获取团队列表（动态，不固定）
@@ -120,7 +120,7 @@ Page({
       let myPersonalDiff = 0;
       
       for (const team of teams) {
-        const member = team.members.find(m => m.userId === openid);
+        const member = team.members.find(m => m.userId === userId);
         if (member) {
           myTeam = team;
           myTeamDiff = team.diffAmount;

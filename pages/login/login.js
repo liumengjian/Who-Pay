@@ -1,6 +1,7 @@
 // pages/login/login.js
 const { loginWithAccount, register } = require('../../utils/cloud.js');
-const { showLoading, hideLoading, showError, showSuccess, uploadImageForRegister } = require('../../utils/util.js');
+const { showLoading, hideLoading, showError, showSuccess, filePathToBase64 } = require('../../utils/util.js');
+const { md5 } = require('../../utils/md5.js');
 
 Page({
   data: {
@@ -12,14 +13,16 @@ Page({
     registerForm: {
       account: '',
       password: '',
+      nickName: '',
+      realName: '',
       avatarUrl: '',
       avatarTempPath: ''
     }
   },
 
   onLoad(options) {
-    const openid = wx.getStorageSync('openid');
-    if (openid) {
+    const token = wx.getStorageSync('token');
+    if (token) {
       wx.switchTab({
         url: '/pages/activity/index'
       });
@@ -50,6 +53,18 @@ Page({
     });
   },
 
+  onRegisterNickNameInput(e) {
+    this.setData({
+      'registerForm.nickName': e.detail.value
+    });
+  },
+
+  onRegisterRealNameInput(e) {
+    this.setData({
+      'registerForm.realName': e.detail.value
+    });
+  },
+
   onRegisterPasswordInput(e) {
     this.setData({
       'registerForm.password': e.detail.value
@@ -77,18 +92,21 @@ Page({
       return;
     }
 
-    this.handleLogin(account, password);
+    this.handleLogin(account, md5(password));
   },
 
   handleAdminLogin() {
-    const openid = 'admin';
+    const token = 'admin';
+    const userId = 'admin';
     const userInfo = { nickName: '管理员', avatarUrl: '/images/default-avatar.png' };
 
-    wx.setStorageSync('openid', openid);
+    wx.setStorageSync('token', token);
+    wx.setStorageSync('userId', userId);
     wx.setStorageSync('userInfo', userInfo);
 
     const app = getApp();
-    app.globalData.openid = openid;
+    app.globalData.token = token;
+    app.globalData.userId = userId;
     app.globalData.userInfo = userInfo;
 
     showSuccess('登录成功');
@@ -97,23 +115,25 @@ Page({
     });
   },
 
-  async handleLogin(account, password) {
+  async handleLogin(username, passwordMd5) {
     showLoading('登录中...');
     try {
-      const result = await loginWithAccount(account, password);
+      const result = await loginWithAccount(username, passwordMd5);
 
-      if (result && (result.openid || result.userId || result.token)) {
-        const openid = result.openid || result.userId || result.token;
-        wx.setStorageSync('openid', openid);
+      if (result && result.tokenValue && result.loginId) {
+        const token = result.tokenValue;
+        const userId = String(result.loginId);
+        wx.setStorageSync('token', token);
+        wx.setStorageSync('userId', userId);
 
+        const app = getApp();
+        app.globalData.token = token;
+        app.globalData.userId = userId;
         if (result.userInfo) {
           wx.setStorageSync('userInfo', result.userInfo);
-          const app = getApp();
-          app.globalData.openid = openid;
           app.globalData.userInfo = result.userInfo;
         } else {
-          const app = getApp();
-          app.globalData.openid = openid;
+          app.getUserInfo(userId);
         }
 
         hideLoading();
@@ -133,13 +153,20 @@ Page({
 
   async onRegister() {
     wx.vibrateShort({ type: 'light' });
-    const { account, password, avatarTempPath } = this.data.registerForm;
+    const { account, password, nickName, realName, avatarTempPath } = this.data.registerForm;
 
     if (!account || !password) {
       showError('请输入账号和密码');
       return;
     }
-
+    if (!nickName || !nickName.trim()) {
+      showError('请输入昵称');
+      return;
+    }
+    if (!realName || !realName.trim()) {
+      showError('请输入真名');
+      return;
+    }
     if (password.length < 6) {
       showError('密码长度至少6位');
       return;
@@ -147,31 +174,39 @@ Page({
 
     showLoading('注册中...');
     try {
-      let avatarUrl = '';
+      let avatar = '';
 
       if (avatarTempPath) {
         try {
-          avatarUrl = await uploadImageForRegister(avatarTempPath);
+          avatar = await filePathToBase64(avatarTempPath);
         } catch (err) {
-          console.warn('头像上传失败，使用默认头像:', err);
-          avatarUrl = '/images/default-avatar.png';
+          console.warn('头像转 base64 失败:', err);
         }
       }
 
-      const result = await register(account, password, avatarUrl);
+      const params = {
+        username: account,
+        password: md5(password),
+        nickName: nickName.trim(),
+        realName: realName.trim(),
+        avatar: avatar
+      };
+      const result = await register(params);
 
-      if (result && (result.openid || result.userId || result.token)) {
-        const openid = result.openid || result.userId || result.token;
-        wx.setStorageSync('openid', openid);
+      if (result && (result.tokenValue || result.token || result.userId)) {
+        const token = result.tokenValue || result.token || result.userId;
+        const userId = result.loginId ? String(result.loginId) : (result.userId ? String(result.userId) : token);
+        wx.setStorageSync('token', token);
+        wx.setStorageSync('userId', userId);
 
+        const app = getApp();
+        app.globalData.token = token;
+        app.globalData.userId = userId;
         if (result.userInfo) {
           wx.setStorageSync('userInfo', result.userInfo);
-          const app = getApp();
-          app.globalData.openid = openid;
           app.globalData.userInfo = result.userInfo;
         } else {
-          const app = getApp();
-          app.globalData.openid = openid;
+          app.getUserInfo(userId);
         }
 
         hideLoading();

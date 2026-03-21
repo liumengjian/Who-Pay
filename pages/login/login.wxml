@@ -68,6 +68,24 @@
       />
     </view>
     <view class="cu-form-group">
+      <view class="title"><text class="cuIcon-people text-grey"></text></view>
+      <input 
+        placeholder="请输入昵称" 
+        value="{{registerForm.nickName}}"
+        bindinput="onRegisterNickNameInput"
+        placeholder-class="text-gray"
+      />
+    </view>
+    <view class="cu-form-group">
+      <view class="title"><text class="cuIcon-people text-grey"></text></view>
+      <input 
+        placeholder="请输入真名" 
+        value="{{registerForm.realName}}"
+        bindinput="onRegisterRealNameInput"
+        placeholder-class="text-gray"
+      />
+    </view>
+    <view class="cu-form-group">
       <view class="title"><text class="cuIcon-lock text-grey"></text></view>
       <input 
         type="password"

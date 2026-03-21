@@ -2,15 +2,15 @@
 const { API_BASE_URL } = require('../service/config.js');
 
 /**
- * 获取请求头
+ * 获取请求头（所有接口携带 token）
  */
 function getHeaders() {
-  const openid = wx.getStorageSync('openid');
+  const token = wx.getStorageSync('token');
   const headers = {
     'Content-Type': 'application/json'
   };
-  if (openid) {
-    headers['Authorization'] = `Bearer ${openid}`;
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
   }
   return headers;
 }
@@ -56,24 +56,21 @@ function login(code, encryptedData, iv) {
 }
 
 /**
- * 账号密码登录
+ * 账号密码登录（password 需已 MD5 加密）
  */
-function loginWithAccount(account, password) {
+function loginWithAccount(username, password) {
   return callAPI('/api/auth/login', 'POST', {
-    account,
+    username,
     password
   });
 }
 
 /**
  * 账号密码注册
+ * @param {object} params - { username, password(MD5), nickName, realName, avatar }
  */
-function register(account, password, avatarUrl = '') {
-  return callAPI('/api/auth/register', 'POST', {
-    account,
-    password,
-    avatarUrl
-  });
+function register(params) {
+  return callAPI('/api/auth/register', 'POST', params);
 }
 
 /**
@@ -138,12 +135,10 @@ function endActivity(activityId) {
 
 /**
  * 更新用户信息
+ * @param {object} params - { id, avatar?, nickName?, realName? }
  */
-function updateUserInfo(nickName, avatarUrl) {
-  return callAPI('/api/user/update', 'POST', {
-    nickName,
-    avatarUrl
-  });
+function updateUserInfo(params) {
+  return callAPI('/api/user/update', 'PUT', params);
 }
 
 /**

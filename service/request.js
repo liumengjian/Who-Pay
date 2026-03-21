@@ -6,10 +6,10 @@
 const { API_BASE_URL } = require('./config.js');
 
 /**
- * 获取请求头（含 token）
+ * 获取请求头（所有接口携带 token）
  */
 function getHeaders() {
-  const token = wx.getStorageSync('openid'); // 兼容现有逻辑，token 存于 openid
+  const token = wx.getStorageSync('token');
   const headers = {
     'Content-Type': 'application/json'
   };

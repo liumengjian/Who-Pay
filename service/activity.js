@@ -9,7 +9,7 @@ const { request } = require('./request.js');
  * @param {string} accountId - 账号id
  */
 function getJoinedActivities(accountId) {
-  return request(`/api/activity/joined?accountId=${encodeURIComponent(accountId)}`, 'GET');
+  return request(`/api/activity/pageHistory`, 'GET');
 }
 
 /**
@@ -18,7 +18,7 @@ function getJoinedActivities(accountId) {
  * @param {string} inviteCode - 邀请码（唯一）
  */
 function createActivity(name, inviteCode) {
-  return request('/api/activity/create', 'POST', { name, inviteCode });
+  return request('/api/activity/save', 'POST', { name, inviteCode });
 }
 
 /**
