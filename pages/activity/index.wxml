@@ -21,7 +21,7 @@
         <text class="cuIcon-search text-gray margin-left-sm"></text>
         <input
           type="text"
-          placeholder="搜索活动名称"
+          placeholder='请输入'
           value="{{hallSearchKeyword}}"
           confirm-type="search"
           bindinput="onHallSearchInput"
@@ -40,13 +40,15 @@
       >
         <view class="cu-item flex padding">
           <view class="flex-sub">
-            <view class="flex-between margin-bottom-sm">
-              <text class="text-lg text-bold text-black">{{item.name}}</text>
-              <view class="cu-tag sm round bg-cyan light">{{item.teamCount}} 个团队</view>
+            <view class="flex-between margin-bottom-sm align-start">
+              <text class="text-lg text-bold text-black flex-sub">{{item.name}}</text>
+              <view class="flex align-center flex-wrap justify-end">
+                <view class="cu-tag sm round bg-cyan light">{{item.teamCount}} 个团队</view>
+                <view wx:if="{{item.inviteCode}}" class="cu-tag sm round bg-blue light margin-left-sm">邀请码 {{item.inviteCode}}</view>
+              </view>
             </view>
             <text class="text-sm text-gray">点击查看团队与成员，凭邀请码加入</text>
           </view>
-          <text class="cuIcon-right text-gray margin-left"></text>
         </view>
       </view>
     </view>

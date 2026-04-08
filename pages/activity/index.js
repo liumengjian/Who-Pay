@@ -161,6 +161,12 @@ Page({
     const activityId = String(e.currentTarget.dataset.id);
     const name = e.currentTarget.dataset.name || '';
     const joined = this.isJoinedActivity(activityId);
+    if (joined) {
+      wx.navigateTo({
+        url: `/pages/activity/detail?id=${activityId}`
+      });
+      return;
+    }
     this.setData({
       showHallDetail: true,
       hallActivityId: activityId,
