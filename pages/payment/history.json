@@ -1,5 +1,6 @@
 {
   "navigationBarTitleText": "支付流水",
+  "navigationStyle": "custom",
   "usingComponents": {
     "cu-custom": "/colorui/components/cu-custom"
   }

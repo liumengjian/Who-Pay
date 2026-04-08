@@ -13,16 +13,16 @@ Page({
     userInfo: {},
     mainTab: 'hall',
     hallActivities: [],
+    hallDisplayList: [],
+    hallSearchKeyword: '',
     myActivities: [],
     showCreate: false,
-    showJoin: false,
     showHallDetail: false,
     hallPreview: null,
     hallActivityId: '',
     hallActivityName: '',
     hallActivityJoined: false,
     activityName: '',
-    inviteCode: '',
     hallInviteInput: '',
     loadingHallPreview: false
   },
@@ -76,12 +76,25 @@ Page({
     await Promise.all([this.loadHall(), this.loadMyActivities()]);
   },
 
+  applyHallSearchFilter() {
+    const kw = (this.data.hallSearchKeyword || '').trim().toLowerCase();
+    const all = this.data.hallActivities || [];
+    const list = !kw ? all : all.filter((a) => (a.name || '').toLowerCase().includes(kw));
+    this.setData({ hallDisplayList: list });
+  },
+
+  onHallSearchInput(e) {
+    this.setData({ hallSearchKeyword: e.detail.value }, () => this.applyHallSearchFilter());
+  },
+
   async loadHall() {
     try {
       const result = await getActivityHall();
+      const list = result.activities || [];
       this.setData({
-        hallActivities: result.activities || []
-      });
+        hallActivities: list,
+        hallSearchKeyword: ''
+      }, () => this.applyHallSearchFilter());
     } catch (error) {
       console.error('加载活动大厅失败:', error);
       showError(error.message || '加载大厅失败');
@@ -121,19 +134,6 @@ Page({
   hideCreateModal() {
     this.setData({
       showCreate: false
-    });
-  },
-
-  showJoinModal() {
-    this.setData({
-      showJoin: true,
-      inviteCode: ''
-    });
-  },
-
-  hideJoinModal() {
-    this.setData({
-      showJoin: false
     });
   },
 
@@ -224,14 +224,6 @@ Page({
     });
   },
 
-  onInviteCodeInput(e) {
-    let value = e.detail.value.toUpperCase();
-    value = value.replace(/[^A-Z0-9]/g, '');
-    this.setData({
-      inviteCode: value
-    });
-  },
-
   async handleCreate() {
     const { activityName } = this.data;
     if (!activityName || activityName.trim() === '') {
@@ -261,33 +253,4 @@ Page({
     }
   },
 
-  async handleJoin() {
-    const { inviteCode } = this.data;
-    const error = validateInviteCode(inviteCode);
-    if (error) {
-      showError(error);
-      return;
-    }
-
-    showLoading('加入中...');
-    try {
-      const result = await joinActivity(inviteCode);
-      hideLoading();
-
-      if (result.activityId) {
-        this.hideJoinModal();
-        wx.navigateTo({
-          url: `/pages/activity/detail?id=${result.activityId}&needSelectTeam=true`
-        });
-      } else {
-        showSuccess('加入成功');
-        this.hideJoinModal();
-        this.refreshAll();
-      }
-    } catch (error) {
-      hideLoading();
-      console.error('加入活动失败:', error);
-      showError(error.message || '加入失败');
-    }
-  }
 });

@@ -70,6 +70,27 @@
   height: 160rpx;
 }
 
+.action-bar-single {
+  flex: 1;
+  margin-right: 0;
+}
+
+.hall-search .search-form {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  background: #f5f6f7;
+  border-radius: 999rpx;
+  padding: 0 16rpx;
+  min-height: 72rpx;
+}
+
+.hall-search .search-form input {
+  flex: 1;
+  padding: 16rpx 20rpx;
+  font-size: 28rpx;
+}
+
 /* 弹窗圆角与动画 */
 .activity-page .cu-dialog {
   width: 85%;
