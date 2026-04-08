@@ -1,21 +1,25 @@
 // pages/activity/detail.js
-const { 
-  getActivityDetail, 
-  addPayment, 
-  endActivity, 
+const {
+  getActivityDetail,
+  addPayment,
+  endActivity,
   getMemberPayments,
   createTeam,
-  joinTeam
+  joinTeamByInvite,
+  dissolveTeam,
+  leaveTeam,
+  leaveActivity
 } = require('../../utils/cloud.js');
-const { 
-  showLoading, 
-  hideLoading, 
-  showSuccess, 
-  showError, 
+const {
+  showLoading,
+  hideLoading,
+  showSuccess,
+  showError,
   copyToClipboard,
   formatAmount,
   formatDateTime,
-  validateAmount
+  validateAmount,
+  validateInviteCode
 } = require('../../utils/util.js');
 
 Page({
@@ -25,10 +29,11 @@ Page({
     teams: [],
     totalAmount: '0.00',
     shareAmount: '0.00',
-    myTeam: null, // 当前用户所在的团队
-    myTeamDiff: 0, // 我的团队需要支付/收款的金额
-    myPersonalDiff: 0, // 我个人需要支付/收款的金额
+    myTeam: null,
+    myTeamDiff: 0,
+    myPersonalDiff: 0,
     isCreator: false,
+    isTeamCreator: false,
     isEnded: false,
     showTeamSelect: false,
     showCreateTeam: false,
@@ -37,16 +42,18 @@ Page({
     paymentAmount: '',
     paymentRemark: '',
     teamName: '',
+    teamInviteCode: '',
     selectedMemberId: '',
     selectedMemberName: '',
     memberPayments: [],
-    needSelectTeam: false
+    needSelectTeam: false,
+    userId: ''
   },
 
   onLoad(options) {
     const activityId = options.id;
     const needSelectTeam = options.needSelectTeam === 'true';
-    
+
     if (!activityId) {
       showError('活动ID不存在');
       setTimeout(() => {
@@ -57,25 +64,24 @@ Page({
 
     this.setData({
       activityId: activityId,
-      needSelectTeam: needSelectTeam
+      needSelectTeam: needSelectTeam,
+      userId: wx.getStorageSync('userId') || ''
     });
 
     this.loadActivityDetail();
   },
 
   onShow() {
-    // 每次显示时刷新数据
     if (this.data.activityId) {
       this.loadActivityDetail();
     }
   },
 
-  // 加载活动详情
   async loadActivityDetail() {
     showLoading('加载中...');
     try {
       const result = await getActivityDetail(this.data.activityId);
-      
+
       if (!result || !result.activityInfo) {
         throw new Error('活动不存在');
       }
@@ -85,52 +91,49 @@ Page({
       const isCreator = activityInfo.creatorId === userId;
       const isEnded = activityInfo.status === 'ended';
 
-      // 获取团队列表（动态，不固定）
       const teamsData = result.teams || [];
-      const teamCount = teamsData.length || 1; // 至少1个团队
-      
-      // 计算总花费和团队均摊额
+      const teamCount = teamsData.length || 1;
+
       const totalAmount = parseFloat(result.totalAmount || 0);
       const shareAmount = teamCount > 0 ? totalAmount / teamCount : 0;
 
-      // 处理团队数据
-      const teams = teamsData.map(teamData => {
+      const teams = teamsData.map((teamData) => {
         const teamTotal = parseFloat(teamData.totalAmount || 0);
-        const diffAmount = teamTotal - shareAmount; // 团队差额（正数表示应收，负数表示应付）
+        const diffAmount = teamTotal - shareAmount;
         const memberCount = (teamData.members || []).length || 1;
-        const memberShareAmount = memberCount > 0 ? Math.abs(diffAmount) / memberCount : 0; // 团队成员均摊金额
+        const memberShareAmount = memberCount > 0 ? Math.abs(diffAmount) / memberCount : 0;
 
         return {
           _id: teamData._id || teamData.id,
+          id: teamData._id || teamData.id,
           name: teamData.name || teamData.teamName || '未命名团队',
+          inviteCode: teamData.inviteCode || '',
+          creatorId: teamData.creatorId || '',
           totalAmount: formatAmount(teamTotal),
           diffAmount: parseFloat(diffAmount.toFixed(2)),
           memberCount: memberCount,
           memberShareAmount: formatAmount(memberShareAmount),
-          members: (teamData.members || []).map(m => ({
+          members: (teamData.members || []).map((m) => ({
             ...m,
             totalAmount: formatAmount(m.totalAmount || 0)
           }))
         };
       });
 
-      // 查找当前用户所在的团队
       let myTeam = null;
       let myTeamDiff = 0;
       let myPersonalDiff = 0;
-      
+      let isTeamCreator = false;
+
       for (const team of teams) {
-        const member = team.members.find(m => m.userId === userId);
+        const member = team.members.find((m) => m.userId === userId);
         if (member) {
           myTeam = team;
           myTeamDiff = team.diffAmount;
-          // 计算个人需要支付/收款的金额
-          // 如果团队需要付40，团队有2个人，每人需要付20
+          isTeamCreator = String(team.creatorId) === String(userId);
           if (team.diffAmount < 0) {
-            // 团队需要付款，个人需要付的金额 = 团队应付金额 / 成员数
             myPersonalDiff = parseFloat((Math.abs(team.diffAmount) / team.memberCount).toFixed(2));
           } else if (team.diffAmount > 0) {
-            // 团队可以收款，个人可以收的金额 = 团队应收金额 / 成员数
             myPersonalDiff = parseFloat((team.diffAmount / team.memberCount).toFixed(2));
           }
           break;
@@ -146,13 +149,14 @@ Page({
         myTeamDiff: myTeamDiff,
         myPersonalDiff: myPersonalDiff,
         isCreator: isCreator,
+        isTeamCreator: isTeamCreator,
         isEnded: isEnded
       });
 
-      // 如果需要选择团队，显示选择弹窗
       if (this.data.needSelectTeam && !isEnded && !myTeam) {
         this.setData({
-          showTeamSelect: true
+          showTeamSelect: true,
+          teamInviteCode: ''
         });
       }
     } catch (error) {
@@ -166,7 +170,6 @@ Page({
     }
   },
 
-  // 复制邀请码
   async copyInviteCode() {
     const inviteCode = this.data.activityInfo.inviteCode;
     if (inviteCode) {
@@ -174,10 +177,20 @@ Page({
     }
   },
 
-  // 显示添加支付记录弹窗
+  async copyTeamInviteCode() {
+    const code = this.data.myTeam && this.data.myTeam.inviteCode;
+    if (code) {
+      await copyToClipboard(code);
+    }
+  },
+
   showAddPaymentModal() {
     if (this.data.isEnded) {
       showError('活动已结束');
+      return;
+    }
+    if (!this.data.myTeam) {
+      showError('请先加入团队');
       return;
     }
     this.setData({
@@ -187,28 +200,24 @@ Page({
     });
   },
 
-  // 隐藏添加支付记录弹窗
   hideAddPaymentModal() {
     this.setData({
       showAddPayment: false
     });
   },
 
-  // 支付金额输入
   onPaymentAmountInput(e) {
     this.setData({
       paymentAmount: e.detail.value
     });
   },
 
-  // 支付备注输入
   onPaymentRemarkInput(e) {
     this.setData({
       paymentRemark: e.detail.value
     });
   },
 
-  // 添加支付记录
   async handleAddPayment() {
     const { paymentAmount, paymentRemark } = this.data;
     const error = validateAmount(paymentAmount);
@@ -217,13 +226,30 @@ Page({
       return;
     }
 
+    const userInfo = wx.getStorageSync('userInfo') || {};
+    const userId = wx.getStorageSync('userId');
+    const username = userInfo.username || (userId === 'admin' ? 'admin' : '');
+    if (!username) {
+      showError('缺少账号信息，请重新登录');
+      return;
+    }
+    if (!this.data.myTeam) {
+      showError('请先加入团队');
+      return;
+    }
+
     showLoading('添加中...');
     try {
-      await addPayment(this.data.activityId, paymentAmount, paymentRemark);
+      await addPayment(
+        username,
+        this.data.activityId,
+        this.data.myTeam._id,
+        paymentAmount,
+        paymentRemark
+      );
       hideLoading();
       showSuccess('添加成功');
       this.hideAddPaymentModal();
-      // 刷新活动详情
       this.loadActivityDetail();
     } catch (error) {
       hideLoading();
@@ -232,7 +258,6 @@ Page({
     }
   },
 
-  // 查看成员支付记录
   async viewMemberPayments(e) {
     const userId = e.currentTarget.dataset.userid;
     const member = this.findMember(userId);
@@ -241,7 +266,7 @@ Page({
     showLoading('加载中...');
     try {
       const result = await getMemberPayments(this.data.activityId, userId);
-      const payments = (result.payments || []).map(p => ({
+      const payments = (result.payments || []).map((p) => ({
         ...p,
         createTime: formatDateTime(p.createTime)
       }));
@@ -260,30 +285,27 @@ Page({
     }
   },
 
-  // 隐藏成员支付记录弹窗
   hideMemberPayments() {
     this.setData({
       showMemberPayments: false
     });
   },
 
-  // 查找成员信息
   findMember(userId) {
     for (const team of this.data.teams) {
-      const member = team.members.find(m => m.userId === userId);
+      const member = team.members.find((m) => m.userId === userId);
       if (member) return { ...member, teamName: team.name };
     }
     return null;
   },
 
-  // 显示团队选择弹窗
   showTeamSelectModal() {
     this.setData({
-      showTeamSelect: true
+      showTeamSelect: true,
+      teamInviteCode: ''
     });
   },
 
-  // 隐藏团队选择弹窗
   hideTeamSelect() {
     this.setData({
       showTeamSelect: false,
@@ -291,7 +313,6 @@ Page({
     });
   },
 
-  // 显示创建团队弹窗
   showCreateTeamModal() {
     this.setData({
       showCreateTeam: true,
@@ -299,21 +320,26 @@ Page({
     });
   },
 
-  // 隐藏创建团队弹窗
   hideCreateTeamModal() {
     this.setData({
       showCreateTeam: false
     });
   },
 
-  // 团队名称输入
   onTeamNameInput(e) {
     this.setData({
       teamName: e.detail.value
     });
   },
 
-  // 创建新团队
+  onTeamInviteInput(e) {
+    let v = e.detail.value.toUpperCase();
+    v = v.replace(/[^A-Z0-9]/g, '');
+    this.setData({
+      teamInviteCode: v
+    });
+  },
+
   async handleCreateTeam() {
     const { teamName } = this.data;
     if (!teamName || teamName.trim() === '') {
@@ -323,12 +349,12 @@ Page({
 
     showLoading('创建中...');
     try {
-      await createTeam(this.data.activityId, teamName.trim());
+      const result = await createTeam(this.data.activityId, teamName.trim());
       hideLoading();
-      showSuccess('创建成功');
+      const code = result.inviteCode ? `，邀请码 ${result.inviteCode}` : '';
+      showSuccess(`创建成功${code}`);
       this.hideCreateTeamModal();
       this.hideTeamSelect();
-      // 刷新活动详情
       this.loadActivityDetail();
     } catch (error) {
       hideLoading();
@@ -337,17 +363,19 @@ Page({
     }
   },
 
-  // 加入现有团队
-  async handleJoinTeam(e) {
-    const teamId = e.currentTarget.dataset.teamid;
-
+  async handleJoinTeamByInvite() {
+    const code = this.data.teamInviteCode;
+    const err = validateInviteCode(code);
+    if (err) {
+      showError(err);
+      return;
+    }
     showLoading('加入中...');
     try {
-      await joinTeam(this.data.activityId, teamId);
+      await joinTeamByInvite(this.data.activityId, code);
       hideLoading();
       showSuccess('加入成功');
       this.hideTeamSelect();
-      // 刷新活动详情
       this.loadActivityDetail();
     } catch (error) {
       hideLoading();
@@ -356,7 +384,72 @@ Page({
     }
   },
 
-  // 结束活动
+  handleDissolveTeam() {
+    if (!this.data.myTeam || !this.data.isTeamCreator) return;
+    wx.showModal({
+      title: '解散团队',
+      content: '解散后团队成员将全部移除，且无法恢复，确定？',
+      success: async (res) => {
+        if (!res.confirm) return;
+        showLoading('处理中...');
+        try {
+          await dissolveTeam(this.data.myTeam._id);
+          hideLoading();
+          showSuccess('已解散');
+          this.loadActivityDetail();
+        } catch (e) {
+          hideLoading();
+          showError(e.message || '失败');
+        }
+      }
+    });
+  },
+
+  handleLeaveTeam() {
+    if (!this.data.myTeam || this.data.isTeamCreator) return;
+    wx.showModal({
+      title: '退出团队',
+      content: '确定退出当前团队？',
+      success: async (res) => {
+        if (!res.confirm) return;
+        showLoading('处理中...');
+        try {
+          await leaveTeam(this.data.myTeam._id);
+          hideLoading();
+          showSuccess('已退出团队');
+          this.loadActivityDetail();
+        } catch (e) {
+          hideLoading();
+          showError(e.message || '失败');
+        }
+      }
+    });
+  },
+
+  handleLeaveActivity() {
+    if (this.data.isCreator) {
+      showError('创建者请使用「结束活动」');
+      return;
+    }
+    wx.showModal({
+      title: '退出活动',
+      content: '将同时退出本活动下所有团队，确定？',
+      success: async (res) => {
+        if (!res.confirm) return;
+        showLoading('处理中...');
+        try {
+          await leaveActivity(this.data.activityId);
+          hideLoading();
+          showSuccess('已退出');
+          wx.navigateBack();
+        } catch (e) {
+          hideLoading();
+          showError(e.message || '失败');
+        }
+      }
+    });
+  },
+
   handleEndActivity() {
     if (!this.data.isCreator) {
       showError('只有创建人可以结束活动');
@@ -373,7 +466,6 @@ Page({
             await endActivity(this.data.activityId);
             hideLoading();
             showSuccess('活动已结束');
-            // 刷新活动详情
             this.loadActivityDetail();
           } catch (error) {
             hideLoading();
@@ -385,6 +477,5 @@ Page({
     });
   },
 
-  // 阻止事件冒泡
   stopPropagation() {}
 });

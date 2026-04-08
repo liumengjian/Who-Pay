@@ -5,9 +5,6 @@ function callAPI(path, method = 'GET', data = {}) {
   return httpRequest(path, method, data);
 }
 
-/**
- * 登录 - 获取openid和用户信息（原手机号方式，保留兼容）
- */
 function login(code, encryptedData, iv) {
   return callAPI('/api/login', 'POST', {
     code,
@@ -16,9 +13,6 @@ function login(code, encryptedData, iv) {
   });
 }
 
-/**
- * 账号密码登录（password 需已 MD5 加密）
- */
 function loginWithAccount(username, password) {
   return callAPI('/api/auth/login', 'POST', {
     username,
@@ -26,53 +20,62 @@ function loginWithAccount(username, password) {
   });
 }
 
-/**
- * 账号密码注册
- * @param {object} params - { username, password(MD5), nickName, realName, avatar }
- */
 function register(params) {
   return callAPI('/api/auth/register', 'POST', params);
 }
 
-/**
- * 创建活动
- */
+/** 活动大厅（全部进行中活动） */
+function getActivityHall() {
+  return callAPI('/api/activity/hall', 'GET');
+}
+
+/** 未加入也可查看：团队与成员预览 */
+function getActivityPreview(activityId) {
+  return callAPI(`/api/activity/${activityId}/preview`, 'GET');
+}
+
 function createActivity(name) {
   return callAPI('/api/activity/create', 'POST', {
     name
   });
 }
 
-/**
- * 加入活动
- */
 function joinActivity(inviteCode) {
   return callAPI('/api/activity/join', 'POST', {
     inviteCode
   });
 }
 
-/**
- * 获取活动详情
- */
 function getActivityDetail(activityId) {
   return callAPI(`/api/activity/${activityId}`, 'GET');
 }
 
-/**
- * 添加支付记录
- */
-function addPayment(activityId, amount, remark = '') {
+/** 已参与者查看活动下团队列表（含团队邀请码） */
+function getActivityTeams(activityId) {
+  return callAPI(`/api/activity/${activityId}/teams`, 'GET');
+}
+
+/** 团队下的成员 */
+function getTeamMembers(activityId, teamId) {
+  return callAPI(`/api/team/${teamId}/members`, 'GET', {
+    activityId
+  });
+}
+
+function leaveActivity(activityId) {
+  return callAPI(`/api/activity/${activityId}/leave`, 'POST', {});
+}
+
+function addPayment(username, activityId, teamId, amount, remark = '') {
   return callAPI('/api/payment/add', 'POST', {
+    username,
     activityId,
+    teamId: parseInt(teamId, 10),
     amount: parseFloat(amount),
     remark
   });
 }
 
-/**
- * 更新支付记录
- */
 function updatePayment(paymentId, amount, remark = '') {
   return callAPI(`/api/payment/${paymentId}`, 'PUT', {
     amount: parseFloat(amount),
@@ -80,52 +83,38 @@ function updatePayment(paymentId, amount, remark = '') {
   });
 }
 
-/**
- * 删除支付记录
- */
 function deletePayment(paymentId) {
   return callAPI(`/api/payment/${paymentId}`, 'DELETE');
 }
 
-/**
- * 结束活动
- */
 function endActivity(activityId) {
   return callAPI(`/api/activity/${activityId}/end`, 'POST');
 }
 
-/**
- * 更新用户信息
- * @param {object} params - { id, avatar?, nickName?, realName? }
- */
 function updateUserInfo(params) {
   return callAPI('/api/user/update', 'PUT', params);
 }
 
-/**
- * 获取用户参与的活动列表
- */
 function getMyActivities(status = 'active') {
   return callAPI(`/api/activity/list?status=${status}`, 'GET');
 }
 
-/**
- * 获取用户的支付记录列表
- */
 function getMyPayments(activityId) {
   return callAPI(`/api/payment/list?activityId=${activityId}`, 'GET');
 }
 
-/**
- * 获取指定成员在活动中的支付记录
- */
-function getMemberPayments(activityId, userId) {
-  return callAPI(`/api/payment/member?activityId=${activityId}&userId=${userId}`, 'GET');
+/** 历史支付流水 */
+function getPaymentHistory(params = {}) {
+  return callAPI('/api/payment/history', 'GET', params);
 }
 
-/**
- * 创建新团队
- */
+function getMemberPayments(activityId, userId) {
+  return callAPI('/api/payment/member', 'GET', {
+    activityId,
+    userId
+  });
+}
+
 function createTeam(activityId, teamName) {
   return callAPI('/api/team/create', 'POST', {
     activityId,
@@ -133,25 +122,35 @@ function createTeam(activityId, teamName) {
   });
 }
 
-/**
- * 加入现有团队
- */
-function joinTeam(activityId, teamId) {
+/** 团队唯一邀请码加入 */
+function joinTeamByInvite(activityId, inviteCode) {
   return callAPI('/api/team/join', 'POST', {
     activityId,
-    teamId
+    inviteCode
   });
 }
 
-// 导出函数
+function dissolveTeam(teamId) {
+  return callAPI(`/api/team/${teamId}/dissolve`, 'POST', {});
+}
+
+function leaveTeam(teamId) {
+  return callAPI(`/api/team/${teamId}/leave`, 'POST', {});
+}
+
 module.exports = {
   callAPI,
   login,
   loginWithAccount,
   register,
+  getActivityHall,
+  getActivityPreview,
   createActivity,
   joinActivity,
   getActivityDetail,
+  getActivityTeams,
+  getTeamMembers,
+  leaveActivity,
   addPayment,
   updatePayment,
   deletePayment,
@@ -159,7 +158,10 @@ module.exports = {
   updateUserInfo,
   getMyActivities,
   getMyPayments,
+  getPaymentHistory,
   getMemberPayments,
   createTeam,
-  joinTeam
+  joinTeamByInvite,
+  dissolveTeam,
+  leaveTeam
 };

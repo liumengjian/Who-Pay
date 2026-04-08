@@ -23,7 +23,7 @@ Page({
       const activities = (result.activities || []).map(activity => ({
         ...activity,
         totalAmount: formatAmount(activity.totalAmount || 0),
-        shareAmount: formatAmount((activity.totalAmount || 0) / 3),
+        shareAmount: formatAmount(activity.shareAmount != null ? activity.shareAmount : 0),
         endTime: formatDate(activity.endTime)
       }));
       

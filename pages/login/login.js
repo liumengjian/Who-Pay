@@ -98,7 +98,11 @@ Page({
   handleAdminLogin() {
     const token = 'admin';
     const userId = 'admin';
-    const userInfo = { nickName: '管理员', avatarUrl: '/images/default-avatar.png' };
+    const userInfo = {
+      username: 'admin',
+      nickName: '管理员',
+      avatarUrl: '/images/default-avatar.png'
+    };
 
     wx.setStorageSync('token', token);
     wx.setStorageSync('userId', userId);
@@ -130,8 +134,12 @@ Page({
         app.globalData.token = token;
         app.globalData.userId = userId;
         if (result.userInfo) {
-          wx.setStorageSync('userInfo', result.userInfo);
-          app.globalData.userInfo = result.userInfo;
+          const ui = {
+            ...result.userInfo,
+            username: result.userInfo.username || username
+          };
+          wx.setStorageSync('userInfo', ui);
+          app.globalData.userInfo = ui;
         } else {
           app.getUserInfo(userId);
         }
@@ -208,8 +216,12 @@ Page({
         app.globalData.token = token;
         app.globalData.userId = userId;
         if (result.userInfo) {
-          wx.setStorageSync('userInfo', result.userInfo);
-          app.globalData.userInfo = result.userInfo;
+          const ui = {
+            ...result.userInfo,
+            username: result.userInfo.username || account
+          };
+          wx.setStorageSync('userInfo', ui);
+          app.globalData.userInfo = ui;
         } else {
           app.getUserInfo(userId);
         }

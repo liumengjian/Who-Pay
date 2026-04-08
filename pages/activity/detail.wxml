@@ -25,6 +25,11 @@
     
     <!-- 我的结算信息 -->
     <view class="my-settlement" wx:if="{{myTeam}}">
+      <view class="team-invite-row" bindtap="copyTeamInviteCode">
+        <text class="settlement-label">团队邀请码</text>
+        <text class="invite-code-small">{{myTeam.inviteCode}}</text>
+        <text class="copy-hint">📋</text>
+      </view>
       <view class="settlement-item team-settlement">
         <text class="settlement-label">您的团队</text>
         <text class="settlement-value {{myTeamDiff >= 0 ? 'positive' : 'negative'}}">
@@ -86,6 +91,12 @@
     </view>
   </view>
 
+  <view class="extra-actions padding-sm" wx:if="{{!isEnded}}">
+    <button wx:if="{{myTeam && isTeamCreator}}" class="link-btn" bindtap="handleDissolveTeam">解散团队</button>
+    <button wx:if="{{myTeam && !isTeamCreator}}" class="link-btn" bindtap="handleLeaveTeam">退出团队</button>
+    <button wx:if="{{!isCreator}}" class="link-btn" bindtap="handleLeaveActivity">退出活动</button>
+  </view>
+
   <!-- 底部操作栏 -->
   <view class="action-bar" wx:if="{{!isEnded}}">
     <button class="add-btn" bindtap="showAddPaymentModal">+</button>
@@ -106,17 +117,9 @@
           <text>创建新团队</text>
         </view>
         
-        <!-- 现有团队列表 -->
         <view wx:if="{{teams.length > 0}}" class="teams-list">
-          <text class="section-title">加入现有团队</text>
-          <view 
-            class="team-option" 
-            wx:for="{{teams}}" 
-            wx:key="_id"
-            wx:for-item="item"
-            bindtap="handleJoinTeam"
-            data-teamid="{{item._id}}"
-          >
+          <text class="section-title">已有团队（向队长索取邀请码）</text>
+          <view class="team-option" wx:for="{{teams}}" wx:key="_id" wx:for-item="item">
             <view class="team-option-header">
               <text class="team-option-name">{{item.name}}</text>
               <text class="team-option-count">{{item.memberCount}}人</text>
@@ -126,10 +129,23 @@
             </view>
           </view>
         </view>
-        
-        <view wx:else class="empty-teams">
+
+        <view wx:if="{{teams.length === 0}}" class="empty-teams margin-bottom-sm">
           <text>暂无团队，请创建新团队</text>
         </view>
+
+        <view class="input-group margin-top">
+          <text class="input-label">团队邀请码 <text class="required">*</text></text>
+          <input
+            class="input"
+            type="text"
+            placeholder="6位大写字母或数字"
+            value="{{teamInviteCode}}"
+            bindinput="onTeamInviteInput"
+            maxlength="6"
+          />
+        </view>
+        <button class="btn-primary margin-top-sm" bindtap="handleJoinTeamByInvite">加入团队</button>
       </view>
     </view>
   </view>

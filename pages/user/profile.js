@@ -231,11 +231,10 @@ Page({
     });
   },
 
-  // 跳转到支付记录管理（需要先选择活动）
   goToPaymentManage() {
-    // 这里可以跳转到一个活动选择页面，或者直接显示当前活动的支付记录
-    // 简化处理：提示用户从活动详情页进入
-    showError('请从活动详情页进入支付记录管理');
+    wx.navigateTo({
+      url: '/pages/payment/history'
+    });
   },
 
   // 退出登录

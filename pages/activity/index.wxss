@@ -78,3 +78,21 @@
   box-shadow: 0 20rpx 60rpx rgba(102, 126, 234, 0.2);
 }
 
+.sub-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.hall-dialog {
+  max-height: 85vh;
+}
+
+.hall-scroll {
+  max-height: 60vh;
+}
+
+.hall-member {
+  width: 120rpx;
+}
+

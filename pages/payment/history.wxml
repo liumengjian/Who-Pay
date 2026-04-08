@@ -1,0 +1,17 @@
+<cu-custom bgColor="bg-gradual-blue" isBack="{{true}}">
+  <view slot="content" class="text-white">历史支付</view>
+</cu-custom>
+<view class="history-page padding">
+  <view wx:if="{{payments.length > 0}}">
+    <view class="pay-card margin-bottom" wx:for="{{payments}}" wx:key="id">
+      <view class="flex-between">
+        <text class="text-bold">{{item.activityName || '活动'}}</text>
+        <text class="text-price">¥{{item.amount}}</text>
+      </view>
+      <text class="text-gray text-sm block margin-top-xs">团队ID {{item.teamId}}</text>
+      <text wx:if="{{item.remark}}" class="text-sm block margin-top-xs">{{item.remark}}</text>
+      <text class="text-gray text-sm block margin-top-xs">{{item.createTime}}</text>
+    </view>
+  </view>
+  <view wx:else class="empty text-gray text-center padding-xl">暂无支付记录</view>
+</view>

@@ -69,6 +69,44 @@
   font-weight: bold;
 }
 
+.team-invite-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20rpx;
+  font-size: 26rpx;
+  opacity: 0.95;
+}
+
+.invite-code-small {
+  margin-left: 16rpx;
+  font-weight: bold;
+  letter-spacing: 2rpx;
+}
+
+.copy-hint {
+  margin-left: 12rpx;
+}
+
+.extra-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24rpx;
+  justify-content: center;
+  background: #f7f8fa;
+}
+
+.link-btn {
+  font-size: 26rpx;
+  color: #667eea;
+  background: transparent;
+  border: none;
+  padding: 12rpx 24rpx;
+}
+
+.link-btn::after {
+  border: none;
+}
+
 /* 我的结算信息 */
 .my-settlement {
   margin-top: 30rpx;

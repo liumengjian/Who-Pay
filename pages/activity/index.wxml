@@ -3,20 +3,53 @@
   <view slot="content" class="text-white">活动</view>
 </cu-custom>
 <view class="activity-page">
-  <!-- 头部用户信息 -->
-  <!-- <view class="header-section">
-    <view class="user-info animation-fade" bindtap="goToProfile">
-      <image class="cu-avatar round lg" src="{{userInfo.avatarUrl || '/images/default-avatar.png'}}" mode="aspectFill"></image>
-      <text class="nickname text-white">{{userInfo.nickName || '未登录'}}</text>
-    </view>
-  </view> -->
+  <view class="sub-tabs flex bg-white solid-bottom">
+    <view
+      class="flex-sub text-center padding {{mainTab === 'hall' ? 'text-blue text-bold' : 'text-gray'}}"
+      bindtap="switchTabHall"
+    >活动大厅</view>
+    <view
+      class="flex-sub text-center padding {{mainTab === 'mine' ? 'text-blue text-bold' : 'text-gray'}}"
+      bindtap="switchTabMine"
+    >我的活动</view>
+  </view>
 
-  <!-- 活动列表 -->
-  <view class="activity-list padding">
-    <view wx:if="{{activities.length > 0}}">
-      <view 
+  <!-- 活动大厅 -->
+  <view class="activity-list padding" wx:if="{{mainTab === 'hall'}}">
+    <view wx:if="{{hallActivities.length > 0}}">
+      <view
         class="cu-card dynamic margin-bottom cu-card-hover animation-scale-up"
-        wx:for="{{activities}}" 
+        wx:for="{{hallActivities}}"
+        wx:key="id"
+        bindtap="onOpenHallActivity"
+        data-id="{{item.id}}"
+        data-name="{{item.name}}"
+      >
+        <view class="cu-item flex padding">
+          <view class="flex-sub">
+            <view class="flex-between margin-bottom-sm">
+              <text class="text-lg text-bold text-black">{{item.name}}</text>
+              <view class="cu-tag sm round bg-cyan light">{{item.teamCount}} 个团队</view>
+            </view>
+            <text class="text-sm text-gray">点击查看团队与成员，凭邀请码加入</text>
+          </view>
+          <text class="cuIcon-right text-gray margin-left"></text>
+        </view>
+      </view>
+    </view>
+
+    <view wx:else class="empty-state animation-fade">
+      <text class="cuIcon-form text-blue" style="font-size: 120rpx;"></text>
+      <text class="text-df text-gray margin-top">大厅暂无进行中的活动</text>
+    </view>
+  </view>
+
+  <!-- 我的活动 -->
+  <view class="activity-list padding" wx:if="{{mainTab === 'mine'}}">
+    <view wx:if="{{myActivities.length > 0}}">
+      <view
+        class="cu-card dynamic margin-bottom cu-card-hover animation-scale-up"
+        wx:for="{{myActivities}}"
         wx:key="_id"
         bindtap="goToDetail"
         data-id="{{item._id}}"
@@ -43,18 +76,60 @@
       </view>
     </view>
 
-    <!-- 空状态 -->
     <view wx:else class="empty-state animation-fade">
       <text class="cuIcon-form text-blue" style="font-size: 120rpx;"></text>
-      <text class="text-df text-gray margin-top">暂无进行中的活动</text>
-      <text class="text-sm text-gray margin-top-sm">创建或加入一个活动开始使用吧 ✨</text>
+      <text class="text-df text-gray margin-top">您还没有加入进行中的活动</text>
+      <text class="text-sm text-gray margin-top-sm">在大厅浏览或输入邀请码加入</text>
     </view>
   </view>
 
-  <!-- 底部操作按钮 -->
   <view class="action-bar flex padding bg-white">
-    <button class="cu-btn block flex-sub bg-blue shadow round margin-right-sm" bindtap="showCreateModal" >创建活动</button>
-    <button class="cu-btn block flex-sub lines-blue round " bindtap="showJoinModal" >加入活动</button>
+    <button class="cu-btn block flex-sub bg-blue shadow round margin-right-sm" bindtap="showCreateModal">创建活动</button>
+    <button class="cu-btn block flex-sub lines-blue round" bindtap="showJoinModal">输入邀请码</button>
+  </view>
+
+  <!-- 大厅活动详情弹窗：团队 + 成员 + 加入 -->
+  <view class="cu-modal {{showHallDetail ? 'show' : ''}}" catchtap="hideHallDetailModal">
+    <view class="cu-dialog hall-dialog animation-scale-up" catchtap="stopPropagation">
+      <view class="cu-bar bg-white justify-end">
+        <view class="content text-black text-bold">{{hallActivityName || '活动'}}</view>
+        <view class="action" bindtap="hideHallDetailModal">
+          <text class="cuIcon-close text-gray"></text>
+        </view>
+      </view>
+      <scroll-view scroll-y class="hall-scroll padding" wx:if="{{!loadingHallPreview && hallPreview}}">
+        <view wx:if="{{hallActivityJoined}}" class="margin-bottom-sm">
+          <view class="cu-tag bg-green light radius">您已加入该活动</view>
+          <button class="cu-btn sm bg-blue margin-top-sm" bindtap="goHallToDetail">进入活动</button>
+        </view>
+        <view class="text-gray text-sm margin-bottom">团队与成员</view>
+        <view wx:for="{{hallPreview.teams}}" wx:key="id" wx:for-item="team" class="margin-bottom">
+          <text class="text-bold">{{team.name}}</text>
+          <view class="flex flex-wrap margin-top-xs">
+            <view wx:for="{{team.members}}" wx:key="userId" wx:for-item="mem" class="hall-member padding-xs">
+              <image class="cu-avatar sm round" src="{{mem.avatarUrl || '/images/default-avatar.png'}}" mode="aspectFill"></image>
+              <text class="text-xs block text-center margin-top-xs">{{mem.nickName}}</text>
+            </view>
+          </view>
+        </view>
+        <view wx:if="{{hallPreview.teams.length === 0}}" class="text-gray text-sm">暂无团队</view>
+
+        <view class="cu-form-group margin-top" wx:if="{{!hallActivityJoined}}">
+          <view class="title">活动邀请码</view>
+          <input
+            placeholder="6位大写字母或数字"
+            value="{{hallInviteInput}}"
+            bindinput="onHallInviteInput"
+            maxlength="6"
+            placeholder-class="text-gray"
+          />
+        </view>
+        <button wx:if="{{!hallActivityJoined}}" class="cu-btn block bg-blue margin-top" bindtap="handleHallJoinActivity">加入活动</button>
+      </scroll-view>
+      <view class="padding" wx:if="{{loadingHallPreview}}">
+        <text class="text-gray">加载中...</text>
+      </view>
+    </view>
   </view>
 
   <!-- 创建活动弹窗 -->
@@ -69,7 +144,7 @@
       <view class="padding">
         <view class="cu-form-group">
           <view class="title">活动名称</view>
-          <input 
+          <input
             placeholder="请输入活动名称"
             value="{{activityName}}"
             bindinput="onActivityNameInput"
@@ -85,7 +160,7 @@
     </view>
   </view>
 
-  <!-- 加入活动弹窗 -->
+  <!-- 输入邀请码加入 -->
   <view class="cu-modal {{showJoin ? 'show' : ''}}" catchtap="hideJoinModal">
     <view class="cu-dialog animation-scale-up" catchtap="stopPropagation">
       <view class="cu-bar bg-white justify-end">
@@ -97,7 +172,7 @@
       <view class="padding">
         <view class="cu-form-group">
           <view class="title">邀请码</view>
-          <input 
+          <input
             placeholder="请输入6位邀请码"
             value="{{inviteCode}}"
             bindinput="onInviteCodeInput"

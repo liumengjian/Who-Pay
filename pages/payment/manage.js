@@ -5,6 +5,7 @@ const { showLoading, hideLoading, showSuccess, showError, formatAmount, formatDa
 Page({
   data: {
     activityId: '',
+    teamId: '',
     payments: [],
     showModal: false,
     isEdit: false,
@@ -15,6 +16,7 @@ Page({
 
   onLoad(options) {
     const activityId = options.id;
+    const teamId = options.teamId || '';
     if (!activityId) {
       showError('活动ID不存在');
       setTimeout(() => {
@@ -24,7 +26,8 @@ Page({
     }
 
     this.setData({
-      activityId: activityId
+      activityId: activityId,
+      teamId: teamId
     });
 
     this.loadPayments();
@@ -143,8 +146,16 @@ Page({
         await updatePayment(payment._id, formAmount, formRemark);
         showSuccess('更新成功');
       } else {
-        // 添加
-        await addPayment(this.data.activityId, formAmount, formRemark);
+        const userInfo = wx.getStorageSync('userInfo') || {};
+        const userId = wx.getStorageSync('userId');
+        const username = userInfo.username || (userId === 'admin' ? 'admin' : '');
+        const tid = this.data.teamId;
+        if (!username || !tid) {
+          hideLoading();
+          showError('缺少账号或团队信息，请从活动详情页进入');
+          return;
+        }
+        await addPayment(username, this.data.activityId, tid, formAmount, formRemark);
         showSuccess('添加成功');
       }
       

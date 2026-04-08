@@ -1,0 +1,23 @@
+.history-page {
+  min-height: 100vh;
+  background: #f7f8fa;
+  padding-bottom: 48rpx;
+}
+
+.pay-card {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 28rpx;
+  box-shadow: 0 4rpx 24rpx rgba(102, 126, 234, 0.08);
+}
+
+.text-price {
+  color: #667eea;
+  font-weight: 600;
+}
+
+.flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
