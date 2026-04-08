@@ -92,6 +92,36 @@ function copyToClipboard(text) {
 }
 
 /**
+ * 压缩本地图片后再上传（减小云托管 / JSON 请求体体积，降低 callContainer 间歇失败概率）
+ * @param {string} filePath
+ * @returns {Promise<string>} 可能被替换为新的 tempFilePath；失败或无 API 时返回原路径
+ */
+function compressImageIfNeeded(filePath) {
+  if (!filePath || typeof filePath !== 'string') {
+    return Promise.resolve(filePath);
+  }
+  if (!wx.compressImage) {
+    return Promise.resolve(filePath);
+  }
+  return new Promise((resolve) => {
+    wx.compressImage({
+      src: filePath,
+      quality: 72,
+      success: (res) => resolve(res.tempFilePath || filePath),
+      fail: () => resolve(filePath)
+    });
+  });
+}
+
+/**
+ * 先压缩再转 base64，用于头像、活动图等经容器 JSON 提交的场景
+ */
+async function filePathToBase64Compressed(filePath) {
+  const path = await compressImageIfNeeded(filePath);
+  return filePathToBase64(path);
+}
+
+/**
  * 将本地文件路径转为 base64 字符串（含 data URI 前缀）
  * @param {string} filePath - 本地临时文件路径
  * @returns {Promise<string>} data:image/xxx;base64,xxxx
@@ -195,5 +225,7 @@ module.exports = {
   getUserProfile,
   validateAmount,
   validateInviteCode,
-  filePathToBase64
+  filePathToBase64,
+  compressImageIfNeeded,
+  filePathToBase64Compressed
 };

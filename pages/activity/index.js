@@ -6,7 +6,7 @@ const {
   getActivityHall,
   getActivityPreview
 } = require('../../utils/cloud.js');
-const { showLoading, hideLoading, showSuccess, showError, validateInviteCode, filePathToBase64 } = require('../../utils/util.js');
+const { showLoading, hideLoading, showSuccess, showError, validateInviteCode, filePathToBase64Compressed } = require('../../utils/util.js');
 
 Page({
   data: {
@@ -261,7 +261,7 @@ Page({
       };
       if (activityAvatarTempPath) {
         try {
-          payload.avatar = await filePathToBase64(activityAvatarTempPath);
+          payload.avatar = await filePathToBase64Compressed(activityAvatarTempPath);
         } catch (err) {
           console.warn('活动头像读取失败:', err);
         }

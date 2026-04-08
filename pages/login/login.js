@@ -1,6 +1,6 @@
 // pages/login/login.js
 const { loginWithAccount, register } = require('../../utils/cloud.js');
-const { showLoading, hideLoading, showError, showSuccess, filePathToBase64 } = require('../../utils/util.js');
+const { showLoading, hideLoading, showError, showSuccess, filePathToBase64Compressed } = require('../../utils/util.js');
 
 Page({
   data: {
@@ -174,7 +174,7 @@ Page({
 
       if (avatarTempPath) {
         try {
-          avatar = await filePathToBase64(avatarTempPath);
+          avatar = await filePathToBase64Compressed(avatarTempPath);
         } catch (err) {
           console.warn('头像转 base64 失败:', err);
         }

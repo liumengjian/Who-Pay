@@ -1,6 +1,6 @@
 // pages/user/profile.js
 const { updateUserInfo } = require('../../utils/cloud.js');
-const { showLoading, hideLoading, showSuccess, showError, chooseImage, filePathToBase64 } = require('../../utils/util.js');
+const { showLoading, hideLoading, showSuccess, showError, chooseImage, filePathToBase64Compressed } = require('../../utils/util.js');
 
 const DEFAULT_AVATARS = [
   '/images/default-user-photo/animal-_1.png',
@@ -104,7 +104,7 @@ Page({
     showLoading('设置中...');
     try {
       const tempPath = await this.copyPackageFileToTemp(packagePath);
-      const avatar = await filePathToBase64(tempPath);
+      const avatar = await filePathToBase64Compressed(tempPath);
       await this.submitUpdateUserInfo({ avatar });
       this.hideEditAvatar();
     } catch (error) {
@@ -133,7 +133,7 @@ Page({
   async uploadAvatar(filePath) {
     showLoading('上传中...');
     try {
-      const avatar = await filePathToBase64(filePath);
+      const avatar = await filePathToBase64Compressed(filePath);
       await this.submitUpdateUserInfo({ avatar });
     } catch (error) {
       console.error('上传头像失败:', error);

@@ -70,7 +70,7 @@
     <view class="cu-form-group">
       <view class="title"><text class="cuIcon-people text-grey"></text></view>
       <input 
-        placeholder="请输入账号（登录用）" 
+        placeholder="请输入账号" 
         value="{{registerForm.account}}"
         bindinput="onRegisterAccountInput"
         placeholder-class="text-gray"
