@@ -152,7 +152,6 @@ Page({
   },
 
   async onRegister() {
-    wx.vibrateShort({ type: 'light' });
     const { account, password, nickName, avatarTempPath } = this.data.registerForm;
 
     if (!account || !password) {
@@ -214,10 +213,17 @@ Page({
         }
 
         hideLoading();
-        showSuccess('注册成功');
-        wx.switchTab({
-          url: '/pages/activity/index'
+        wx.showToast({
+          title: '注册成功',
+          icon: 'success',
+          duration: 2000,
+          mask: true
         });
+        setTimeout(() => {
+          wx.switchTab({
+            url: '/pages/activity/index'
+          });
+        }, 1800);
       } else {
         throw new Error(result?.message || '注册失败，请重试');
       }

@@ -1,10 +1,10 @@
 <!--pages/login/login.wxml - ColorUI 风格 -->
-<cu-custom bgColor="bg-gradual-blue"></cu-custom>
-<view class="login-container bg-gradual-blue">
+<view class="login-page">
+  <cu-custom bgColor="bg-gradual-blue"></cu-custom>
+  <view class="login-container bg-gradual-blue">
   <view class="logo-section animation-scale-up">
     <image class="logo round shadow" src="/images/logo.png" mode="aspectFit"></image>
     <text class="app-name text-white">Who Pay</text>
-    <text class="app-desc text-white opacity-80">谁付的钱？？？</text>
   </view>
 
   <!-- 登录/注册切换 -->
@@ -47,7 +47,7 @@
   </view>
 
   <!-- 注册表单 -->
-  <view class="form-section {{currentTab === 'register' ? 'animation-slide-bottom' : ''}}" wx:if="{{currentTab === 'register'}}">
+  <view class="form-section" wx:if="{{currentTab === 'register'}}">
     <view class="avatar-section margin-bottom">
       <button class="avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
         <image 
@@ -87,5 +87,6 @@
       />
     </view>
     <button class="cu-btn block bg-white text-blue shadow lg round margin-top-lg" bindtap="onRegister" >注册</button>
+  </view>
   </view>
 </view>
