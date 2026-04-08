@@ -35,9 +35,12 @@ Page({
     isCreator: false,
     isTeamCreator: false,
     isEnded: false,
-    showTeamSelect: false,
     showCreateTeam: false,
     showAddPayment: false,
+    showJoinTeamModal: false,
+    joinTeamHintName: '',
+    showTeamInviteResult: false,
+    createdTeamInviteCode: '',
     showMemberPayments: false,
     paymentAmount: '',
     paymentRemark: '',
@@ -46,13 +49,11 @@ Page({
     selectedMemberId: '',
     selectedMemberName: '',
     memberPayments: [],
-    needSelectTeam: false,
     userId: ''
   },
 
   onLoad(options) {
     const activityId = options.id;
-    const needSelectTeam = options.needSelectTeam === 'true';
 
     if (!activityId) {
       showError('活动ID不存在');
@@ -62,9 +63,11 @@ Page({
       return;
     }
 
+    this._openCreateTeamAfterLoad =
+      options.needSelectTeam === 'true' || options.needSelectTeam === true;
+
     this.setData({
       activityId: activityId,
-      needSelectTeam: needSelectTeam,
       userId: wx.getStorageSync('userId') || ''
     });
 
@@ -73,6 +76,7 @@ Page({
 
   onShow() {
     if (this.data.activityId) {
+      this.setData({ userId: wx.getStorageSync('userId') || '' });
       this.loadActivityDetail();
     }
   },
@@ -113,6 +117,10 @@ Page({
           diffAmount: parseFloat(diffAmount.toFixed(2)),
           memberCount: memberCount,
           memberShareAmount: formatAmount(memberShareAmount),
+          iCreated: String(teamData.creatorId || '') === String(userId),
+          amMember: (teamData.members || []).some(
+            (m) => String(m.userId) === String(userId)
+          ),
           members: (teamData.members || []).map((m) => ({
             ...m,
             totalAmount: formatAmount(m.totalAmount || 0)
@@ -126,7 +134,7 @@ Page({
       let isTeamCreator = false;
 
       for (const team of teams) {
-        const member = team.members.find((m) => m.userId === userId);
+        const member = team.members.find((m) => String(m.userId) === String(userId));
         if (member) {
           myTeam = team;
           myTeamDiff = team.diffAmount;
@@ -153,10 +161,11 @@ Page({
         isEnded: isEnded
       });
 
-      if (this.data.needSelectTeam && !isEnded && !myTeam) {
+      if (this._openCreateTeamAfterLoad && !isEnded && !myTeam) {
+        this._openCreateTeamAfterLoad = false;
         this.setData({
-          showTeamSelect: true,
-          teamInviteCode: ''
+          showCreateTeam: true,
+          teamName: ''
         });
       }
     } catch (error) {
@@ -184,13 +193,17 @@ Page({
     }
   },
 
-  showAddPaymentModal() {
+  /** 右下角 +：无团队时创建团队，已在团队则记账 */
+  handlePrimaryFab() {
     if (this.data.isEnded) {
       showError('活动已结束');
       return;
     }
     if (!this.data.myTeam) {
-      showError('请先加入团队');
+      this.setData({
+        showCreateTeam: true,
+        teamName: ''
+      });
       return;
     }
     this.setData({
@@ -293,24 +306,59 @@ Page({
 
   findMember(userId) {
     for (const team of this.data.teams) {
-      const member = team.members.find((m) => m.userId === userId);
+      const member = team.members.find((m) => String(m.userId) === String(userId));
       if (member) return { ...member, teamName: team.name };
     }
     return null;
   },
 
-  showTeamSelectModal() {
+  /** 点击团队卡片：非本人创建且未加入时可输入邀请码加入（类似活动大厅） */
+  onTeamCardTap(e) {
+    if (this.data.isEnded) return;
+    const id = String(e.currentTarget.dataset.id || '');
+    const team = (this.data.teams || []).find((t) => String(t._id) === id);
+    if (!team) return;
+    const uid = this.data.userId || wx.getStorageSync('userId');
+    if (team.iCreated || String(team.creatorId) === String(uid)) return;
+    if (team.amMember) return;
+    if (this.data.myTeam) {
+      showError('您已在其他团队中，请先退出后再加入');
+      return;
+    }
     this.setData({
-      showTeamSelect: true,
+      showJoinTeamModal: true,
+      joinTeamHintName: team.name || '',
       teamInviteCode: ''
     });
   },
 
-  hideTeamSelect() {
+  hideJoinTeamModal() {
     this.setData({
-      showTeamSelect: false,
-      needSelectTeam: false
+      showJoinTeamModal: false,
+      joinTeamHintName: '',
+      teamInviteCode: ''
     });
+  },
+
+  async onCopyTeamCardInvite(e) {
+    const code = e.currentTarget.dataset.code;
+    if (code) {
+      await copyToClipboard(String(code));
+    }
+  },
+
+  hideTeamInviteResult() {
+    this.setData({
+      showTeamInviteResult: false,
+      createdTeamInviteCode: ''
+    });
+  },
+
+  async copyCreatedTeamInvite() {
+    const code = this.data.createdTeamInviteCode;
+    if (code) {
+      await copyToClipboard(code);
+    }
   },
 
   showCreateTeamModal() {
@@ -351,11 +399,17 @@ Page({
     try {
       const result = await createTeam(this.data.activityId, teamName.trim());
       hideLoading();
-      const code = result.inviteCode ? `，邀请码 ${result.inviteCode}` : '';
-      showSuccess(`创建成功${code}`);
       this.hideCreateTeamModal();
-      this.hideTeamSelect();
-      this.loadActivityDetail();
+      const code = result.inviteCode ? String(result.inviteCode) : '';
+      if (code) {
+        this.setData({
+          createdTeamInviteCode: code,
+          showTeamInviteResult: true
+        });
+      } else {
+        showSuccess('创建成功');
+      }
+      await this.loadActivityDetail();
     } catch (error) {
       hideLoading();
       console.error('创建团队失败:', error);
@@ -375,8 +429,8 @@ Page({
       await joinTeamByInvite(this.data.activityId, code);
       hideLoading();
       showSuccess('加入成功');
-      this.hideTeamSelect();
-      this.loadActivityDetail();
+      this.hideJoinTeamModal();
+      await this.loadActivityDetail();
     } catch (error) {
       hideLoading();
       console.error('加入团队失败:', error);

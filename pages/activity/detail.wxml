@@ -15,7 +15,7 @@
       </view>
       <view class="invite-code-box" bindtap="copyInviteCode">
         <text class="invite-code">{{activityInfo.inviteCode || ''}}</text>
-        <text class="copy-icon">📋</text>
+    <image class="copy-icon" src="/images/copy.png" mode="aspectFit"></image>
       </view>
     </view>
     <view class="amount-info">
@@ -57,14 +57,27 @@
 
   <!-- 团队看板 -->
   <view class="teams-section">
+    <view wx:if="{{teams.length === 0 && !isEnded}}" class="teams-empty-hint text-gray text-sm padding-lr margin-bottom-sm">
+      暂无团队，点击右下角 + 创建团队
+    </view>
     <view 
-      class="team-card" 
+      class="team-card {{!myTeam && !team.iCreated && !team.amMember ? 'team-card-joinable' : ''}}" 
       wx:for="{{teams}}" 
-      wx:key="team"
+      wx:key="_id"
       wx:for-item="team"
+      bindtap="onTeamCardTap"
+      data-id="{{team._id}}"
     >
       <view class="team-header">
-        <text class="team-name">{{team.name}}</text>
+        <view class="team-title-block flex-sub">
+          <text class="team-name">{{team.name}}</text>
+          <view wx:if="{{team.iCreated && team.inviteCode}}" class="team-card-invite-row" catchtap="onCopyTeamCardInvite" data-code="{{team.inviteCode}}">
+            <text class="team-invite-label">团队邀请码</text>
+            <text class="team-invite-code-text">{{team.inviteCode}}</text>
+            <text class="copy-hint">📋</text>
+          </view>
+          <text wx:if="{{!myTeam && !team.iCreated && !team.amMember}}" class="team-tap-hint">点此输入邀请码加入</text>
+        </view>
         <view class="team-stats">
           <text class="team-total">支付: ¥{{team.totalAmount}}</text>
           <text class="team-diff {{team.diffAmount >= 0 ? 'positive' : 'negative'}}">
@@ -81,7 +94,7 @@
           wx:for="{{team.members}}" 
           wx:key="userId"
           wx:for-item="member"
-          bindtap="viewMemberPayments"
+          catchtap="viewMemberPayments"
           data-userid="{{member.userId}}"
         >
           <image class="member-avatar" src="{{member.avatarUrl || '/images/default-avatar.png'}}" mode="aspectFill"></image>
@@ -105,42 +118,20 @@
 
   <!-- 底部操作栏 -->
   <view class="action-bar" wx:if="{{!isEnded}}">
-    <button class="add-btn" bindtap="showAddPaymentModal">+</button>
+    <button class="add-btn" bindtap="handlePrimaryFab">+</button>
     <button wx:if="{{isCreator}}" class="end-btn" bindtap="handleEndActivity">结束活动</button>
   </view>
 
-  <!-- 选择团队弹窗 -->
-  <view class="modal {{showTeamSelect ? 'show' : ''}}" catchtap="hideTeamSelect">
-    <view class="modal-content team-select-content" catchtap="stopPropagation">
+  <!-- 加入团队（邀请码） -->
+  <view class="modal {{showJoinTeamModal ? 'show' : ''}}" catchtap="hideJoinTeamModal">
+    <view class="modal-content" catchtap="stopPropagation">
       <view class="modal-header">
-        <text class="modal-title">选择团队</text>
-        <text class="modal-close" bindtap="hideTeamSelect">×</text>
+        <view class="modal-title">加入团队<text wx:if="{{joinTeamHintName}}">「{{joinTeamHintName}}」</text></view>
+        <text class="modal-close" bindtap="hideJoinTeamModal">×</text>
       </view>
       <view class="modal-body">
-        <!-- 创建新团队按钮 -->
-        <view class="create-team-btn" bindtap="showCreateTeamModal">
-          <text class="create-icon">+</text>
-          <text>创建新团队</text>
-        </view>
-        
-        <view wx:if="{{teams.length > 0}}" class="teams-list">
-          <text class="section-title">已有团队（向队长索取邀请码）</text>
-          <view class="team-option" wx:for="{{teams}}" wx:key="_id" wx:for-item="item">
-            <view class="team-option-header">
-              <text class="team-option-name">{{item.name}}</text>
-              <text class="team-option-count">{{item.memberCount}}人</text>
-            </view>
-            <view class="team-option-info">
-              <text class="team-option-amount">已支付: ¥{{item.totalAmount}}</text>
-            </view>
-          </view>
-        </view>
-
-        <view wx:if="{{teams.length === 0}}" class="empty-teams margin-bottom-sm">
-          <text>暂无团队，请创建新团队</text>
-        </view>
-
-        <view class="input-group margin-top">
+        <text class="text-gray text-sm block margin-bottom-sm">请输入该团队的 6 位邀请码</text>
+        <view class="input-group">
           <text class="input-label">团队邀请码 <text class="required">*</text></text>
           <input
             class="input"
@@ -152,6 +143,24 @@
           />
         </view>
         <button class="btn-primary margin-top-sm" bindtap="handleJoinTeamByInvite">加入团队</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 创建团队成功：邀请码（可分享给成员） -->
+  <view class="modal {{showTeamInviteResult ? 'show' : ''}}" catchtap="hideTeamInviteResult">
+    <view class="modal-content team-invite-result-content" catchtap="stopPropagation">
+      <view class="modal-header">
+        <text class="modal-title">团队创建成功</text>
+        <text class="modal-close" bindtap="hideTeamInviteResult">×</text>
+      </view>
+      <view class="modal-body align-center">
+        <text class="text-gray text-sm margin-bottom-sm">团队邀请码（分享给成员即可加入）</text>
+        <view class="created-invite-code-box" bindtap="copyCreatedTeamInvite">
+          <text class="created-invite-code">{{createdTeamInviteCode}}</text>
+    <image class="copy-icon" src="/images/copy.png" mode="aspectFit"></image>
+        </view>
+        <button class="btn-primary margin-top-lg block" bindtap="hideTeamInviteResult">完成</button>
       </view>
     </view>
   </view>

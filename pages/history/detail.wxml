@@ -9,7 +9,7 @@
       <text class="activity-name">{{activityInfo.name || ''}}</text>
       <view class="invite-code-box" bindtap="copyInviteCode">
         <text class="invite-code">{{activityInfo.inviteCode || ''}}</text>
-        <text class="copy-icon">📋</text>
+    <image class="copy-icon" src="/images/copy.png" mode="aspectFit"></image>
       </view>
     </view>
     <view class="amount-info">
