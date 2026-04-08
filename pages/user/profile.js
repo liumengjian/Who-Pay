@@ -175,7 +175,10 @@ Page({
       return;
     }
 
-    const id = currentUserInfo.id || parseInt(userId, 10) || userId;
+    const id =
+      currentUserInfo.id != null && currentUserInfo.id !== ''
+        ? currentUserInfo.id
+        : parseInt(userId, 10) || userId;
     const params = { id };
     if (fields.nickName !== undefined) params.nickName = fields.nickName;
     if (fields.realName !== undefined) params.realName = fields.realName;

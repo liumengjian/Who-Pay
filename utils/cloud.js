@@ -1,47 +1,8 @@
-// utils/cloud.js - API调用封装（兼容层，新接口请使用 service/）
-const { API_BASE_URL } = require('../service/config.js');
+// utils/cloud.js - API 调用（与 service/request 一致：支持云托管 callContainer）
+const { request: httpRequest } = require('../service/request.js');
 
-/**
- * 获取请求头（所有接口携带 token）
- */
-function getHeaders() {
-  const token = wx.getStorageSync('token');
-  const headers = {
-    'Content-Type': 'application/json'
-  };
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-  return headers;
-}
-
-/**
- * 调用API接口
- */
 function callAPI(path, method = 'GET', data = {}) {
-  return new Promise((resolve, reject) => {
-    wx.request({
-      url: `${API_BASE_URL}${path}`,
-      method: method,
-      data: data,
-      header: getHeaders(),
-      success: res => {
-        if (res.statusCode === 200) {
-          if (res.data && res.data.success === false) {
-            reject(new Error(res.data.message || '操作失败'));
-          } else {
-            resolve(res.data);
-          }
-        } else {
-          reject(new Error(`请求失败: ${res.statusCode}`));
-        }
-      },
-      fail: err => {
-        console.error(`调用API ${path} 失败:`, err);
-        reject(err);
-      }
-    });
-  });
+  return httpRequest(path, method, data);
 }
 
 /**

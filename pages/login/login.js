@@ -120,7 +120,7 @@ Page({
     try {
       const result = await loginWithAccount(username, passwordMd5);
 
-      if (result && result.tokenValue && result.loginId) {
+      if (result && result.tokenValue && result.loginId != null) {
         const token = result.tokenValue;
         const userId = String(result.loginId);
         wx.setStorageSync('token', token);
@@ -195,7 +195,12 @@ Page({
 
       if (result && (result.tokenValue || result.token || result.userId)) {
         const token = result.tokenValue || result.token || result.userId;
-        const userId = result.loginId ? String(result.loginId) : (result.userId ? String(result.userId) : token);
+        const userId =
+          result.loginId != null
+            ? String(result.loginId)
+            : result.userId != null
+              ? String(result.userId)
+              : token;
         wx.setStorageSync('token', token);
         wx.setStorageSync('userId', userId);
 

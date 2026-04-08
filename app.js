@@ -1,8 +1,15 @@
 // app.js
+const { CLOUD_ENV } = require('./service/config.js');
 const { callAPI } = require('./utils/cloud.js');
 
 App({
   onLaunch() {
+    if (wx.cloud) {
+      wx.cloud.init({
+        env: CLOUD_ENV,
+        traceUser: true
+      });
+    }
     // 获取系统信息，用于 cu-custom 导航栏
     wx.getSystemInfo({
       success: e => {
