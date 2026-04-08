@@ -6,7 +6,7 @@ const {
   getActivityHall,
   getActivityPreview
 } = require('../../utils/cloud.js');
-const { showLoading, hideLoading, showSuccess, showError, validateInviteCode } = require('../../utils/util.js');
+const { showLoading, hideLoading, showSuccess, showError, validateInviteCode, filePathToBase64 } = require('../../utils/util.js');
 
 Page({
   data: {
@@ -23,6 +23,9 @@ Page({
     hallActivityName: '',
     hallActivityJoined: false,
     activityName: '',
+    activitySlogan: '',
+    activityAvatarUrl: '',
+    activityAvatarTempPath: '',
     hallInviteInput: '',
     loadingHallPreview: false
   },
@@ -125,9 +128,14 @@ Page({
   },
 
   showCreateModal() {
+    const ui = this.data.userInfo || {};
+    const defAvatar = ui.avatarUrl || '/images/default-avatar.png';
     this.setData({
       showCreate: true,
-      activityName: ''
+      activityName: '',
+      activitySlogan: '',
+      activityAvatarUrl: defAvatar,
+      activityAvatarTempPath: ''
     });
   },
 
@@ -224,8 +232,22 @@ Page({
     });
   },
 
+  onActivitySloganInput(e) {
+    this.setData({
+      activitySlogan: e.detail.value
+    });
+  },
+
+  onChooseActivityAvatar(e) {
+    const { avatarUrl } = e.detail;
+    this.setData({
+      activityAvatarUrl: avatarUrl,
+      activityAvatarTempPath: avatarUrl
+    });
+  },
+
   async handleCreate() {
-    const { activityName } = this.data;
+    const { activityName, activitySlogan, activityAvatarTempPath } = this.data;
     if (!activityName || activityName.trim() === '') {
       showError('请输入活动名称');
       return;
@@ -233,7 +255,18 @@ Page({
 
     showLoading('创建中...');
     try {
-      const result = await createActivity(activityName.trim());
+      const payload = {
+        name: activityName.trim(),
+        slogan: (activitySlogan || '').trim()
+      };
+      if (activityAvatarTempPath) {
+        try {
+          payload.avatar = await filePathToBase64(activityAvatarTempPath);
+        } catch (err) {
+          console.warn('活动头像读取失败:', err);
+        }
+      }
+      const result = await createActivity(payload);
       hideLoading();
       const invite = result.inviteCode ? `，邀请码 ${result.inviteCode}` : '';
       showSuccess(`创建成功${invite}`);

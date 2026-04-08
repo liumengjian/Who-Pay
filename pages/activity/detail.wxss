@@ -21,13 +21,42 @@
 .activity-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 30rpx;
+  gap: 16rpx;
+}
+
+.activity-header-main {
+  display: flex;
+  align-items: flex-start;
+  flex: 1;
+  min-width: 0;
+}
+
+.detail-act-avatar {
+  width: 100rpx;
+  height: 100rpx;
+  flex-shrink: 0;
+  margin-right: 20rpx;
+  border: 2rpx solid rgba(255, 255, 255, 0.4);
+}
+
+.activity-header-text {
+  min-width: 0;
 }
 
 .activity-name {
   font-size: 40rpx;
   font-weight: bold;
+  display: block;
+}
+
+.activity-slogan {
+  display: block;
+  font-size: 26rpx;
+  opacity: 0.9;
+  margin-top: 12rpx;
+  line-height: 1.4;
 }
 
 .invite-code-box {

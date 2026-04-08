@@ -43,12 +43,6 @@
   margin-bottom: 12rpx;
 }
 
-.phone,
-.realname {
-  font-size: 28rpx;
-  color: rgba(255, 255, 255, 0.85);
-}
-
 .edit-icon {
   font-size: 32rpx;
   color: rgba(255, 255, 255, 0.9);

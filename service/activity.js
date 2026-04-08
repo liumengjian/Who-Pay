@@ -13,12 +13,13 @@ function getJoinedActivities(accountId) {
 }
 
 /**
- * 6. 创建活动
- * @param {string} name - 活动名称
- * @param {string} inviteCode - 邀请码（唯一）
+ * 6. 创建活动（服务端生成邀请码）
+ * @param {string|object} payload - 名称字符串，或 { name, slogan?, avatar? }
  */
-function createActivity(name, inviteCode) {
-  return request('/api/activity/save', 'POST', { name, inviteCode });
+function createActivity(payload) {
+  const body =
+    typeof payload === 'string' ? { name: payload } : { ...payload };
+  return request('/api/activity/create', 'POST', body);
 }
 
 /**

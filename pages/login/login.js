@@ -1,7 +1,6 @@
 // pages/login/login.js
 const { loginWithAccount, register } = require('../../utils/cloud.js');
 const { showLoading, hideLoading, showError, showSuccess, filePathToBase64 } = require('../../utils/util.js');
-const { md5 } = require('../../utils/md5.js');
 
 Page({
   data: {
@@ -14,7 +13,6 @@ Page({
       account: '',
       password: '',
       nickName: '',
-      realName: '',
       avatarUrl: '',
       avatarTempPath: ''
     }
@@ -59,12 +57,6 @@ Page({
     });
   },
 
-  onRegisterRealNameInput(e) {
-    this.setData({
-      'registerForm.realName': e.detail.value
-    });
-  },
-
   onRegisterPasswordInput(e) {
     this.setData({
       'registerForm.password': e.detail.value
@@ -92,7 +84,7 @@ Page({
       return;
     }
 
-    this.handleLogin(account, md5(password));
+    this.handleLogin(account, password);
   },
 
   handleAdminLogin() {
@@ -119,10 +111,10 @@ Page({
     });
   },
 
-  async handleLogin(username, passwordMd5) {
+  async handleLogin(username, passwordPlain) {
     showLoading('登录中...');
     try {
-      const result = await loginWithAccount(username, passwordMd5);
+      const result = await loginWithAccount(username, passwordPlain);
 
       if (result && result.tokenValue && result.loginId != null) {
         const token = result.tokenValue;
@@ -161,18 +153,14 @@ Page({
 
   async onRegister() {
     wx.vibrateShort({ type: 'light' });
-    const { account, password, nickName, realName, avatarTempPath } = this.data.registerForm;
+    const { account, password, nickName, avatarTempPath } = this.data.registerForm;
 
     if (!account || !password) {
       showError('请输入账号和密码');
       return;
     }
     if (!nickName || !nickName.trim()) {
-      showError('请输入昵称');
-      return;
-    }
-    if (!realName || !realName.trim()) {
-      showError('请输入真名');
+      showError('请输入用户名');
       return;
     }
     if (password.length < 6) {
@@ -194,9 +182,8 @@ Page({
 
       const params = {
         username: account,
-        password: md5(password),
+        password,
         nickName: nickName.trim(),
-        realName: realName.trim(),
         avatar: avatar
       };
       const result = await register(params);

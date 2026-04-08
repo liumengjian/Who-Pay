@@ -34,10 +34,11 @@ function getActivityPreview(activityId) {
   return callAPI(`/api/activity/${activityId}/preview`, 'GET');
 }
 
-function createActivity(name) {
-  return callAPI('/api/activity/create', 'POST', {
-    name
-  });
+/** @param {string|object} payload 活动名称字符串，或 { name, slogan?, avatar? } */
+function createActivity(payload) {
+  const body =
+    typeof payload === 'string' ? { name: payload } : { ...payload };
+  return callAPI('/api/activity/create', 'POST', body);
 }
 
 function joinActivity(inviteCode) {

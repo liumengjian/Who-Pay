@@ -6,7 +6,13 @@
   <!-- 概览区 -->
   <view class="overview-section">
     <view class="activity-header">
-      <text class="activity-name">{{activityInfo.name || ''}}</text>
+      <view class="activity-header-main">
+        <image wx:if="{{activityInfo.avatarUrl}}" class="detail-act-avatar round" src="{{activityInfo.avatarUrl}}" mode="aspectFill"></image>
+        <view class="activity-header-text flex-sub">
+          <text class="activity-name">{{activityInfo.name || ''}}</text>
+          <text wx:if="{{activityInfo.slogan}}" class="activity-slogan">{{activityInfo.slogan}}</text>
+        </view>
+      </view>
       <view class="invite-code-box" bindtap="copyInviteCode">
         <text class="invite-code">{{activityInfo.inviteCode || ''}}</text>
         <text class="copy-icon">📋</text>

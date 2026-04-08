@@ -24,9 +24,7 @@ Page({
     userInfo: {},
     showEditNickname: false,
     showEditAvatar: false,
-    showEditRealName: false,
     editNickname: '',
-    editRealName: '',
     defaultAvatars: DEFAULT_AVATARS
   },
 
@@ -44,8 +42,7 @@ Page({
     const userInfo = wx.getStorageSync('userInfo') || app.globalData.userInfo || {};
     this.setData({
       userInfo: userInfo,
-      editNickname: userInfo.nickName || '',
-      editRealName: userInfo.realName || ''
+      editNickname: userInfo.nickName || ''
     });
   },
 
@@ -75,26 +72,6 @@ Page({
   hideEditNickname() {
     this.setData({
       showEditNickname: false
-    });
-  },
-
-  // 编辑真名
-  editRealName() {
-    this.setData({
-      showEditRealName: true,
-      editRealName: this.data.userInfo.realName || ''
-    });
-  },
-
-  hideEditRealName() {
-    this.setData({
-      showEditRealName: false
-    });
-  },
-
-  onRealNameInput(e) {
-    this.setData({
-      editRealName: e.detail.value
     });
   },
 
@@ -181,7 +158,6 @@ Page({
         : parseInt(userId, 10) || userId;
     const params = { id };
     if (fields.nickName !== undefined) params.nickName = fields.nickName;
-    if (fields.realName !== undefined) params.realName = fields.realName;
     if (fields.avatar !== undefined) params.avatar = fields.avatar;
 
     try {
@@ -189,7 +165,6 @@ Page({
       const updatedUserInfo = {
         ...currentUserInfo,
         ...(fields.nickName !== undefined && { nickName: fields.nickName }),
-        ...(fields.realName !== undefined && { realName: fields.realName }),
         ...(fields.avatar !== undefined && { avatarUrl: fields.avatar, avatar: fields.avatar })
       };
       wx.setStorageSync('userInfo', updatedUserInfo);
@@ -211,17 +186,6 @@ Page({
     }
     await this.submitUpdateUserInfo({ nickName: editNickname.trim() });
     this.hideEditNickname();
-  },
-
-  // 更新真名
-  async handleUpdateRealName() {
-    const { editRealName } = this.data;
-    if (!editRealName || !editRealName.trim()) {
-      showError('请输入真名');
-      return;
-    }
-    await this.submitUpdateUserInfo({ realName: editRealName.trim() });
-    this.hideEditRealName();
   },
 
   // 跳转到历史活动

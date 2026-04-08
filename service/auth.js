@@ -5,9 +5,9 @@
 const { request } = require('./request.js');
 
 /**
- * 1. 登录接口（password 需已 MD5 加密）
+ * 1. 登录接口
  * @param {string} username - 账号
- * @param {string} password - 密码 MD5
+ * @param {string} password - 明文密码
  */
 function login(username, password) {
   return request('/api/user/login', 'POST', { username, password });
@@ -15,7 +15,7 @@ function login(username, password) {
 
 /**
  * 2. 注册接口
- * @param {object} params - { username, password(MD5), nickName, realName, avatar? }
+ * @param {object} params - { username, password, nickName, avatar? }
  */
 function register(params) {
   return request('/api/user/register', 'POST', params);

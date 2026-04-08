@@ -88,7 +88,7 @@ Page({
 
       const activityInfo = result.activityInfo;
       const userId = wx.getStorageSync('userId');
-      const isCreator = activityInfo.creatorId === userId;
+      const isCreator = String(activityInfo.creatorId) === String(userId);
       const isEnded = activityInfo.status === 'ended';
 
       const teamsData = result.teams || [];

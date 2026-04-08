@@ -61,7 +61,7 @@
     </view>
   </view>
 
-  <!-- 我的活动 -->
+  <!-- 我的活动：创建者展示邀请码；参与者展示头像、宣言、团队与成员 -->
   <view class="activity-list padding" wx:if="{{mainTab === 'mine'}}">
     <view wx:if="{{myActivities.length > 0}}">
       <view
@@ -71,24 +71,50 @@
         bindtap="goToDetail"
         data-id="{{item._id}}"
       >
-        <view class="cu-item flex padding">
-          <view class="flex-sub">
-            <view class="flex-between margin-bottom-sm">
-              <text class="text-lg text-bold text-black">{{item.name}}</text>
-              <view class="cu-tag sm round bg-blue light">邀请码: {{item.inviteCode}}</view>
-            </view>
-            <view class="flex">
-              <view class="stat-item flex-sub text-center">
-                <text class="text-gray text-sm">总花费</text>
-                <text class="text-blue text-bold block margin-top-xs">¥{{item.totalAmount || '0.00'}}</text>
+        <view class="cu-item padding">
+          <!-- 我是创建者 -->
+          <view class="flex" wx:if="{{item.isCreator}}">
+            <image class="mine-act-avatar round" src="{{item.avatarUrl || '/images/default-avatar.png'}}" mode="aspectFill"></image>
+            <view class="flex-sub margin-left-sm">
+              <view class="flex-between margin-bottom-sm align-start">
+                <text class="text-lg text-bold text-black flex-sub">{{item.name}}</text>
+                <view class="cu-tag sm round bg-blue light margin-left-sm">邀请码 {{item.inviteCode}}</view>
               </view>
-              <view class="stat-item flex-sub text-center">
-                <text class="text-gray text-sm">均摊额</text>
-                <text class="text-blue text-bold block margin-top-xs">¥{{item.shareAmount || '0.00'}}</text>
+              <text wx:if="{{item.slogan}}" class="text-sm text-gray block margin-bottom-sm">{{item.slogan}}</text>
+              <view class="flex">
+                <view class="stat-item flex-sub text-center">
+                  <text class="text-gray text-sm">总花费</text>
+                  <text class="text-blue text-bold block margin-top-xs">¥{{item.totalAmount || '0.00'}}</text>
+                </view>
+                <view class="stat-item flex-sub text-center">
+                  <text class="text-gray text-sm">均摊额</text>
+                  <text class="text-blue text-bold block margin-top-xs">¥{{item.shareAmount || '0.00'}}</text>
+                </view>
               </view>
             </view>
+            <text class="cuIcon-right text-gray margin-left-sm self-center"></text>
           </view>
-          <text class="cuIcon-right text-gray margin-left"></text>
+          <!-- 参与者 -->
+          <view wx:else>
+            <view class="flex margin-bottom-sm">
+              <image class="mine-act-avatar round" src="{{item.avatarUrl || '/images/default-avatar.png'}}" mode="aspectFill"></image>
+              <view class="flex-sub margin-left-sm">
+                <text class="text-lg text-bold text-black block">{{item.name}}</text>
+                <text wx:if="{{item.slogan}}" class="text-sm text-gray block margin-top-xs">{{item.slogan}}</text>
+              </view>
+              <text class="cuIcon-right text-gray margin-left-sm self-center"></text>
+            </view>
+            <view class="mine-team-block margin-top-sm" wx:for="{{item.teams}}" wx:key="id" wx:for-item="team">
+              <text class="text-bold text-black">{{team.name}}</text>
+              <view class="flex flex-wrap margin-top-xs">
+                <view wx:for="{{team.members}}" wx:key="userId" wx:for-item="mem" class="mine-member padding-xs">
+                  <image class="cu-avatar sm round" src="{{mem.avatarUrl || '/images/default-avatar.png'}}" mode="aspectFill"></image>
+                  <text class="text-xs block text-center margin-top-xs">{{mem.nickName}}</text>
+                </view>
+              </view>
+            </view>
+            <view wx:if="{{item.teams.length === 0}}" class="text-gray text-sm margin-top-sm">暂无团队</view>
+          </view>
         </view>
       </view>
     </view>
@@ -158,15 +184,32 @@
         </view>
       </view>
       <view class="padding">
+        <view class="create-avatar-row margin-bottom">
+          <button class="avatar-pick-btn" open-type="chooseAvatar" bindchooseavatar="onChooseActivityAvatar">
+            <image class="create-act-avatar round" src="{{activityAvatarUrl || '/images/default-avatar.png'}}" mode="aspectFill"></image>
+            <text class="text-gray text-sm margin-top-xs block text-center">活动头像（默认与您的头像一致）</text>
+          </button>
+        </view>
         <view class="cu-form-group">
           <view class="title">活动名称</view>
           <input
-            placeholder="请输入活动名称"
+            placeholder="必填"
             value="{{activityName}}"
             bindinput="onActivityNameInput"
-            maxlength="20"
+            maxlength="128"
             placeholder-class="text-gray"
           />
+        </view>
+        <view class="cu-form-group">
+          <view class="title">活动宣言</view>
+          <textarea
+            placeholder="选填，一句话介绍活动"
+            value="{{activitySlogan}}"
+            bindinput="onActivitySloganInput"
+            maxlength="512"
+            auto-height
+            placeholder-class="text-gray"
+          ></textarea>
         </view>
       </view>
       <view class="cu-bar padding justify-end bg-grey light">

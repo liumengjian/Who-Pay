@@ -117,3 +117,50 @@
   width: 120rpx;
 }
 
+.mine-act-avatar {
+  width: 112rpx;
+  height: 112rpx;
+  flex-shrink: 0;
+}
+
+.mine-team-block {
+  padding-top: 16rpx;
+  border-top: 1rpx solid #eee;
+}
+
+.mine-member {
+  width: 100rpx;
+}
+
+.align-start {
+  align-items: flex-start;
+}
+
+.self-center {
+  align-self: center;
+}
+
+.create-avatar-row {
+  display: flex;
+  justify-content: center;
+}
+
+.avatar-pick-btn {
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  line-height: 1.4;
+  border: none;
+}
+
+.avatar-pick-btn::after {
+  border: none;
+}
+
+.create-act-avatar {
+  width: 140rpx;
+  height: 140rpx;
+  display: block;
+  margin: 0 auto;
+}
+
