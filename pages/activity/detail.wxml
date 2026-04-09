@@ -130,8 +130,8 @@
     <button wx:if="{{isCreator}}" class="end-btn" bindtap="handleEndActivity">结束活动</button>
   </view>
 
-  <!-- 加入团队（邀请码） -->
-  <view class="modal {{showJoinTeamModal ? 'show' : ''}}" catchtap="hideJoinTeamModal">
+  <!-- 加入团队（邀请码）；wx:if 避免 iOS 原生 input placeholder 穿透 -->
+  <view wx:if="{{showJoinTeamModal}}" class="modal show" catchtap="hideJoinTeamModal">
     <view class="modal-content" catchtap="stopPropagation">
       <view class="modal-header">
         <view class="modal-title">加入团队<text wx:if="{{joinTeamHintName}}">「{{joinTeamHintName}}」</text></view>
@@ -156,7 +156,7 @@
   </view>
 
   <!-- 创建团队成功：邀请码（可分享给成员） -->
-  <view class="modal {{showTeamInviteResult ? 'show' : ''}}" catchtap="hideTeamInviteResult">
+  <view wx:if="{{showTeamInviteResult}}" class="modal show" catchtap="hideTeamInviteResult">
     <view class="modal-content team-invite-result-content" catchtap="stopPropagation">
       <view class="modal-header">
         <text class="modal-title">团队创建成功</text>
@@ -174,7 +174,7 @@
   </view>
 
   <!-- 编辑活动（头像/名称/宣言，仅创建者） -->
-  <view class="modal {{showEditActivity ? 'show' : ''}}" catchtap="hideEditActivityModal">
+  <view wx:if="{{showEditActivity}}" class="modal show" catchtap="hideEditActivityModal">
     <view class="modal-content" catchtap="stopPropagation">
       <view class="modal-header">
         <text class="modal-title">编辑活动</text>
@@ -218,7 +218,7 @@
   </view>
 
   <!-- 修改团队名称 -->
-  <view class="modal {{showEditTeamNameModal ? 'show' : ''}}" catchtap="hideEditTeamNameModal">
+  <view wx:if="{{showEditTeamNameModal}}" class="modal show" catchtap="hideEditTeamNameModal">
     <view class="modal-content" catchtap="stopPropagation">
       <view class="modal-header">
         <text class="modal-title">修改团队名称</text>
@@ -245,7 +245,7 @@
   </view>
 
   <!-- 创建团队弹窗 -->
-  <view class="modal {{showCreateTeam ? 'show' : ''}}" catchtap="hideCreateTeamModal">
+  <view wx:if="{{showCreateTeam}}" class="modal show" catchtap="hideCreateTeamModal">
     <view class="modal-content" catchtap="stopPropagation">
       <view class="modal-header">
         <text class="modal-title">创建新团队</text>
@@ -272,7 +272,7 @@
   </view>
 
   <!-- 添加支付记录弹窗 -->
-  <view class="modal {{showAddPayment ? 'show' : ''}}" catchtap="hideAddPaymentModal">
+  <view wx:if="{{showAddPayment}}" class="modal show" catchtap="hideAddPaymentModal">
     <view class="modal-content" catchtap="stopPropagation">
       <view class="modal-header">
         <text class="modal-title">添加支付记录</text>
@@ -309,7 +309,7 @@
   </view>
 
   <!-- 成员支付记录弹窗 -->
-  <view class="modal {{showMemberPayments ? 'show' : ''}}" catchtap="hideMemberPayments">
+  <view wx:if="{{showMemberPayments}}" class="modal show" catchtap="hideMemberPayments">
     <view class="modal-content payment-list-content" catchtap="stopPropagation">
       <view class="modal-header">
         <text class="modal-title">{{selectedMemberName}}的支付记录</text>

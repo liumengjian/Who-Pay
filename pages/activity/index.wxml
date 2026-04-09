@@ -132,8 +132,8 @@
     <button class="cu-btn block flex-sub bg-blue shadow round action-bar-single" bindtap="showCreateModal">创建活动</button>
   </view>
 
-  <!-- 大厅活动详情弹窗：团队 + 成员 + 加入 -->
-  <view class="cu-modal {{showHallDetail ? 'show' : ''}}" catchtap="hideHallDetailModal">
+  <!-- 大厅活动详情弹窗：wx:if 避免 iOS 上原生 input 在 opacity:0 时 placeholder 穿透 -->
+  <view wx:if="{{showHallDetail}}" class="cu-modal show" catchtap="hideHallDetailModal">
     <view class="cu-dialog hall-dialog animation-scale-up" catchtap="stopPropagation">
       <view class="cu-bar bg-white justify-end">
         <view class="content text-black text-bold">{{hallActivityName || '活动'}}</view>
@@ -177,7 +177,7 @@
   </view>
 
   <!-- 创建活动弹窗 -->
-  <view class="cu-modal {{showCreate ? 'show' : ''}}" catchtap="hideCreateModal">
+  <view wx:if="{{showCreate}}" class="cu-modal show" catchtap="hideCreateModal">
     <view class="cu-dialog animation-scale-up" catchtap="stopPropagation">
       <view class="cu-bar bg-white justify-end">
         <view class="content text-black text-bold">创建活动</view>
