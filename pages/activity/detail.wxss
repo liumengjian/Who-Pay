@@ -560,6 +560,40 @@
   color: #fa5151;
 }
 
+/* 弹窗内表单项：组与组之间、标签与输入框之间留出间距 */
+.modal-body .input-group {
+  margin-bottom: 40rpx;
+}
+
+.modal-body .input-group:last-child {
+  margin-bottom: 0;
+}
+
+.modal-body .input-label {
+  display: block;
+  margin-bottom: 18rpx;
+  line-height: 1.45;
+  font-size: 28rpx;
+  color: #333;
+}
+
+.modal-body .input {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 88rpx;
+  padding: 22rpx 24rpx;
+  border: 2rpx solid #e8e8e8;
+  border-radius: 12rpx;
+  font-size: 30rpx;
+  background: #fafafa;
+}
+
+.modal-body textarea.input.area {
+  min-height: 140rpx;
+  padding-top: 20rpx;
+  padding-bottom: 20rpx;
+}
+
 /* 团队选择 */
 .team-option {
   padding: 30rpx;

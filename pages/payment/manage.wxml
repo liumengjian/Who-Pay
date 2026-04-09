@@ -41,8 +41,8 @@
     <button class="add-btn" bindtap="showAddModal">+ 添加记录</button>
   </view>
 
-  <!-- 添加/编辑支付记录弹窗 -->
-  <view class="modal {{showModal ? 'show' : ''}}" catchtap="hideModal">
+  <!-- 添加/编辑支付记录弹窗（wx:if 避免 iOS 原生 input 穿透） -->
+  <view wx:if="{{showModal}}" class="modal show" catchtap="hideModal">
     <view class="modal-content" catchtap="stopPropagation">
       <view class="modal-header">
         <text class="modal-title">{{isEdit ? '编辑支付记录' : '添加支付记录'}}</text>

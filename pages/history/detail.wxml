@@ -70,7 +70,7 @@
   </view>
 
   <!-- 成员支付记录弹窗 -->
-  <view class="modal {{showMemberPayments ? 'show' : ''}}" catchtap="hideMemberPayments">
+  <view wx:if="{{showMemberPayments}}" class="modal show" catchtap="hideMemberPayments">
     <view class="modal-content payment-list-content" catchtap="stopPropagation">
       <view class="modal-header">
         <text class="modal-title">{{selectedMemberName}}的支付记录</text>

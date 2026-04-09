@@ -45,8 +45,8 @@
     <button class="logout-btn" bindtap="handleLogout">退出登录</button>
   </view>
 
-  <!-- 编辑昵称弹窗 -->
-  <view class="modal {{showEditNickname ? 'show' : ''}}" catchtap="hideEditNickname">
+  <!-- 编辑昵称弹窗（wx:if 避免 iOS 原生 input 穿透） -->
+  <view wx:if="{{showEditNickname}}" class="modal show" catchtap="hideEditNickname">
     <view class="modal-content" catchtap="stopPropagation">
       <view class="modal-header">
         <text class="modal-title">修改昵称</text>
@@ -70,7 +70,7 @@
   </view>
 
   <!-- 编辑头像弹窗 -->
-  <view class="modal {{showEditAvatar ? 'show' : ''}}" catchtap="hideEditAvatar">
+  <view wx:if="{{showEditAvatar}}" class="modal show" catchtap="hideEditAvatar">
     <view class="modal-content" catchtap="stopPropagation">
       <view class="modal-header">
         <text class="modal-title">修改头像</text>
