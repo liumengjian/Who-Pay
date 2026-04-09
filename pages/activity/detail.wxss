@@ -33,12 +33,84 @@
   min-width: 0;
 }
 
+.activity-avatar-tap {
+  position: relative;
+  flex-shrink: 0;
+  margin-right: 20rpx;
+}
+
+.activity-avatar-editable .detail-act-avatar {
+  border-color: rgba(255, 255, 255, 0.75);
+}
+
+.activity-avatar-edit-badge {
+  position: absolute;
+  right: -4rpx;
+  bottom: -4rpx;
+  font-size: 18rpx;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  padding: 4rpx 10rpx;
+  border-radius: 8rpx;
+  line-height: 1.2;
+}
+
 .detail-act-avatar {
   width: 100rpx;
   height: 100rpx;
-  flex-shrink: 0;
-  margin-right: 20rpx;
+  display: block;
   border: 2rpx solid rgba(255, 255, 255, 0.4);
+}
+
+.edit-act-avatar {
+  display: flex;
+  justify-content: center;
+}
+
+.avatar-pick-btn-round {
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  border: none;
+  line-height: 1.4;
+}
+
+.avatar-pick-btn-round::after {
+  border: none;
+}
+
+.edit-act-avatar-img {
+  width: 140rpx;
+  height: 140rpx;
+  display: block;
+  margin: 0 auto;
+}
+
+.input.area {
+  min-height: 120rpx;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.team-card-owner-row {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8rpx 28rpx;
+  padding-top: 20rpx;
+  margin-top: 8rpx;
+  border-top: 2rpx solid #f0f0f0;
+}
+
+.team-owner-action {
+  font-size: 26rpx;
+  color: #667eea;
+  padding: 8rpx 4rpx;
+}
+
+.team-owner-action.danger {
+  color: #e54d42;
 }
 
 .activity-header-text {
@@ -72,8 +144,10 @@
   margin-right: 10rpx;
 }
 
-.copy-icon {
-  font-size: 28rpx;
+.invite-code-box .copy-icon {
+  width: 32rpx;
+  height: 32rpx;
+  flex-shrink: 0;
 }
 
 .amount-info {

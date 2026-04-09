@@ -7,7 +7,17 @@
   <view class="overview-section">
     <view class="activity-header">
       <view class="activity-header-main">
-        <image wx:if="{{activityInfo.avatarUrl}}" class="detail-act-avatar round" src="{{activityInfo.avatarUrl}}" mode="aspectFill"></image>
+        <view
+          class="activity-avatar-tap {{isCreator && !isEnded ? 'activity-avatar-editable' : ''}}"
+          bindtap="onActivityAvatarTap"
+        >
+          <image
+            class="detail-act-avatar round"
+            src="{{activityInfo.avatarUrl || '/images/default-avatar.png'}}"
+            mode="aspectFill"
+          ></image>
+          <view wx:if="{{isCreator && !isEnded}}" class="activity-avatar-edit-badge">编辑</view>
+        </view>
         <view class="activity-header-text flex-sub">
           <text class="activity-name">{{activityInfo.name || ''}}</text>
           <text wx:if="{{activityInfo.slogan}}" class="activity-slogan">{{activityInfo.slogan}}</text>
@@ -31,11 +41,6 @@
     
     <!-- 我的结算信息 -->
     <view class="my-settlement" wx:if="{{myTeam}}">
-      <view class="team-invite-row" bindtap="copyTeamInviteCode">
-        <text class="settlement-label">团队邀请码</text>
-        <text class="invite-code-small">{{myTeam.inviteCode}}</text>
-        <text class="copy-hint">📋</text>
-      </view>
       <view class="settlement-item team-settlement">
         <text class="settlement-label">您的团队</text>
         <text class="settlement-value {{myTeamDiff >= 0 ? 'positive' : 'negative'}}">
@@ -107,11 +112,14 @@
           <text>暂无成员</text>
         </view>
       </view>
+      <view wx:if="{{team.iCreated && !isEnded}}" class="team-card-owner-row" catchtap="stopPropagation">
+        <text class="team-owner-action" catchtap="handleEditTeamTap" data-id="{{team._id}}" data-name="{{team.name}}">修改团队</text>
+        <text class="team-owner-action danger" catchtap="handleDissolveTeamTap" data-id="{{team._id}}">解散团队</text>
+      </view>
     </view>
   </view>
 
   <view class="extra-actions padding-sm" wx:if="{{!isEnded}}">
-    <button wx:if="{{myTeam && isTeamCreator}}" class="link-btn" bindtap="handleDissolveTeam">解散团队</button>
     <button wx:if="{{myTeam && !isTeamCreator}}" class="link-btn" bindtap="handleLeaveTeam">退出团队</button>
     <button wx:if="{{!isCreator}}" class="link-btn" bindtap="handleLeaveActivity">退出活动</button>
   </view>
@@ -161,6 +169,77 @@
     <image class="copy-icon" src="/images/copy.png" mode="aspectFit"></image>
         </view>
         <button class="btn-primary margin-top-lg block" bindtap="hideTeamInviteResult">完成</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 编辑活动（头像/名称/宣言，仅创建者） -->
+  <view class="modal {{showEditActivity ? 'show' : ''}}" catchtap="hideEditActivityModal">
+    <view class="modal-content" catchtap="stopPropagation">
+      <view class="modal-header">
+        <text class="modal-title">编辑活动</text>
+        <text class="modal-close" bindtap="hideEditActivityModal">×</text>
+      </view>
+      <view class="modal-body">
+        <view class="edit-act-avatar margin-bottom">
+          <button class="avatar-pick-btn-round" open-type="chooseAvatar" bindchooseavatar="onChooseEditActivityAvatar">
+            <image class="edit-act-avatar-img round" src="{{editActivityAvatarUrl || '/images/default-avatar.png'}}" mode="aspectFill"></image>
+            <text class="text-gray text-sm block margin-top-xs text-center">点击更换头像</text>
+          </button>
+        </view>
+        <view class="input-group">
+          <text class="input-label">活动名称 <text class="required">*</text></text>
+          <input
+            class="input"
+            type="text"
+            placeholder="活动名称"
+            value="{{editActivityName}}"
+            bindinput="onEditActivityNameInput"
+            maxlength="128"
+          />
+        </view>
+        <view class="input-group">
+          <text class="input-label">活动宣言</text>
+          <textarea
+            class="input area"
+            placeholder="一句话介绍"
+            value="{{editActivitySlogan}}"
+            bindinput="onEditActivitySloganInput"
+            maxlength="512"
+            auto-height
+          ></textarea>
+        </view>
+      </view>
+      <view class="modal-footer">
+        <button class="btn-secondary" bindtap="hideEditActivityModal">取消</button>
+        <button class="btn-primary" bindtap="handleSaveActivityInfo">保存</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 修改团队名称 -->
+  <view class="modal {{showEditTeamNameModal ? 'show' : ''}}" catchtap="hideEditTeamNameModal">
+    <view class="modal-content" catchtap="stopPropagation">
+      <view class="modal-header">
+        <text class="modal-title">修改团队名称</text>
+        <text class="modal-close" bindtap="hideEditTeamNameModal">×</text>
+      </view>
+      <view class="modal-body">
+        <view class="input-group">
+          <text class="input-label">团队名称 <text class="required">*</text></text>
+          <input
+            class="input"
+            type="text"
+            placeholder="团队名称"
+            value="{{editTeamNameInput}}"
+            bindinput="onEditTeamNameInputModal"
+            maxlength="128"
+          />
+        </view>
+      </view>
+      <view class="modal-footer">
+        <button class="btn-secondary" bindtap="hideEditTeamNameModal">取消</button>
+        <button class="btn-primary" bindtap="handleSaveTeamName">保存</button>
       </view>
     </view>
   </view>

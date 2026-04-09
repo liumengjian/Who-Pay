@@ -92,6 +92,11 @@ function endActivity(activityId) {
   return callAPI(`/api/activity/${activityId}/end`, 'POST');
 }
 
+/** 更新活动（仅创建者）：name / slogan / avatar */
+function updateActivity(activityId, body) {
+  return callAPI(`/api/activity/${activityId}`, 'PUT', body);
+}
+
 function updateUserInfo(params) {
   return callAPI('/api/user/update', 'PUT', params);
 }
@@ -135,6 +140,10 @@ function dissolveTeam(teamId) {
   return callAPI(`/api/team/${teamId}/dissolve`, 'POST', {});
 }
 
+function updateTeam(teamId, teamName) {
+  return callAPI(`/api/team/${teamId}`, 'PUT', { teamName });
+}
+
 function leaveTeam(teamId) {
   return callAPI(`/api/team/${teamId}/leave`, 'POST', {});
 }
@@ -156,6 +165,7 @@ module.exports = {
   updatePayment,
   deletePayment,
   endActivity,
+  updateActivity,
   updateUserInfo,
   getMyActivities,
   getMyPayments,
@@ -164,5 +174,6 @@ module.exports = {
   createTeam,
   joinTeamByInvite,
   dissolveTeam,
+  updateTeam,
   leaveTeam
 };

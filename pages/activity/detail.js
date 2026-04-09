@@ -7,6 +7,8 @@ const {
   createTeam,
   joinTeamByInvite,
   dissolveTeam,
+  updateActivity,
+  updateTeam,
   leaveTeam,
   leaveActivity
 } = require('../../utils/cloud.js');
@@ -19,7 +21,8 @@ const {
   formatAmount,
   formatDateTime,
   validateAmount,
-  validateInviteCode
+  validateInviteCode,
+  filePathToBase64Compressed
 } = require('../../utils/util.js');
 
 Page({
@@ -49,7 +52,15 @@ Page({
     selectedMemberId: '',
     selectedMemberName: '',
     memberPayments: [],
-    userId: ''
+    userId: '',
+    showEditActivity: false,
+    editActivityName: '',
+    editActivitySlogan: '',
+    editActivityAvatarUrl: '',
+    editActivityAvatarTempPath: '',
+    showEditTeamNameModal: false,
+    editingTeamId: '',
+    editTeamNameInput: ''
   },
 
   onLoad(options) {
@@ -176,6 +187,69 @@ Page({
       }, 1500);
     } finally {
       hideLoading();
+    }
+  },
+
+  onActivityAvatarTap() {
+    if (!this.data.isCreator || this.data.isEnded) return;
+    const a = this.data.activityInfo || {};
+    const defAvatar = a.avatarUrl || '/images/default-avatar.png';
+    this.setData({
+      showEditActivity: true,
+      editActivityName: a.name || '',
+      editActivitySlogan: a.slogan || '',
+      editActivityAvatarUrl: defAvatar,
+      editActivityAvatarTempPath: ''
+    });
+  },
+
+  hideEditActivityModal() {
+    this.setData({
+      showEditActivity: false,
+      editActivityAvatarTempPath: ''
+    });
+  },
+
+  onEditActivityNameInput(e) {
+    this.setData({ editActivityName: e.detail.value });
+  },
+
+  onEditActivitySloganInput(e) {
+    this.setData({ editActivitySlogan: e.detail.value });
+  },
+
+  onChooseEditActivityAvatar(e) {
+    const { avatarUrl } = e.detail;
+    this.setData({
+      editActivityAvatarTempPath: avatarUrl,
+      editActivityAvatarUrl: avatarUrl
+    });
+  },
+
+  async handleSaveActivityInfo() {
+    const name = (this.data.editActivityName || '').trim();
+    if (!name) {
+      showError('请输入活动名称');
+      return;
+    }
+    showLoading('保存中...');
+    try {
+      const body = {
+        name,
+        slogan: (this.data.editActivitySlogan || '').trim()
+      };
+      const temp = this.data.editActivityAvatarTempPath;
+      if (temp) {
+        body.avatar = await filePathToBase64Compressed(temp);
+      }
+      await updateActivity(this.data.activityId, body);
+      hideLoading();
+      showSuccess('已保存');
+      this.hideEditActivityModal();
+      await this.loadActivityDetail();
+    } catch (e) {
+      hideLoading();
+      showError(e.message || '保存失败');
     }
   },
 
@@ -438,8 +512,9 @@ Page({
     }
   },
 
-  handleDissolveTeam() {
-    if (!this.data.myTeam || !this.data.isTeamCreator) return;
+  handleDissolveTeamTap(e) {
+    const teamId = e.currentTarget.dataset.id;
+    if (!teamId) return;
     wx.showModal({
       title: '解散团队',
       content: '解散后团队成员将全部移除，且无法恢复，确定？',
@@ -447,16 +522,59 @@ Page({
         if (!res.confirm) return;
         showLoading('处理中...');
         try {
-          await dissolveTeam(this.data.myTeam._id);
+          await dissolveTeam(teamId);
           hideLoading();
           showSuccess('已解散');
-          this.loadActivityDetail();
-        } catch (e) {
+          await this.loadActivityDetail();
+        } catch (err) {
           hideLoading();
-          showError(e.message || '失败');
+          showError(err.message || '失败');
         }
       }
     });
+  },
+
+  handleEditTeamTap(e) {
+    const id = String(e.currentTarget.dataset.id || '');
+    const name = e.currentTarget.dataset.name || '';
+    if (!id) return;
+    this.setData({
+      showEditTeamNameModal: true,
+      editingTeamId: id,
+      editTeamNameInput: name
+    });
+  },
+
+  hideEditTeamNameModal() {
+    this.setData({
+      showEditTeamNameModal: false,
+      editingTeamId: '',
+      editTeamNameInput: ''
+    });
+  },
+
+  onEditTeamNameInputModal(e) {
+    this.setData({ editTeamNameInput: e.detail.value });
+  },
+
+  async handleSaveTeamName() {
+    const tid = this.data.editingTeamId;
+    const tname = (this.data.editTeamNameInput || '').trim();
+    if (!tid || !tname) {
+      showError('请输入团队名称');
+      return;
+    }
+    showLoading('保存中...');
+    try {
+      await updateTeam(tid, tname);
+      hideLoading();
+      showSuccess('已保存');
+      this.hideEditTeamNameModal();
+      await this.loadActivityDetail();
+    } catch (err) {
+      hideLoading();
+      showError(err.message || '保存失败');
+    }
   },
 
   handleLeaveTeam() {
