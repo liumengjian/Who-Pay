@@ -84,7 +84,7 @@
 }
 
 .menu-text {
-  font-size: 30rpx;
+  font-size: 28rpx;
   color:#715EBC;
   font-weight: 600;
 }
