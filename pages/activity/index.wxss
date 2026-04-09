@@ -47,7 +47,7 @@
 .margin-top-sm { margin-top: 16rpx; }
 .margin-right-sm { margin-right: 16rpx; }
 .margin-left { margin-left: 16rpx; }
-.text-lg { font-size: 36rpx; }
+.text-lg { font-size: 32rpx; }
 .text-bold { font-weight: bold; }
 
 .empty-state {
@@ -73,21 +73,20 @@
 .action-bar-single {
   flex: 1;
   margin-right: 0;
+  padding: 18px 0;
 }
 
 .hall-search .search-form {
   display: flex;
   align-items: center;
   width: 100%;
-  background: #f5f6f7;
   border-radius: 999rpx;
   padding: 0 16rpx;
-  min-height: 72rpx;
+  min-height: 60rpx;
 }
 
 .hall-search .search-form input {
   flex: 1;
-  padding: 16rpx 20rpx;
   font-size: 28rpx;
 }
 
