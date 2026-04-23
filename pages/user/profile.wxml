@@ -42,7 +42,7 @@
     <view class="menu-item" bindtap="goToPaymentManage">
       <view class="menu-left">
         <image class="menu-icon" src="/images/zhifu.png" mode="aspectFit" />
-        <text class="menu-text">我的支付记录</text>
+        <text class="menu-text">支付记录</text>
       </view>
       <view class="menu-arrow">
         <image src="/images/pointer-right.png" mode="aspectFit" />
