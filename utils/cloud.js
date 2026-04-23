@@ -152,6 +152,16 @@ function deletePayment(paymentId) {
   return callAPI(`/api/payment/${paymentId}`, 'DELETE');
 }
 
+/** 查询当前用户发出的申请（申请人视角） */
+function getMyApplications() {
+  return callAPI('/api/application/my', 'GET');
+}
+
+/** 撤销申请（仅 pending 可撤销） */
+function cancelApplication(applicationId) {
+  return callAPI('/api/application/cancel', 'POST', { applicationId });
+}
+
 function createTeam(activityId, teamName) {
   return callAPI('/api/team/create', 'POST', {
     activityId,
@@ -211,5 +221,7 @@ module.exports = {
   applyForJoin,
   getApplicationList,
   handleApplication,
-  deletePayment
+  deletePayment,
+  getMyApplications,
+  cancelApplication
 };

@@ -24,7 +24,6 @@
       <view class="menu-left">
         <image class="menu-icon" src="/images/tixing.png" mode="aspectFit" />
         <text class="menu-text">消息通知</text>
-        <view class="notification-badge" wx:if="{{notificationCount > 0}}">{{notificationCount > 99 ? '99+' : notificationCount}}</view>
       </view>
       <view class="menu-arrow">
         <image src="/images/pointer-right.png" mode="aspectFit" />

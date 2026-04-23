@@ -1,42 +1,75 @@
 // pages/notification/index.js
-const { getApplicationList, handleApplication } = require('../../utils/cloud.js');
+const { getApplicationList, handleApplication, getMyApplications, cancelApplication } = require('../../utils/cloud.js');
 const { showLoading, hideLoading, showSuccess, showError, formatDateTime } = require('../../utils/util.js');
 
 Page({
   data: {
-    applicationList: [],
+    messages: [],   // 统一消息列表
     loading: true
   },
 
   onLoad() {
-    this.loadApplications();
+    this.loadAll();
   },
 
   onShow() {
-    this.loadApplications();
+    this.loadAll();
   },
 
-  async loadApplications() {
+  async loadAll() {
     this.setData({ loading: true });
+    const [received, sent] = await Promise.all([this.loadReceived(), this.loadSent()]);
+    // 合并结果，按时间倒序
+    const messages = [...received, ...sent].sort(
+      (a, b) => new Date(b.createTimeRaw) - new Date(a.createTimeRaw)
+    );
+    this.setData({ messages, loading: false });
+  },
+
+  async loadReceived() {
     try {
       const result = await getApplicationList();
-      const list = (result.applications || []).map((app) => ({
-        ...app,
-        createTime: formatDateTime(app.createTime)
+      return (result.applications || []).map((app) => ({
+        msgType: '审批',
+        _id: app._id,
+        activityId: app.activityId,
+        applicantAvatar: app.applicantAvatar || '/images/default-avatar.png',
+        applicantName: app.applicantName,
+        targetName: app.targetName,
+        targetType: app.targetType,
+        status: app.status || 'pending',
+        createTime: formatDateTime(app.createTime),
+        createTimeRaw: app.createTime,
+        actionLabel: (app.status === 'pending' || !app.status) ? '处理' : ''
       }));
-      this.setData({
-        applicationList: list,
-        loading: false
-      });
     } catch (error) {
-      console.error('加载申请列表失败:', error);
-      showError(error.message || '加载失败');
-      this.setData({ loading: false });
+      console.error('加载审批消息失败:', error);
+      return [];
+    }
+  },
+
+  async loadSent() {
+    try {
+      const result = await getMyApplications();
+      return (result.applications || []).map((app) => ({
+        msgType: '申请',
+        _id: app._id,
+        activityId: app.activityId,
+        targetName: app.targetName,
+        targetType: app.targetType,
+        status: app.status,
+        createTime: formatDateTime(app.createTime),
+        createTimeRaw: app.createTime,
+        actionLabel: app.status === 'pending' ? '撤销' : ''
+      }));
+    } catch (error) {
+      console.error('加载申请消息失败:', error);
+      return [];
     }
   },
 
   async handleApplication(e) {
-    const { applicationid, action } = e.currentTarget.dataset;
+    const { id, action } = e.currentTarget.dataset;
     const actionText = action === 'approve' ? '同意' : '拒绝';
     wx.showModal({
       title: `确认${actionText}`,
@@ -45,13 +78,34 @@ Page({
         if (!res.confirm) return;
         showLoading('处理中...');
         try {
-          await handleApplication(applicationid, action);
+          await handleApplication(id, action);
           hideLoading();
           showSuccess(`已${actionText}`);
-          await this.loadApplications();
+          await this.loadAll();
         } catch (error) {
           hideLoading();
           showError(error.message || '处理失败');
+        }
+      }
+    });
+  },
+
+  async cancelApplication(e) {
+    const { id } = e.currentTarget.dataset;
+    wx.showModal({
+      title: '确认撤销',
+      content: '确定要撤销该申请吗？',
+      success: async (res) => {
+        if (!res.confirm) return;
+        showLoading('撤销中...');
+        try {
+          await cancelApplication(id);
+          hideLoading();
+          showSuccess('已撤销');
+          await this.loadAll();
+        } catch (error) {
+          hideLoading();
+          showError(error.message || '撤销失败');
         }
       }
     });

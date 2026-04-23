@@ -26,17 +26,14 @@ Page({
     showEditAvatar: false,
     editNickname: '',
     defaultAvatars: DEFAULT_AVATARS,
-    notificationCount: 0
   },
 
   onLoad() {
     this.loadUserInfo();
-    this.checkNotificationCount();
   },
 
   onShow() {
     this.loadUserInfo();
-    this.checkNotificationCount();
   },
 
   // 加载用户信息
@@ -180,16 +177,6 @@ Page({
 
   goToNotifications() {
     wx.navigateTo({ url: '/pages/notification/index' });
-  },
-
-  async checkNotificationCount() {
-    try {
-      const result = await getApplicationList();
-      const list = result.applications || [];
-      this.setData({ notificationCount: list.length });
-    } catch (error) {
-      console.error('检查通知数量失败:', error);
-    }
   },
 
   handleLogout() {

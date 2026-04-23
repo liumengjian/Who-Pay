@@ -35,9 +35,12 @@ page {
   border: none;
   border-radius: 12rpx;
   padding: 0 32rpx;
-  font-size: 30rpx;
+  font-size: 28rpx;
   height: 72rpx;
   line-height: 72rpx;
+}
+.btn-apply {
+  font-size: 28rpx;
 }
 
 .btn-secondary {

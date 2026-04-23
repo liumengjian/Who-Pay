@@ -12,92 +12,124 @@
   padding: 200rpx 0;
 }
 
-.application-list {
-  display: flex;
-  flex-direction: column;
-  gap: 24rpx;
-}
-
-.application-item {
+/* 消息卡片 */
+.msg-item {
   background: #fff;
   border-radius: 20rpx;
-  padding: 30rpx;
-  box-shadow: 0 4rpx 16rpx rgba(102, 126, 234, 0.08);
-}
-
-.item-header {
-  display: flex;
-  align-items: flex-start;
+  padding: 28rpx;
   margin-bottom: 20rpx;
+  box-shadow: 0 4rpx 16rpx rgba(102, 126, 234, 0.08);
+  position: relative;
+  overflow: hidden;
 }
 
-.app-avatar {
-  width: 80rpx;
-  height: 80rpx;
+/* 审批卡片：左边带主题色竖条 */
+.msg-approve {
+  border-left: 6rpx solid #667eea;
+}
+
+/* 已处理的审批卡片：灰色竖条 */
+.msg-item.msg-item-done {
+  border-left-color: #ccc;
+  opacity: 0.6;
+}
+
+/* 申请卡片：左边带次要色竖条 */
+.msg-apply {
+  border-left: 6rpx solid #10b981;
+}
+
+/* 消息类型标签 */
+.msg-type-tag {
+  font-size: 22rpx;
+  padding: 4rpx 14rpx;
+  border-radius: 8rpx;
+  display: inline-block;
+  margin-bottom: 16rpx;
+}
+
+.tag-approve {
+  background: #eef2ff;
+  color: #667eea;
+}
+
+.tag-apply {
+  background: #f0fdf4;
+  color: #10b981;
+}
+
+/* 卡片内容 */
+.msg-body {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.msg-left {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+}
+
+.msg-avatar {
+  width: 72rpx;
+  height: 72rpx;
   border-radius: 50%;
   margin-right: 20rpx;
   flex-shrink: 0;
 }
 
-.app-detail {
-  flex: 1;
-  min-width: 0;
+.msg-info {
   display: flex;
   flex-direction: column;
+  flex: 1;
+  min-width: 0;
 }
 
-.app-name {
-  font-size: 32rpx;
+.msg-name {
+  font-size: 30rpx;
   font-weight: 600;
   color: #333;
-  margin-bottom: 8rpx;
+  margin-bottom: 6rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.app-time {
+.msg-desc {
+  font-size: 26rpx;
+  color: #666;
+  margin-bottom: 6rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.msg-time {
   font-size: 22rpx;
   color: #999;
 }
 
-.app-type-tag {
-  font-size: 22rpx;
-  padding: 6rpx 16rpx;
-  border-radius: 8rpx;
-  flex-shrink: 0;
-}
-
-.tag-activity {
-  background: #eef2ff;
-  color: #667eea;
-}
-
-.tag-team {
-  background: #f0fdf4;
-  color: #10b981;
-}
-
-.item-body {
-  margin-bottom: 24rpx;
-}
-
-.app-target-name {
-  font-size: 28rpx;
-  color: #666;
-}
-
-.item-actions {
+/* 操作区 */
+.msg-actions {
   display: flex;
-  gap: 20rpx;
-  justify-content: flex-end;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 12rpx;
+  flex: 0 0 25%;
+  min-width: 0;
 }
 
-.item-actions button {
-  min-width: 140rpx;
-  height: 64rpx;
-  line-height: 64rpx;
-  border-radius: 32rpx;
-  font-size: 28rpx;
+.msg-actions button {
+  height: 56rpx;
+  line-height: 56rpx;
+  border-radius: 28rpx;
+  font-size: 26rpx;
   border: none;
   padding: 0;
+  width: 100%
 }
 
 .btn-approve {
@@ -111,21 +143,55 @@
   border: 2rpx solid #e5e5e5 !important;
 }
 
+.btn-cancel {
+  background: #fff;
+  color: #ef4444;
+  border: 2rpx solid #fecaca !important;
+}
+
+/* 状态标签 */
+.status-tag {
+  font-size: 22rpx;
+  padding: 6rpx 16rpx;
+  border-radius: 8rpx;
+  text-align: center;
+  min-width: 100rpx;
+}
+
+.tag-pending {
+  background: #fffbeb;
+  color: #d97706;
+}
+
+.tag-approved {
+  background: #f0fdf4;
+  color: #10b981;
+}
+
+.tag-rejected {
+  background: #fef2f2;
+  color: #ef4444;
+}
+
 /* 空状态 */
-.empty-state {
+.empty-wrapper {
+  padding: 120rpx 0;
   display: flex;
-  flex-direction: column;
+  justify-content: center;
+}
+
+.empty-wrapper .empty-state {
   align-items: center;
   justify-content: center;
-  padding: 200rpx 0;
 }
 
-.empty-icon {
-  font-size: 120rpx;
-  line-height: 1;
+.empty-wrapper .empty-icon {
+  width: 160rpx;
+  height: 160rpx;
+  opacity: 0.4;
 }
 
-.empty-text {
+.empty-wrapper .empty-text {
   font-size: 28rpx;
   color: #999;
   margin-top: 24rpx;

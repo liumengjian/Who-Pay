@@ -34,12 +34,8 @@
         <text class="amount-value">¥{{totalAmount}}</text>
       </view>
       <view class="amount-item">
-        <text class="amount-label">人均均摊</text>
+        <text class="amount-label">人均花费</text>
         <text class="amount-value">¥{{shareAmount}}</text>
-      </view>
-      <view class="amount-item">
-        <text class="amount-label">参与人数</text>
-        <text class="amount-value">{{totalMemberCount}}人</text>
       </view>
     </view>
     
