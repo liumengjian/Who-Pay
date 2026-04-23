@@ -84,10 +84,6 @@ function updatePayment(paymentId, amount, remark = '') {
   });
 }
 
-function deletePayment(paymentId) {
-  return callAPI(`/api/payment/${paymentId}`, 'DELETE');
-}
-
 function endActivity(activityId) {
   return callAPI(`/api/activity/${activityId}/end`, 'POST');
 }
@@ -119,6 +115,41 @@ function getMemberPayments(activityId, userId) {
     activityId,
     userId
   });
+}
+
+/**
+ * 获取活动下所有支付记录（按日期分组用）
+ * @param {string} activityId - 活动id
+ */
+function getActivityPayments(activityId) {
+  return callAPI(`/api/payment/activity/${activityId}`, 'GET');
+}
+
+/** 提交申请（活动/团队） */
+function applyForJoin(activityId, targetType, targetId) {
+  return callAPI('/api/application/apply', 'POST', {
+    activityId,
+    targetType,
+    targetId
+  });
+}
+
+/** 查询发给创建者的申请列表 */
+function getApplicationList() {
+  return callAPI('/api/application/list', 'GET');
+}
+
+/** 处理申请（同意/拒绝） */
+function handleApplication(applicationId, action) {
+  return callAPI('/api/application/handle', 'POST', {
+    applicationId,
+    action
+  });
+}
+
+/** 删除支付记录 */
+function deletePayment(paymentId) {
+  return callAPI(`/api/payment/${paymentId}`, 'DELETE');
 }
 
 function createTeam(activityId, teamName) {
@@ -171,9 +202,14 @@ module.exports = {
   getMyPayments,
   getPaymentHistory,
   getMemberPayments,
+  getActivityPayments,
   createTeam,
   joinTeamByInvite,
   dissolveTeam,
   updateTeam,
-  leaveTeam
+  leaveTeam,
+  applyForJoin,
+  getApplicationList,
+  handleApplication,
+  deletePayment
 };

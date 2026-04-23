@@ -1,0 +1,4 @@
+<view class="empty-state">
+  <image class="empty-icon" src="/images/empty.png" mode="aspectFit" />
+  <text class="empty-text">{{tip}}</text>
+</view>

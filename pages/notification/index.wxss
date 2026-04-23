@@ -1,0 +1,132 @@
+/* pages/notification/index.wxss */
+.notification-page {
+  min-height: 100vh;
+  background: #f7f8fa;
+  padding: 24rpx;
+}
+
+.loading-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 200rpx 0;
+}
+
+.application-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+.application-item {
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  box-shadow: 0 4rpx 16rpx rgba(102, 126, 234, 0.08);
+}
+
+.item-header {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 20rpx;
+}
+
+.app-avatar {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  margin-right: 20rpx;
+  flex-shrink: 0;
+}
+
+.app-detail {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-name {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8rpx;
+}
+
+.app-time {
+  font-size: 22rpx;
+  color: #999;
+}
+
+.app-type-tag {
+  font-size: 22rpx;
+  padding: 6rpx 16rpx;
+  border-radius: 8rpx;
+  flex-shrink: 0;
+}
+
+.tag-activity {
+  background: #eef2ff;
+  color: #667eea;
+}
+
+.tag-team {
+  background: #f0fdf4;
+  color: #10b981;
+}
+
+.item-body {
+  margin-bottom: 24rpx;
+}
+
+.app-target-name {
+  font-size: 28rpx;
+  color: #666;
+}
+
+.item-actions {
+  display: flex;
+  gap: 20rpx;
+  justify-content: flex-end;
+}
+
+.item-actions button {
+  min-width: 140rpx;
+  height: 64rpx;
+  line-height: 64rpx;
+  border-radius: 32rpx;
+  font-size: 28rpx;
+  border: none;
+  padding: 0;
+}
+
+.btn-approve {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+}
+
+.btn-reject {
+  background: #fff;
+  color: #999;
+  border: 2rpx solid #e5e5e5 !important;
+}
+
+/* 空状态 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 200rpx 0;
+}
+
+.empty-icon {
+  font-size: 120rpx;
+  line-height: 1;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: #999;
+  margin-top: 24rpx;
+}

@@ -1,0 +1,50 @@
+<!--pages/notification/index.wxml-->
+
+<view class="notification-page">
+  <!-- 加载中 -->
+  <view wx:if="{{loading}}" class="loading-state">
+    <text class="text-gray">加载中...</text>
+  </view>
+
+  <!-- 有数据 -->
+  <view wx:elif="{{applicationList.length > 0}}" class="application-list">
+    <view
+      class="application-item"
+      wx:for="{{applicationList}}"
+      wx:key="_id"
+    >
+      <view class="item-header">
+        <image class="app-avatar" src="{{item.applicantAvatar || '/images/default-avatar.png'}}" mode="aspectFill"></image>
+        <view class="app-detail">
+          <text class="app-name">{{item.applicantName}}</text>
+          <text class="app-time">{{item.createTime}}</text>
+        </view>
+        <view class="app-type-tag {{item.targetType === 'activity' ? 'tag-activity' : 'tag-team'}}">
+          {{item.targetType === 'activity' ? '申请加入活动' : '申请加入团队'}}
+        </view>
+      </view>
+      <view class="item-body">
+        <text class="app-target-name">{{item.targetName}}</text>
+      </view>
+      <view class="item-actions">
+        <button
+          class="btn-approve"
+          bindtap="handleApplication"
+          data-applicationid="{{item._id}}"
+          data-action="approve"
+        >同意</button>
+        <button
+          class="btn-reject"
+          bindtap="handleApplication"
+          data-applicationid="{{item._id}}"
+          data-action="reject"
+        >拒绝</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 无数据 -->
+  <view wx:else class="empty-state">
+    <empty-state tip="暂无消息通知" />
+  </view>
+</view>

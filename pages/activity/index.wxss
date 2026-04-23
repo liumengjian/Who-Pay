@@ -50,12 +50,10 @@
 .text-lg { font-size: 32rpx; }
 .text-bold { font-weight: bold; }
 
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+.empty-wrapper {
+  width: 100%;
   padding: 120rpx 40rpx;
+  box-sizing: border-box;
 }
 
 .action-bar {

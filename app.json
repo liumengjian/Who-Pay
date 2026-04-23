@@ -11,7 +11,8 @@
     "pages/payment/history",
     "pages/user/profile",
     "pages/history/list",
-    "pages/history/detail"
+    "pages/history/detail",
+    "pages/notification/index"
   ],
   "window": {
     "backgroundTextStyle": "dark",

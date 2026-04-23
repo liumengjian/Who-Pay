@@ -4,7 +4,8 @@ const {
   joinActivity,
   getMyActivities,
   getActivityHall,
-  getActivityPreview
+  getActivityPreview,
+  applyForJoin
 } = require('../../utils/cloud.js');
 const { showLoading, hideLoading, showSuccess, showError, validateInviteCode, filePathToBase64Compressed } = require('../../utils/util.js');
 
@@ -22,6 +23,7 @@ Page({
     hallActivityId: '',
     hallActivityName: '',
     hallActivityJoined: false,
+    hallApplicationSent: false,
     activityName: '',
     activitySlogan: '',
     activityAvatarUrl: '',
@@ -172,6 +174,7 @@ Page({
       hallActivityId: activityId,
       hallActivityName: name,
       hallActivityJoined: joined,
+      hallApplicationSent: false,
       hallInviteInput: '',
       hallPreview: null,
       loadingHallPreview: true
@@ -229,6 +232,21 @@ Page({
     } catch (error) {
       hideLoading();
       showError(error.message || '加入失败');
+    }
+  },
+
+  async handleHallApplyActivity() {
+    const activityId = this.data.hallActivityId;
+    if (!activityId) return;
+    showLoading('申请中...');
+    try {
+      await applyForJoin(activityId, 'activity', null);
+      hideLoading();
+      showSuccess('申请已发送，请等待审批');
+      this.setData({ hallApplicationSent: true });
+    } catch (error) {
+      hideLoading();
+      showError(error.message || '申请失败');
     }
   },
 

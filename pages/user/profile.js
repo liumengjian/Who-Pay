@@ -1,5 +1,5 @@
 // pages/user/profile.js
-const { updateUserInfo } = require('../../utils/cloud.js');
+const { updateUserInfo, getApplicationList } = require('../../utils/cloud.js');
 const { showLoading, hideLoading, showSuccess, showError, chooseImage, filePathToBase64Compressed } = require('../../utils/util.js');
 
 const DEFAULT_AVATARS = [
@@ -25,15 +25,18 @@ Page({
     showEditNickname: false,
     showEditAvatar: false,
     editNickname: '',
-    defaultAvatars: DEFAULT_AVATARS
+    defaultAvatars: DEFAULT_AVATARS,
+    notificationCount: 0
   },
 
   onLoad() {
     this.loadUserInfo();
+    this.checkNotificationCount();
   },
 
   onShow() {
     this.loadUserInfo();
+    this.checkNotificationCount();
   },
 
   // 加载用户信息
@@ -48,16 +51,11 @@ Page({
 
   // 编辑头像
   editAvatar() {
-    this.setData({
-      showEditAvatar: true
-    });
+    this.setData({ showEditAvatar: true });
   },
 
-  // 隐藏编辑头像弹窗
   hideEditAvatar() {
-    this.setData({
-      showEditAvatar: false
-    });
+    this.setData({ showEditAvatar: false });
   },
 
   // 编辑昵称
@@ -68,21 +66,14 @@ Page({
     });
   },
 
-  // 隐藏编辑昵称弹窗
   hideEditNickname() {
-    this.setData({
-      showEditNickname: false
-    });
+    this.setData({ showEditNickname: false });
   },
 
-  // 昵称输入
   onNicknameInput(e) {
-    this.setData({
-      editNickname: e.detail.value
-    });
+    this.setData({ editNickname: e.detail.value });
   },
 
-  // 从相册选择头像
   async chooseFromAlbum() {
     try {
       const filePath = await chooseImage();
@@ -96,11 +87,9 @@ Page({
     }
   },
 
-  // 选择默认头像（转 base64 后调用更新接口）
   async selectDefaultAvatar(e) {
     const packagePath = e.currentTarget.dataset.url;
     if (!packagePath) return;
-
     showLoading('设置中...');
     try {
       const tempPath = await this.copyPackageFileToTemp(packagePath);
@@ -115,7 +104,6 @@ Page({
     }
   },
 
-  // 复制包内文件到临时目录（wx.uploadFile 需要可写路径）
   copyPackageFileToTemp(packagePath) {
     return new Promise((resolve, reject) => {
       const ext = packagePath.split('.').pop() || 'png';
@@ -129,7 +117,6 @@ Page({
     });
   },
 
-  // 从相册选择头像（转 base64）
   async uploadAvatar(filePath) {
     showLoading('上传中...');
     try {
@@ -143,7 +130,6 @@ Page({
     }
   },
 
-  // 提交更新用户信息到后端
   async submitUpdateUserInfo(fields) {
     const userId = wx.getStorageSync('userId') || getApp().globalData.userId;
     const currentUserInfo = this.data.userInfo;
@@ -151,15 +137,12 @@ Page({
       showError('未登录');
       return;
     }
-
-    const id =
-      currentUserInfo.id != null && currentUserInfo.id !== ''
-        ? currentUserInfo.id
-        : parseInt(userId, 10) || userId;
+    const id = currentUserInfo.id != null && currentUserInfo.id !== ''
+      ? currentUserInfo.id
+      : parseInt(userId, 10) || userId;
     const params = { id };
     if (fields.nickName !== undefined) params.nickName = fields.nickName;
     if (fields.avatar !== undefined) params.avatar = fields.avatar;
-
     try {
       await updateUserInfo(params);
       const updatedUserInfo = {
@@ -177,7 +160,6 @@ Page({
     }
   },
 
-  // 更新昵称
   async handleUpdateNickname() {
     const { editNickname } = this.data;
     if (!editNickname || !editNickname.trim()) {
@@ -188,45 +170,45 @@ Page({
     this.hideEditNickname();
   },
 
-  // 跳转到历史活动
   goToHistory() {
-    wx.navigateTo({
-      url: '/pages/history/list'
-    });
+    wx.navigateTo({ url: '/pages/history/list' });
   },
 
   goToPaymentManage() {
-    wx.navigateTo({
-      url: '/pages/payment/history'
-    });
+    wx.navigateTo({ url: '/pages/payment/history' });
   },
 
-  // 退出登录
+  goToNotifications() {
+    wx.navigateTo({ url: '/pages/notification/index' });
+  },
+
+  async checkNotificationCount() {
+    try {
+      const result = await getApplicationList();
+      const list = result.applications || [];
+      this.setData({ notificationCount: list.length });
+    } catch (error) {
+      console.error('检查通知数量失败:', error);
+    }
+  },
+
   handleLogout() {
     wx.showModal({
       title: '确认退出',
       content: '确定要退出登录吗？',
       success: (res) => {
-        if (res.confirm) {
-          // 清除本地存储
-          wx.removeStorageSync('token');
-          wx.removeStorageSync('userId');
-          wx.removeStorageSync('userInfo');
-          
-          const app = getApp();
-          app.globalData.token = null;
-          app.globalData.userId = null;
-          app.globalData.userInfo = null;
-          
-          // 跳转到登录页
-          wx.reLaunch({
-            url: '/pages/login/login'
-          });
-        }
+        if (!res.confirm) return;
+        wx.removeStorageSync('token');
+        wx.removeStorageSync('userId');
+        wx.removeStorageSync('userInfo');
+        const app = getApp();
+        app.globalData.token = null;
+        app.globalData.userId = null;
+        app.globalData.userInfo = null;
+        wx.reLaunch({ url: '/pages/login/login' });
       }
     });
   },
 
-  // 阻止事件冒泡
   stopPropagation() {}
 });

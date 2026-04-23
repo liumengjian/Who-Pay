@@ -10,7 +10,10 @@ const {
   updateActivity,
   updateTeam,
   leaveTeam,
-  leaveActivity
+  leaveActivity,
+  getActivityPayments,
+  deletePayment,
+  applyForJoin
 } = require('../../utils/cloud.js');
 const {
   showLoading,
@@ -20,6 +23,7 @@ const {
   copyToClipboard,
   formatAmount,
   formatDateTime,
+  formatDate,
   validateAmount,
   validateInviteCode,
   filePathToBase64Compressed
@@ -60,7 +64,20 @@ Page({
     editActivityAvatarTempPath: '',
     showEditTeamNameModal: false,
     editingTeamId: '',
-    editTeamNameInput: ''
+    editTeamNameInput: '',
+    // 日期筛选费用明细
+    showExpenseDetail: false,
+    expenseList: [],
+    allExpenseList: [],
+    dailyExpenseSummary: [],
+    selectedDate: '',
+    availableDates: [],
+    // 删除支付记录
+    showDeletePayment: false,
+    deletePaymentId: '',
+    deletePaymentAmount: '',
+    deletePaymentRemark: '',
+    deletePaymentUserId: ''
   },
 
   onLoad(options) {
@@ -107,16 +124,22 @@ Page({
       const isEnded = activityInfo.status === 'ended';
 
       const teamsData = result.teams || [];
-      const teamCount = teamsData.length || 1;
+      // 计算总人数（所有团队人数之和）用于人均均摊
+      const totalMemberCount = teamsData.reduce(
+        (sum, team) => sum + ((team.members || []).length || 0), 0
+      ) || 1;
 
       const totalAmount = parseFloat(result.totalAmount || 0);
-      const shareAmount = teamCount > 0 ? totalAmount / teamCount : 0;
+      // 人均均摊：总花费 / 总人数
+      const shareAmount = totalAmount / totalMemberCount;
 
       const teams = teamsData.map((teamData) => {
         const teamTotal = parseFloat(teamData.totalAmount || 0);
-        const diffAmount = teamTotal - shareAmount;
-        const memberCount = (teamData.members || []).length || 1;
-        const memberShareAmount = memberCount > 0 ? Math.abs(diffAmount) / memberCount : 0;
+        // 团队差异：团队总支付 - 团队应均摊金额（人数 × 人均）
+        const teamMemberCount = (teamData.members || []).length || 1;
+        const teamShouldPay = teamMemberCount * shareAmount;
+        const diffAmount = teamTotal - teamShouldPay;
+        const memberShareAmount = teamMemberCount > 0 ? Math.abs(diffAmount) / teamMemberCount : 0;
 
         return {
           _id: teamData._id || teamData.id,
@@ -126,7 +149,7 @@ Page({
           creatorId: teamData.creatorId || '',
           totalAmount: formatAmount(teamTotal),
           diffAmount: parseFloat(diffAmount.toFixed(2)),
-          memberCount: memberCount,
+          memberCount: teamMemberCount,
           memberShareAmount: formatAmount(memberShareAmount),
           iCreated: String(teamData.creatorId || '') === String(userId),
           amMember: (teamData.members || []).some(
@@ -164,6 +187,7 @@ Page({
         teams: teams,
         totalAmount: formatAmount(totalAmount),
         shareAmount: formatAmount(shareAmount),
+        totalMemberCount: totalMemberCount,
         myTeam: myTeam,
         myTeamDiff: myTeamDiff,
         myPersonalDiff: myPersonalDiff,
@@ -190,6 +214,132 @@ Page({
     }
   },
 
+  // ========== 日期筛选费用明细 ==========
+  async _loadExpenseDetail() {
+    const result = await getActivityPayments(this.data.activityId);
+    const payments = (result.payments || []).map((p) => ({
+      ...p,
+      createTime: formatDateTime(p.createTime),
+      dateKey: formatDate(p.createTime),
+      payerName: p.payerName || p.username || '未知'
+    }));
+
+    // 计算每日总花费
+    const dateMap = {};
+    payments.forEach((p) => {
+      const date = p.dateKey;
+      if (!dateMap[date]) {
+        dateMap[date] = { date, total: 0 };
+      }
+      dateMap[date].total += parseFloat(p.amount || 0);
+    });
+
+    const totalMemberCount = this.data.totalMemberCount || 1;
+    const dailySummary = Object.values(dateMap)
+      .sort((a, b) => new Date(b.date) - new Date(a.date))
+      .map((d) => ({
+        date: d.date,
+        total: formatAmount(d.total),
+        perPerson: formatAmount(d.total / totalMemberCount)
+      }));
+
+    // 默认选中第一天
+    const availableDates = dailySummary.map((d) => d.date);
+    const selectedDate = availableDates[0] || '';
+
+    // 过滤当天数据
+    const filteredList = selectedDate
+      ? payments.filter((p) => p.dateKey === selectedDate)
+      : [];
+
+    this.setData({
+      showExpenseDetail: true,
+      expenseList: filteredList,
+      allExpenseList: payments,
+      dailyExpenseSummary: dailySummary,
+      selectedDate: selectedDate,
+      availableDates: availableDates
+    });
+  },
+
+  async openExpenseDetail() {
+    showLoading('加载中...');
+    try {
+      await this._loadExpenseDetail();
+    } catch (error) {
+      console.error('加载费用明细失败:', error);
+      showError(error.message || '加载失败');
+    } finally {
+      hideLoading();
+    }
+  },
+
+  hideExpenseDetail() {
+    this.setData({
+      showExpenseDetail: false
+    });
+  },
+
+  onDateSelect(e) {
+    const date = e.currentTarget.dataset.date;
+    const allPayments = this.data.allExpenseList || [];
+    const filteredList = allPayments.filter((p) => p.dateKey === date);
+    this.setData({
+      selectedDate: date,
+      expenseList: filteredList
+    });
+  },
+
+  // 长按删除支付记录
+  onExpenseItemLongPress(e) {
+    const item = e.currentTarget.dataset.item;
+    const currentUserId = this.data.userId || wx.getStorageSync('userId');
+    if (String(item.userId) !== String(currentUserId)) {
+      showError('只能删除自己的支付记录');
+      return;
+    }
+    this.setData({
+      showDeletePayment: true,
+      deletePaymentId: item._id || item.id,
+      deletePaymentAmount: item.amount,
+      deletePaymentRemark: item.remark || '',
+      deletePaymentUserId: item.userId
+    });
+  },
+
+  hideDeletePayment() {
+    this.setData({
+      showDeletePayment: false,
+      deletePaymentId: '',
+      deletePaymentAmount: '',
+      deletePaymentRemark: '',
+      deletePaymentUserId: ''
+    });
+  },
+
+  async confirmDeletePayment() {
+    const paymentId = this.data.deletePaymentId;
+    if (!paymentId) return;
+    showLoading('删除中...');
+    try {
+      await deletePayment(paymentId);
+      hideLoading();
+      showSuccess('已删除');
+      this.hideDeletePayment();
+      // 重新加载活动详情（金额、团队等全部刷新）
+      await this.loadActivityDetail();
+      // 重新打开费用明细弹窗
+      if (this.data.showExpenseDetail) {
+        await this.openExpenseDetail();
+      }
+    } catch (error) {
+      hideLoading();
+      console.error('删除支付记录失败:', error);
+      showError(error.message || '删除失败');
+    }
+  },
+
+  // ========== 编辑活动 ==========
   onActivityAvatarTap() {
     if (!this.data.isCreator || this.data.isEnded) return;
     const a = this.data.activityInfo || {};
@@ -509,6 +659,29 @@ Page({
       hideLoading();
       console.error('加入团队失败:', error);
       showError(error.message || '加入失败');
+    }
+  },
+
+  async handleJoinTeamApply() {
+    const activityId = this.data.activityId;
+    // 从弹窗获取的团队ID通过 teamInviteCode 字段传入（实际存的是团队ID）
+    // 这里用 joinTeamHintName 对应的团队
+    // 由于加入团队时只知道团队名称，不知道ID，需要从活动数据中找
+    const hintName = this.data.joinTeamHintName;
+    const team = (this.data.teams || []).find((t) => t.name === hintName);
+    if (!team) {
+      showError('未找到团队');
+      return;
+    }
+    showLoading('申请中...');
+    try {
+      await applyForJoin(activityId, 'team', team._id || team.id);
+      hideLoading();
+      showSuccess('申请已发送，请等待审批');
+      this.hideJoinTeamModal();
+    } catch (error) {
+      hideLoading();
+      showError(error.message || '申请失败');
     }
   },
 

@@ -26,5 +26,7 @@
       <text class="text-gray text-sm block margin-top-xs">{{item.createTime}}</text>
     </view>
   </view>
-  <view wx:else class="empty text-gray text-center padding-xl">暂无支付记录</view>
+  <view wx:else class="empty text-gray text-center padding-xl">
+    <empty-state tip="暂无支付记录" />
+  </view>
 </view>

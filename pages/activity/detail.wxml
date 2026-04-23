@@ -34,8 +34,12 @@
         <text class="amount-value">¥{{totalAmount}}</text>
       </view>
       <view class="amount-item">
-        <text class="amount-label">团队均摊</text>
+        <text class="amount-label">人均均摊</text>
         <text class="amount-value">¥{{shareAmount}}</text>
+      </view>
+      <view class="amount-item">
+        <text class="amount-label">参与人数</text>
+        <text class="amount-value">{{totalMemberCount}}人</text>
       </view>
     </view>
     
@@ -119,6 +123,17 @@
     </view>
   </view>
 
+  <!-- 费用明细筛选区 -->
+  <view class="expense-section">
+    <view class="expense-header" bindtap="openExpenseDetail">
+      <view class="expense-title">
+        <text class="section-title-text">费用明细</text>
+        <text class="expense-hint">按日期查看</text>
+      </view>
+      <text class="expense-arrow">›</text>
+    </view>
+  </view>
+
   <view class="extra-actions padding-sm" wx:if="{{!isEnded}}">
     <button wx:if="{{myTeam && !isTeamCreator}}" class="link-btn" bindtap="handleLeaveTeam">退出团队</button>
     <button wx:if="{{!isCreator}}" class="link-btn" bindtap="handleLeaveActivity">退出活动</button>
@@ -151,6 +166,7 @@
           />
         </view>
         <button class="btn-primary margin-top-sm" bindtap="handleJoinTeamByInvite">加入团队</button>
+        <button class="btn-apply margin-top-sm" bindtap="handleJoinTeamApply">申请加入</button>
       </view>
     </view>
   </view>
@@ -332,6 +348,81 @@
         <view wx:else class="empty-payments">
           <text>暂无支付记录</text>
         </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 费用明细弹窗 -->
+  <view wx:if="{{showExpenseDetail}}" class="modal show expense-modal" catchtap="hideExpenseDetail">
+    <view class="modal-content expense-modal-content" catchtap="stopPropagation">
+      <view class="modal-header">
+        <text class="modal-title">费用明细</text>
+        <text class="modal-close" bindtap="hideExpenseDetail">×</text>
+      </view>
+      <view class="expense-hint-bar">
+        <text class="expense-hint-text">长按可删除记录</text>
+      </view>
+      <!-- 日期选择器 -->
+      <scroll-view class="date-picker" scroll-x enable-flex>
+        <view class="date-tabs">
+          <view 
+            class="date-tab {{selectedDate === item.date ? 'active' : ''}}"
+            wx:for="{{dailyExpenseSummary}}"
+            wx:key="date"
+            bindtap="onDateSelect"
+            data-date="{{item.date}}"
+          >
+            <text class="date-tab-day">{{item.date}}</text>
+            <text class="date-tab-amount">¥{{item.total}}</text>
+            <text class="date-tab-perperson">人均¥{{item.perPerson}}</text>
+          </view>
+        </view>
+      </scroll-view>
+      <!-- 费用列表 -->
+      <view class="modal-body expense-list-body">
+        <view wx:if="{{expenseList.length > 0}}">
+          <view 
+            class="expense-item" 
+            wx:for="{{expenseList}}" 
+            wx:key="_id"
+            bindlongpress="onExpenseItemLongPress"
+            data-item="{{item}}"
+          >
+            <view class="expense-left">
+              <image class="expense-avatar" src="{{item.avatarUrl || '/images/default-avatar.png'}}" mode="aspectFill"></image>
+              <view class="expense-info">
+                <text class="expense-name">{{item.payerName}}</text>
+                <text class="expense-remark" wx:if="{{item.remark}}">{{item.remark}}</text>
+                <text class="expense-time">{{item.createTime}}</text>
+              </view>
+            </view>
+            <text class="expense-amount">¥{{item.amount}}</text>
+          </view>
+        </view>
+        <view wx:else class="empty-expenses">
+          <text>暂无支付记录</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 删除支付记录确认弹窗 -->
+  <view wx:if="{{showDeletePayment}}" class="modal show" catchtap="hideDeletePayment">
+    <view class="modal-content" catchtap="stopPropagation">
+      <view class="modal-header">
+        <text class="modal-title">删除支付记录</text>
+        <text class="modal-close" bindtap="hideDeletePayment">×</text>
+      </view>
+      <view class="modal-body">
+        <text class="text-gray text-sm block">确定要删除这条支付记录吗？</text>
+        <view class="delete-payment-info margin-top">
+          <text class="text-bold">¥{{deletePaymentAmount}}</text>
+          <text class="text-gray text-sm margin-left-sm" wx:if="{{deletePaymentRemark}}">{{deletePaymentRemark}}</text>
+        </view>
+      </view>
+      <view class="modal-footer">
+        <button class="btn-secondary" bindtap="hideDeletePayment">取消</button>
+        <button class="btn-danger" bindtap="confirmDeletePayment">删除</button>
       </view>
     </view>
   </view>

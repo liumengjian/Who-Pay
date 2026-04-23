@@ -53,13 +53,11 @@
       </view>
     </view>
 
-    <view wx:elif="{{hallActivities.length > 0 && hallDisplayList.length === 0}}" class="empty-state animation-fade">
-      <text class="cuIcon-search text-blue" style="font-size: 120rpx;"></text>
-      <text class="text-df text-gray margin-top">未找到名称包含「{{hallSearchKeyword}}」的活动</text>
+    <view wx:elif="{{hallActivities.length > 0 && hallDisplayList.length === 0}}" class="empty-wrapper">
+      <empty-state tip="未找到名称包含「{{hallSearchKeyword}}」的活动" />
     </view>
-    <view wx:else class="empty-state animation-fade">
-      <text class="cuIcon-form text-blue" style="font-size: 120rpx;"></text>
-      <text class="text-df text-gray margin-top">大厅暂无进行中的活动</text>
+    <view wx:else class="empty-wrapper">
+      <empty-state tip="大厅暂无进行中的活动" />
     </view>
   </view>
 
@@ -121,10 +119,8 @@
       </view>
     </view>
 
-    <view wx:else class="empty-state animation-fade">
-      <text class="cuIcon-form text-blue" style="font-size: 120rpx;"></text>
-      <text class="text-df text-gray margin-top">您还没有加入进行中的活动</text>
-      <text class="text-sm text-gray margin-top-sm">在大厅选择活动，在详情中输入邀请码加入</text>
+    <view wx:else class="empty-wrapper">
+      <empty-state tip="您还没有加入进行中的活动" />
     </view>
   </view>
 
@@ -168,7 +164,9 @@
             placeholder-class="text-gray"
           />
         </view>
-        <button wx:if="{{!hallActivityJoined}}" class="cu-btn block bg-blue margin-top" bindtap="handleHallJoinActivity">加入活动</button>
+        <button wx:if="{{!hallActivityJoined && !hallApplicationSent}}" class="cu-btn block bg-blue margin-top" bindtap="handleHallJoinActivity">加入活动</button>
+        <button wx:if="{{!hallActivityJoined && hallApplicationSent}}" class="cu-btn block bg-grey margin-top" disabled>已申请，请等待审批</button>
+        <button wx:if="{{!hallActivityJoined && !hallApplicationSent}}" class="cu-btn block bg-green margin-top-sm light" bindtap="handleHallApplyActivity">申请加入</button>
       </scroll-view>
       <view class="padding" wx:if="{{loadingHallPreview}}">
         <text class="text-gray">加载中...</text>

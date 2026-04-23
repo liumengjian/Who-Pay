@@ -38,9 +38,6 @@
     </view>
 
     <!-- 空状态 -->
-    <view wx:else class="empty-state">
-      <text class="empty-icon">📜</text>
-      <text class="empty-text">暂无历史活动</text>
-    </view>
+    <empty-state tip="暂无历史活动" />
   </view>
 </view>
