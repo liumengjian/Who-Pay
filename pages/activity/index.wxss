@@ -1,13 +1,7 @@
 /* pages/activity/index.wxss - ColorUI 年轻活泼 */
 .activity-page {
-  /* min-height: 100vh; */
+  background: transparent;
   padding-bottom: 180rpx;
-  /* 顶部渐变与 cu-custom 连贯，过渡到主体灰底 */
-  /* background: linear-gradient(to bottom,
-    #667eea 0,
-    #764ba2 120rpx,
-    #f7f8fa 360rpx
-  ); */
 }
 
 .bg-gradual-blue {
@@ -65,7 +59,7 @@
   z-index: 100;
   display: flex;
   gap: 40rpx;
-  height: 160rpx;
+  height: 120rpx;
 }
 
 .action-bar-single {

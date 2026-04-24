@@ -32,13 +32,13 @@
         "pagePath": "pages/activity/index",
         "iconPath": "images/home.png",
         "selectedIconPath": "images/home-active.png",
-        "text": "活动"
+        "text": ""
       },
       {
         "pagePath": "pages/user/profile",
         "iconPath": "images/user.png",
         "selectedIconPath": "images/user-active.png",
-        "text": "我的"
+        "text": ""
       }
     ]
   },
