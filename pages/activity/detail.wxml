@@ -151,11 +151,11 @@
       <view class="modal-body">
         <text class="text-gray text-sm block margin-bottom-sm">请输入该团队的 6 位邀请码</text>
         <view class="input-group">
-          <text class="input-label">团队邀请码 <text class="required">*</text></text>
+          <text class="input-label">邀请码 <text class="required">*</text></text>
           <input
             class="input"
             type="text"
-            placeholder="6位大写字母或数字"
+            placeholder="输入邀请码可直接加入"
             value="{{teamInviteCode}}"
             bindinput="onTeamInviteInput"
             maxlength="6"

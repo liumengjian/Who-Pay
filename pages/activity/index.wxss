@@ -1,4 +1,16 @@
 /* pages/activity/index.wxss - ColorUI 年轻活泼 */
+
+/* 页面拦截层，覆盖整个视口（包括 tabbar），阻止底层点击 */
+.page-blocker {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 998;
+  pointer-events: none;
+}
+
 .activity-page {
   background: transparent;
   padding-bottom: 180rpx;

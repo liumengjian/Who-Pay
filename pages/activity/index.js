@@ -158,6 +158,7 @@ Page({
   },
 
   stopPropagation() {},
+  preventTouchMove() {},
 
   async onOpenHallActivity(e) {
     const activityId = String(e.currentTarget.dataset.id);

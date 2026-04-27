@@ -43,6 +43,7 @@
             >拒绝</button>
           </block>
           <view wx:elif="{{item.status === 'approved'}}" class="status-tag tag-approved">已同意</view>
+          <view wx:elif="{{item.status === 'cancelled'}}" class="status-tag tag-rejected">已撤销</view>
           <view wx:else class="status-tag tag-rejected">已拒绝</view>
         </view>
       </view>
@@ -59,6 +60,7 @@
         <view class="msg-actions">
           <view wx:if="{{item.status === 'pending'}}" class="status-tag tag-pending">待处理</view>
           <view wx:elif="{{item.status === 'approved'}}" class="status-tag tag-approved">已同意</view>
+          <view wx:elif="{{item.status === 'cancelled'}}" class="status-tag tag-rejected">已撤销</view>
           <view wx:else class="status-tag tag-rejected">已拒绝</view>
           <button
             wx:if="{{item.status === 'pending'}}"
