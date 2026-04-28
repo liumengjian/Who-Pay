@@ -47,6 +47,15 @@
         <image src="/images/pointer-right.png" mode="aspectFit" />
       </view>
     </view>
+    <button class="menu-item menu-contact-btn" open-type="contact">
+      <view class="menu-left">
+        <image class="menu-icon" src="/images/kefu.png" mode="aspectFit" />
+        <text class="menu-text">联系我们</text>
+      </view>
+      <view class="menu-arrow">
+        <image src="/images/pointer-right.png" mode="aspectFit" />
+      </view>
+    </button>
   </view>
 
   <!-- 退出登录 -->

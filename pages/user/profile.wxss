@@ -335,3 +335,28 @@
   color: #999;
   font-size: 28rpx;
 }
+
+/* 联系我们按钮：重置原生 button 样式，继承 menu-item 布局 */
+.menu-contact-btn {
+  background-color: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 40rpx !important;
+  margin: 0 !important;
+  line-height: normal;
+  font-size: inherit;
+  color: inherit;
+  text-align: left;
+  /* 继承 menu-item 的 padding，覆盖 button 默认 padding */
+  padding: 40rpx !important;
+  /* 确保 menu-item 布局生效 */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100% !important;
+  box-sizing: border-box;
+}
+
+.menu-contact-btn::after {
+  border: none;
+}
