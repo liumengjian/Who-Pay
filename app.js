@@ -1,6 +1,7 @@
 // app.js
 const { CLOUD_ENV } = require('./service/config.js');
 const { callAPI } = require('./utils/cloud.js');
+const { computeNavTotalHeight } = require('./utils/navHeight.js');
 
 App({
   onLaunch() {
@@ -21,6 +22,10 @@ App({
         this.globalData.CustomBar =
           (custom.bottom ? custom.bottom : custom.top + 48) -
           (e.statusBarHeight || 0);
+        this.globalData.NavTotalHeight = computeNavTotalHeight(
+          e.statusBarHeight || 0,
+          this.globalData.CustomBar
+        );
       }
     });
     // 检查登录态
@@ -33,7 +38,8 @@ App({
     userId: null,
     StatusBar: 0,
     Custom: null,
-    CustomBar: 0
+    CustomBar: 0,
+    NavTotalHeight: 0
   },
 
   // 检查登录态

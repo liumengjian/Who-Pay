@@ -13,7 +13,8 @@ const {
   leaveActivity,
   getActivityPayments,
   deletePayment,
-  applyForJoin
+  applyForJoin,
+  settleEqualShare
 } = require('../../utils/cloud.js');
 const {
   showLoading,
@@ -28,6 +29,7 @@ const {
   validateInviteCode,
   filePathToBase64Compressed
 } = require('../../utils/util.js');
+const { getNavTotalHeight } = require('../../utils/navHeight.js');
 
 Page({
   data: {
@@ -77,12 +79,17 @@ Page({
     deletePaymentId: '',
     deletePaymentAmount: '',
     deletePaymentRemark: '',
-    deletePaymentUserId: ''
+    deletePaymentUserId: '',
+    showEqualizeBtn: false,
+    shareBalancedComplete: false,
+    triggered: false,
+    navHeight: 0
   },
 
   onLoad(options) {
-    const activityId = options.id;
+    this.setData({ navHeight: getNavTotalHeight() });
 
+    const activityId = options.id;
     if (!activityId) {
       showError('活动ID不存在');
       setTimeout(() => {
@@ -103,10 +110,17 @@ Page({
   },
 
   onShow() {
+    this.setData({ navHeight: getNavTotalHeight() });
     if (this.data.activityId) {
       this.setData({ userId: wx.getStorageSync('userId') || '' });
       this.loadActivityDetail();
     }
+  },
+
+  onRefresh() {
+    this.loadActivityDetail().finally(() => {
+      this.setData({ triggered: false });
+    });
   },
 
   async loadActivityDetail() {
@@ -125,9 +139,11 @@ Page({
 
       const teamsData = result.teams || [];
       // 计算总人数（所有团队人数之和）用于人均均摊
-      const totalMemberCount = teamsData.reduce(
-        (sum, team) => sum + ((team.members || []).length || 0), 0
-      ) || 1;
+      const rawMemberCount = teamsData.reduce(
+        (sum, team) => sum + ((team.members || []).length || 0),
+        0
+      );
+      const totalMemberCount = rawMemberCount || 1;
 
       const totalAmount = parseFloat(result.totalAmount || 0);
       // 人均均摊：总花费 / 总人数
@@ -182,6 +198,33 @@ Page({
         }
       }
 
+      const showEqualizeBtn =
+        !isEnded &&
+        teams.length > 0 &&
+        rawMemberCount > 0 &&
+        teams.some((t) => Math.abs(t.diffAmount) >= 0.01);
+
+      /* 人均实付与全局人均应付一致（每人付的一样），视为已均摊完成 */
+      const targetPerHead =
+        rawMemberCount > 0
+          ? Math.round((totalAmount / rawMemberCount) * 100) / 100
+          : 0;
+      let shareBalancedComplete = false;
+      if (rawMemberCount > 0 && teamsData.length > 0) {
+        shareBalancedComplete = true;
+        for (const teamData of teamsData) {
+          for (const m of teamData.members || []) {
+            const paid =
+              Math.round(parseFloat(m.totalAmount || 0) * 100) / 100;
+            if (Math.abs(paid - targetPerHead) >= 0.01) {
+              shareBalancedComplete = false;
+              break;
+            }
+          }
+          if (!shareBalancedComplete) break;
+        }
+      }
+
       this.setData({
         activityInfo: activityInfo,
         teams: teams,
@@ -193,7 +236,9 @@ Page({
         myPersonalDiff: myPersonalDiff,
         isCreator: isCreator,
         isTeamCreator: isTeamCreator,
-        isEnded: isEnded
+        isEnded: isEnded,
+        showEqualizeBtn: showEqualizeBtn,
+        shareBalancedComplete: shareBalancedComplete
       });
 
       if (this._openCreateTeamAfterLoad && !isEnded && !myTeam) {
@@ -331,6 +376,10 @@ Page({
       // 重新打开费用明细弹窗
       if (this.data.showExpenseDetail) {
         await this.openExpenseDetail();
+      }
+      // 成员支付弹窗仍打开时刷新列表
+      if (this.data.showMemberPayments && this.data.selectedMemberId) {
+        await this.refreshMemberPaymentsPanel();
       }
     } catch (error) {
       hideLoading();
@@ -526,6 +575,40 @@ Page({
     this.setData({
       showMemberPayments: false
     });
+  },
+
+  /** 成员支付弹窗内：长按删除（仅本人记录可删，服务端亦校验） */
+  onMemberPaymentLongPress(e) {
+    const ds = e.currentTarget.dataset || {};
+    const paymentId = ds.paymentId != null ? String(ds.paymentId) : '';
+    const currentUserId = this.data.userId || wx.getStorageSync('userId');
+    if (String(this.data.selectedMemberId) !== String(currentUserId)) {
+      showError('只能删除自己的支付记录');
+      return;
+    }
+    if (!paymentId) return;
+    this.setData({
+      showDeletePayment: true,
+      deletePaymentId: paymentId,
+      deletePaymentAmount: ds.amount,
+      deletePaymentRemark: ds.remark != null ? String(ds.remark) : '',
+      deletePaymentUserId: currentUserId
+    });
+  },
+
+  async refreshMemberPaymentsPanel() {
+    if (!this.data.showMemberPayments || !this.data.selectedMemberId) return;
+    const userId = this.data.selectedMemberId;
+    try {
+      const result = await getMemberPayments(this.data.activityId, userId);
+      const payments = (result.payments || []).map((p) => ({
+        ...p,
+        createTime: formatDateTime(p.createTime)
+      }));
+      this.setData({ memberPayments: payments });
+    } catch (err) {
+      console.error('刷新成员支付记录失败:', err);
+    }
   },
 
   findMember(userId) {
@@ -817,6 +900,39 @@ Page({
             console.error('结束活动失败:', error);
             showError(error.message || '结束失败');
           }
+        }
+      }
+    });
+  },
+
+  async handleEqualizeShare() {
+    if (this.data.isEnded) {
+      showError('活动已结束');
+      return;
+    }
+    if (!this.data.showEqualizeBtn) return;
+    wx.showModal({
+      title: '一键均摊',
+      content:
+        '将为每人自动添加「均摊付款」或「均摊收款」记录，使所有人实付等于当前人均花费。是否继续？',
+      success: async (res) => {
+        if (!res.confirm) return;
+        showLoading('均摊中...');
+        try {
+          const result = await settleEqualShare(this.data.activityId);
+          hideLoading();
+          const n = result && typeof result.count === 'number' ? result.count : 0;
+          const msg = result && result.message;
+          if (n === 0) {
+            showSuccess(msg || '无需调整');
+          } else {
+            showSuccess(`已为 ${n} 人次记账`);
+          }
+          await this.loadActivityDetail();
+        } catch (e) {
+          hideLoading();
+          console.error(e);
+          showError(e.message || '均摊失败');
         }
       }
     });

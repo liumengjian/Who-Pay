@@ -1,19 +1,30 @@
 // pages/notification/index.js
 const { getApplicationList, handleApplication, getMyApplications, cancelApplication } = require('../../utils/cloud.js');
 const { showLoading, hideLoading, showSuccess, showError, formatDateTime } = require('../../utils/util.js');
+const { getNavTotalHeight } = require('../../utils/navHeight.js');
 
 Page({
   data: {
     messages: [],   // 统一消息列表
-    loading: true
+    loading: true,
+    navHeight: 0,
+    triggered: false
   },
 
   onLoad() {
+    this.setData({ navHeight: getNavTotalHeight() });
     this.loadAll();
   },
 
   onShow() {
+    this.setData({ navHeight: getNavTotalHeight() });
     this.loadAll();
+  },
+
+  onRefresh() {
+    this.loadAll().finally(() => {
+      this.setData({ triggered: false });
+    });
   },
 
   async loadAll() {

@@ -1,7 +1,7 @@
 <!--pages/history/list.wxml-->
 <cu-custom bgColor="bg-gradual-blue" isBack="{{true}}">
-  <view slot="content" class="text-white">历史活动</view>
 </cu-custom>
+<scroll-view scroll-y class="refresh-scroll" style="height:calc(100vh - {{navHeight}}px)" refresherEnabled refresherThreshold="80" refresherTriggered="{{triggered}}" bindrefresherrefresh="onRefresh">
 <view class="history-page">
   <view class="history-list">
     <view wx:if="{{activities.length > 0}}">
@@ -41,3 +41,4 @@
     </view>
   </view>
 </view>
+</scroll-view>

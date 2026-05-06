@@ -1,9 +1,17 @@
 const app = getApp();
+const { computeNavTotalHeight, getNavTotalHeight } = require('../../utils/navHeight.js');
 
 function getNavHeights() {
-  const sb = app.globalData.StatusBar ?? 20;
-  const cb = app.globalData.CustomBar ?? 44;
-  return { StatusBar: sb, CustomBar: cb, NavHeight: sb + cb };
+  const sb = app.globalData.StatusBar || 0;
+  const cb = app.globalData.CustomBar || 0;
+  const useSb = sb === 0 && cb === 0 ? 20 : sb;
+  const useCb = sb === 0 && cb === 0 ? 44 : cb;
+  return {
+    StatusBar: useSb,
+    CustomBar: useCb,
+    NavHeight: useSb + useCb,
+    NavTotalHeight: getNavTotalHeight()
+  };
 }
 
 function fetchNavHeights(callback) {
@@ -14,6 +22,7 @@ function fetchNavHeights(callback) {
       const cb = (custom.bottom || custom.top + 48) - sb;
       app.globalData.StatusBar = sb;
       app.globalData.CustomBar = cb;
+      app.globalData.NavTotalHeight = computeNavTotalHeight(sb, cb);
       app.globalData.Custom = custom;
       callback(getNavHeights());
     },
@@ -36,6 +45,7 @@ Component({
     StatusBar: 20,
     CustomBar: 44,
     NavHeight: 64,
+    NavTotalHeight: 80,
     Custom: null
   },
   lifetimes: {
@@ -55,6 +65,7 @@ Component({
     _updateNavHeights() {
       const heights = getNavHeights();
       if (heights.NavHeight !== this.data.NavHeight ||
+          heights.NavTotalHeight !== this.data.NavTotalHeight ||
           heights.StatusBar !== this.data.StatusBar ||
           heights.CustomBar !== this.data.CustomBar) {
         this.setData(heights);

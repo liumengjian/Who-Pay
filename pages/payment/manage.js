@@ -1,6 +1,7 @@
 // pages/payment/manage.js
 const { getMyPayments, addPayment, updatePayment, deletePayment } = require('../../utils/cloud.js');
 const { showLoading, hideLoading, showSuccess, showError, formatAmount, formatDateTime, validateAmount } = require('../../utils/util.js');
+const { getNavTotalHeight } = require('../../utils/navHeight.js');
 
 Page({
   data: {
@@ -11,10 +12,14 @@ Page({
     isEdit: false,
     editingIndex: -1,
     formAmount: '',
-    formRemark: ''
+    formRemark: '',
+    triggered: false,
+    navHeight: 0
   },
 
   onLoad(options) {
+    this.setData({ navHeight: getNavTotalHeight() });
+
     const activityId = options.id;
     const teamId = options.teamId || '';
     if (!activityId) {
@@ -31,6 +36,16 @@ Page({
     });
 
     this.loadPayments();
+  },
+
+  onShow() {
+    this.setData({ navHeight: getNavTotalHeight() });
+  },
+
+  onRefresh() {
+    this.loadPayments().finally(() => {
+      this.setData({ triggered: false });
+    });
   },
 
   // 加载支付记录列表

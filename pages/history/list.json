@@ -1,6 +1,7 @@
 {
   "navigationBarTitleText": "历史活动",
   "navigationStyle": "custom",
+  "enablePullDownRefresh": false,
   "usingComponents": {
     "cu-custom": "/colorui/components/cu-custom",
     "empty-state": "/components/empty-state/index"

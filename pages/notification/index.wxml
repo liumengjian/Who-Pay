@@ -1,4 +1,7 @@
 <!--pages/notification/index.wxml-->
+<cu-custom bgColor="bg-gradual-blue" isBack="{{true}}">
+</cu-custom>
+<scroll-view scroll-y class="refresh-scroll notification-scroll" style="height:calc(100vh - {{navHeight}}px)" refresherEnabled refresherThreshold="80" refresherTriggered="{{triggered}}" bindrefresherrefresh="onRefresh">
 <view class="notification-page">
   <!-- 加载中 -->
   <view wx:if="{{loading}}" class="loading-state">
@@ -78,3 +81,4 @@
     <empty-state tip="暂无消息通知" />
   </view>
 </view>
+</scroll-view>

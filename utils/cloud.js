@@ -189,6 +189,11 @@ function leaveTeam(teamId) {
   return callAPI(`/api/team/${teamId}/leave`, 'POST', {});
 }
 
+/** 一键均摊：服务端为每人写入均摊付款 / 均摊收款记录 */
+function settleEqualShare(activityId) {
+  return callAPI(`/api/activity/${activityId}/settle-equal-share`, 'POST', {});
+}
+
 module.exports = {
   callAPI,
   login,
@@ -221,7 +226,7 @@ module.exports = {
   applyForJoin,
   getApplicationList,
   handleApplication,
-  deletePayment,
   getMyApplications,
-  cancelApplication
+  cancelApplication,
+  settleEqualShare
 };

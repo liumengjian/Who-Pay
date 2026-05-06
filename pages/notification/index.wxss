@@ -1,8 +1,14 @@
 /* pages/notification/index.wxss */
+.refresh-scroll,
+.notification-scroll {
+  overflow: hidden;
+}
+
 .notification-page {
-  min-height: 100vh;
+  box-sizing: border-box;
   background: #f7f8fa;
   padding: 24rpx;
+  min-height: 100%;
 }
 
 .loading-state {

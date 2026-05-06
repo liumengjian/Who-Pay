@@ -1,5 +1,6 @@
 const { getPaymentHistory } = require('../../utils/cloud.js');
 const { showLoading, hideLoading, showError, formatAmount, formatDateTime } = require('../../utils/util.js');
+const { getNavTotalHeight } = require('../../utils/navHeight.js');
 
 function buildActivityFilterOptions(list) {
   const map = new Map();
@@ -23,15 +24,25 @@ Page({
     rawPayments: [],
     payments: [],
     activityOptions: [{ id: '', name: '全部活动' }],
-    filterIndex: 0
+    filterIndex: 0,
+    triggered: false,
+    navHeight: 0
   },
 
   onLoad() {
+    this.setData({ navHeight: getNavTotalHeight() });
     this.load();
   },
 
   onShow() {
+    this.setData({ navHeight: getNavTotalHeight() });
     this.load();
+  },
+
+  onRefresh() {
+    this.load().finally(() => {
+      this.setData({ triggered: false });
+    });
   },
 
   onFilterActivityChange(e) {

@@ -1,5 +1,9 @@
+/* scroll-view 下拉刷新容器 */
+.refresh-scroll {
+  overflow: hidden;
+}
+
 .history-page {
-  min-height: 100vh;
   background: #f7f8fa;
   padding-bottom: 48rpx;
 }

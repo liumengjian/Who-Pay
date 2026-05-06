@@ -11,6 +11,24 @@
   pointer-events: none;
 }
 
+/* scroll-view 下拉刷新容器 — 高度由父级 flex 撑满 */
+.refresh-scroll {
+  overflow: hidden;
+}
+
+.activity-index-frame {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.activity-index-scroll {
+  flex: 1;
+  height: 0;
+  min-height: 0;
+}
+
 .activity-page {
   background: transparent;
   padding-bottom: 180rpx;
@@ -43,7 +61,7 @@
 }
 
 .activity-list {
-  margin-top: -24rpx;
+  margin-top: 0;
 }
 
 
@@ -64,20 +82,51 @@
 
 .action-bar {
   position: fixed;
-  bottom: 0;
+  bottom: -1px;
   left: 0;
   right: 0;
   box-shadow: 0 -4rpx 24rpx rgba(102, 126, 234, 0.15);
   z-index: 100;
   display: flex;
+  align-items: center;
   gap: 40rpx;
-  height: 120rpx;
+  min-height: 96rpx;
+  padding: 14rpx 28rpx calc(14rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+}
+
+.action-bar.flex.padding {
+  padding: 14rpx 28rpx calc(14rpx + env(safe-area-inset-bottom));
 }
 
 .action-bar-single {
   flex: 1;
   margin-right: 0;
-  padding: 18px 0;
+  max-width: 100%;
+  height: 70rpx !important;
+  line-height: 64rpx !important;
+  padding: 0 !important;
+  font-size: 28rpx !important;
+  font-weight: 600 !important;
+  border-radius: 32rpx !important;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+}
+.action-bar-active {
+  padding: 36rpx !important;
+}
+
+/* 与活动详情页「+ / 添加支付」主按钮一致的紫蓝渐变 */
+.activity-create-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  color: #fff !important;
+  border: none !important;
+  box-shadow:
+    0 8rpx 20rpx rgba(102, 126, 234, 0.28),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.22);
+}
+
+.activity-create-btn::after {
+  border: none;
 }
 
 .hall-search .search-form {
@@ -94,22 +143,104 @@
   font-size: 28rpx;
 }
 
-/* 弹窗圆角与动画 */
+/* 弹窗圆角与宽度（立体样式见 app.wxss .cu-dialog） */
 .activity-page .cu-dialog {
   width: 85%;
   max-width: 600rpx;
-  border-radius: 24rpx;
-  box-shadow: 0 20rpx 60rpx rgba(102, 126, 234, 0.2);
 }
 
 .sub-tabs {
-  position: sticky;
-  top: 0;
+  flex-shrink: 0;
   z-index: 10;
 }
 
 .hall-dialog {
   max-height: 85vh;
+}
+
+/* 加入活动 + 申请加入：底部并排一行 */
+.hall-dual-actions {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: 16rpx;
+  margin-top: 24rpx;
+  box-sizing: border-box;
+}
+
+.hall-dual-actions .cu-btn {
+  flex: 1;
+  min-width: 0;
+  margin: 0 !important;
+  width: auto !important;
+  height: 76rpx !important;
+  min-height: 76rpx !important;
+  line-height: 76rpx !important;
+  padding: 0 16rpx !important;
+  font-size: 28rpx !important;
+  font-weight: 600 !important;
+  border-radius: 22rpx !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* 大厅活动详情：内容区按钮与全局弹窗统一（紧凑一行、立体） */
+.hall-dialog .cu-btn {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+.hall-dialog .cu-btn::after {
+  border: none !important;
+}
+
+.hall-dialog .cu-btn.sm,
+.hall-dialog .cu-btn.block {
+  height: 76rpx !important;
+  min-height: 76rpx !important;
+  line-height: 76rpx !important;
+  padding: 0 24rpx !important;
+  font-size: 28rpx !important;
+  font-weight: 600 !important;
+  border-radius: 22rpx !important;
+  box-sizing: border-box !important;
+}
+
+.hall-dialog .cu-btn.block {
+  width: 100% !important;
+}
+
+.hall-dialog .cu-btn.sm {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.hall-dialog .cu-btn.bg-blue {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  color: #fff !important;
+  box-shadow:
+    0 8rpx 20rpx rgba(102, 126, 234, 0.34),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.25) !important;
+}
+
+.hall-dialog .cu-btn.bg-green.light {
+  background: #fff !important;
+  color: #059669 !important;
+  border: 1rpx solid rgba(5, 150, 105, 0.35) !important;
+  box-shadow:
+    0 4rpx 12rpx rgba(31, 41, 55, 0.06),
+    inset 0 1rpx 0 rgba(255, 255, 255, 1) !important;
+}
+
+.hall-dialog .cu-btn.bg-grey {
+  background: #f2f3f5 !important;
+  color: #8e8e93 !important;
+  border: 1rpx solid rgba(0, 0, 0, 0.06) !important;
+  box-shadow: inset 0 1rpx 0 rgba(255, 255, 255, 0.9) !important;
 }
 
 .hall-scroll {
@@ -120,27 +251,127 @@
   width: 120rpx;
 }
 
-.mine-act-avatar {
-  width: 112rpx;
-  height: 112rpx;
+.mine-tab-list {
+  padding: 0 28rpx 32rpx;
+  margin-top: 24rpx;
+}
+
+/* 我的活动：简约立体卡片 */
+.mine-card {
+  background: #fff;
+  border-radius: 28rpx;
+  padding: 28rpx 24rpx 24rpx;
+  margin-bottom: 28rpx;
+  box-sizing: border-box;
+  border: 1rpx solid rgba(255, 255, 255, 0.95);
+  box-shadow:
+    0 2rpx 6rpx rgba(31, 41, 55, 0.06),
+    0 12rpx 36rpx rgba(102, 126, 234, 0.14),
+    inset 0 1rpx 0 rgba(255, 255, 255, 1);
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.mine-card:active {
+  opacity: 0.96;
+  transform: scale(0.992);
+}
+
+.mine-card-top {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.mine-card-avatar {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 22rpx;
+  flex-shrink: 0;
+  box-shadow: 0 6rpx 16rpx rgba(102, 126, 234, 0.2);
+}
+
+.mine-card-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.mine-card-title {
+  display: block;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #1c1c1e;
+  line-height: 1.35;
+}
+
+.mine-card-slogan {
+  display: block;
+  font-size: 24rpx;
+  color: #8e8e93;
+  margin-top: 8rpx;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mine-card-arrow {
+  flex-shrink: 0;
+  font-size: 40rpx;
+  color: #c7c7cc;
+  font-weight: 300;
+  line-height: 1;
+}
+
+.mine-card-teams {
+  margin-top: 22rpx;
+  padding-top: 22rpx;
+  border-top: 1rpx solid #f2f2f7;
+}
+
+.mine-card-team + .mine-card-team {
+  margin-top: 20rpx;
+}
+
+.mine-card-team-name {
+  display: block;
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #636366;
+  margin-bottom: 14rpx;
+}
+
+.mine-card-members {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.mine-card-member-avatar {
+  width: 52rpx;
+  height: 52rpx;
+  border-radius: 50%;
+  border: 3rpx solid #fff;
+  margin-left: -14rpx;
+  box-shadow: 0 4rpx 10rpx rgba(0, 0, 0, 0.1);
   flex-shrink: 0;
 }
 
-.mine-team-block {
-  padding-top: 16rpx;
-  border-top: 1rpx solid #eee;
+.mine-card-member-avatar:first-child {
+  margin-left: 0;
 }
 
-.mine-member {
-  width: 100rpx;
+.mine-card-empty {
+  margin-top: 20rpx;
+  padding-top: 20rpx;
+  border-top: 1rpx solid #f2f2f7;
+  font-size: 24rpx;
+  color: #aeaeb2;
+  text-align: center;
 }
 
 .align-start {
   align-items: flex-start;
-}
-
-.self-center {
-  align-self: center;
 }
 
 .create-avatar-row {

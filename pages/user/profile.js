@@ -1,6 +1,7 @@
 // pages/user/profile.js
 const { updateUserInfo, getApplicationList } = require('../../utils/cloud.js');
 const { showLoading, hideLoading, showSuccess, showError, chooseImage, filePathToBase64Compressed } = require('../../utils/util.js');
+const { getNavTotalHeight } = require('../../utils/navHeight.js');
 
 const DEFAULT_AVATARS = [
   '/images/default-user-photo/animal-_1.png',
@@ -26,14 +27,23 @@ Page({
     showEditAvatar: false,
     editNickname: '',
     defaultAvatars: DEFAULT_AVATARS,
+    triggered: false,
+    navHeight: 0
   },
 
   onLoad() {
+    this.setData({ navHeight: getNavTotalHeight() });
     this.loadUserInfo();
   },
 
   onShow() {
+    this.setData({ navHeight: getNavTotalHeight() });
     this.loadUserInfo();
+  },
+
+  onRefresh() {
+    this.loadUserInfo();
+    this.setData({ triggered: false });
   },
 
   // 加载用户信息

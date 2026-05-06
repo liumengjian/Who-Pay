@@ -1,9 +1,30 @@
 /* pages/user/profile.wxss - ColorUI 年轻活泼 */
-.profile-page {
+
+page {
+  background: #f7f8fa;
+}
+
+/* 整页灰底（与 app.json window.backgroundColor 一致），紫区只占顶部一块 */
+.page-profile {
   min-height: 100vh;
-  /* 顶部与 cu-custom 同款 135deg 渐变，下层灰底从 360rpx 开始 */
-  background: linear-gradient(to bottom, transparent 0, transparent 360rpx, #f7f8fa 360rpx, #f7f8fa 100%),
-    linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #f7f8fa;
+  box-sizing: border-box;
+}
+
+.profile-hero {
+  background: var(--gradualBlue);
+  box-sizing: border-box;
+}
+
+.profile-body {
+  background: #f7f8fa;
+  padding-top: 8rpx;
+  box-sizing: border-box;
+}
+
+/* scroll-view 下拉刷新容器 */
+.refresh-scroll {
+  overflow: hidden;
 }
 
 .user-card {
@@ -99,8 +120,8 @@
 }
 
 .menu-arrow image {
-  width: 36rpx;
-  height: 36rpx;
+  width: 28rpx;
+  height: 28rpx;
 }
 
 .logout-section {
@@ -117,75 +138,6 @@
   font-size: 32rpx;
   border: 2rpx solid #fa5151;
   padding: 0rpx;
-}
-
-/* 弹窗样式 */
-.modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  opacity: 0;
-  visibility: hidden;
-  transition: all 0.3s;
-}
-
-.modal.show {
-  opacity: 1;
-  visibility: visible;
-}
-
-.modal-content {
-  width: 80%;
-  max-width: 600rpx;
-  background-color: #fff;
-  border-radius: 16rpx;
-  overflow: hidden;
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20rpx 30rpx;
-  border-bottom: 2rpx solid #f5f5f5;
-}
-
-.modal-title {
-  font-size: 30rpx;
-  font-weight: bold;
-  color: #333;
-}
-
-.modal-close {
-  font-size: 48rpx;
-  color: #999;
-  line-height: 1;
-  width: 48rpx;
-  height: 48rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.modal-body {
-  padding: 30rpx;
-}
-
-.modal-footer {
-  display: flex;
-  padding: 20rpx 30rpx 30rpx;
-  gap: 20rpx;
-}
-
-.modal-footer button {
-  flex: 1;
 }
 
 .avatar-options {

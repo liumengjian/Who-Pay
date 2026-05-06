@@ -1,7 +1,7 @@
 <!--pages/login/login.wxml - ColorUI 风格 -->
-<view class="login-page">
-  <cu-custom bgColor="bg-gradual-blue"></cu-custom>
-  <view class="login-container bg-gradual-blue">
+<view class="login-page page-hero">
+  <cu-custom bgColor="bg-hero-transparent"></cu-custom>
+  <view class="login-container">
   <view class="logo-section animation-scale-up">
     <image class="logo round shadow" src="/images/logo.png" mode="aspectFit"></image>
     <text class="app-name text-white">Who Pay</text>

@@ -1,5 +1,6 @@
 {
   "navigationBarTitleText": "登录",
   "navigationStyle": "custom",
-  "disableScroll": true
+  "disableScroll": true,
+  "enablePullDownRefresh": false
 }

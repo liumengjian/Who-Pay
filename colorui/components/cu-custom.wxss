@@ -7,3 +7,13 @@
 .cu-custom-nav.bg-gradual-blue {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
+
+/* 铺在父级 .page-hero 上的渐变，导航仅透明叠放，避免与正文各画一遍渐变产生接缝 */
+.cu-custom-nav.bg-hero-transparent {
+  background: transparent !important;
+  color: #ffffff;
+}
+
+.cu-custom-nav.bg-hero-transparent .cu-bar {
+  background: transparent !important;
+}

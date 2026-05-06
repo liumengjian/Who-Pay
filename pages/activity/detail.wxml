@@ -1,7 +1,8 @@
 <!--pages/activity/detail.wxml-->
-<cu-custom bgColor="bg-gradual-blue" isBack="{{true}}">
-  <view slot="content" class="text-white">活动详情</view>
+<view class="page-hero page-hero-detail">
+<cu-custom bgColor="bg-hero-transparent" isBack="{{true}}">
 </cu-custom>
+<scroll-view scroll-y class="refresh-scroll hero-below-nav" style="height:calc(100vh - {{navHeight}}px)" refresherEnabled refresherThreshold="80" refresherTriggered="{{triggered}}" bindrefresherrefresh="onRefresh">
 <view class="detail-page">
   <!-- 概览区 -->
   <view class="overview-section">
@@ -41,22 +42,36 @@
     
     <!-- 我的结算信息 -->
     <view class="my-settlement" wx:if="{{myTeam}}">
-      <view class="settlement-item team-settlement">
-        <text class="settlement-label">您的团队</text>
-        <text class="settlement-value {{myTeamDiff >= 0 ? 'positive' : 'negative'}}">
-          <text wx:if="{{myTeamDiff < 0}}">需要向其他团队支付</text>
-          <text wx:else>可以从其他团队收款</text>
-          <text class="amount">¥{{myTeamDiff >= 0 ? myTeamDiff : (-myTeamDiff)}}</text>
-        </text>
+      <view wx:if="{{shareBalancedComplete}}" class="settlement-equalized">
+        <view class="settlement-equalized-head">
+          <view class="settlement-equalized-dot"></view>
+          <text class="settlement-equalized-title">已均摊完成</text>
+        </view>
+        <text class="settlement-equalized-desc">所有人实付金额与人均应付一致，暂无差额。</text>
       </view>
-      <view class="settlement-item personal-settlement">
-        <text class="settlement-label">您个人</text>
-        <text class="settlement-value {{myTeamDiff >= 0 ? 'positive' : 'negative'}}">
-          <text wx:if="{{myTeamDiff < 0}}">需要支付</text>
-          <text wx:else>可以收款</text>
-          <text class="amount">¥{{myPersonalDiff}}</text>
-        </text>
-      </view>
+      <block wx:else>
+        <view class="settlement-item team-settlement">
+          <text class="settlement-label">您的团队</text>
+          <text class="settlement-value {{myTeamDiff >= 0 ? 'positive' : 'negative'}}">
+            <text wx:if="{{myTeamDiff < 0}}">需要向其他团队支付</text>
+            <text wx:else>可以从其他团队收款</text>
+            <text class="amount">¥{{myTeamDiff >= 0 ? myTeamDiff : (-myTeamDiff)}}</text>
+          </text>
+        </view>
+        <view class="settlement-item personal-settlement">
+          <text class="settlement-label">您个人</text>
+          <text class="settlement-value {{myTeamDiff >= 0 ? 'positive' : 'negative'}}">
+            <text wx:if="{{myTeamDiff < 0}}">需要支付</text>
+            <text wx:else>可以收款</text>
+            <text class="amount">¥{{myPersonalDiff}}</text>
+          </text>
+        </view>
+      </block>
+    </view>
+
+    <view class="equalize-row" wx:if="{{showEqualizeBtn}}">
+      <button class="equalize-btn" bindtap="handleEqualizeShare">一键均摊</button>
+      <text class="equalize-hint">截止到今天之前的消费已线下均摊完成后执行</text>
     </view>
   </view>
 
@@ -79,7 +94,7 @@
           <view wx:if="{{team.iCreated && team.inviteCode}}" class="team-card-invite-row" catchtap="onCopyTeamCardInvite" data-code="{{team.inviteCode}}">
             <text class="team-invite-label">团队邀请码</text>
             <text class="team-invite-code-text">{{team.inviteCode}}</text>
-            <text class="copy-hint">📋</text>
+    <image class="copy-icon" src="/images/copy.png" mode="aspectFit"></image>
           </view>
           <text wx:if="{{!myTeam && !team.iCreated && !team.amMember}}" class="team-tap-hint">点此输入邀请码加入</text>
         </view>
@@ -89,7 +104,6 @@
             {{team.diffAmount >= 0 ? '应收' : '应付'}}: ¥{{team.diffAmount >= 0 ? team.diffAmount : (-team.diffAmount)}}
           </text>
           <text class="team-member-share" wx:if="{{team.memberCount > 0}}">
-            人均: ¥{{team.memberShareAmount}}
           </text>
         </view>
       </view>
@@ -130,18 +144,22 @@
     </view>
   </view>
 
-  <view class="extra-actions padding-sm" wx:if="{{!isEnded}}">
-    <button wx:if="{{myTeam && !isTeamCreator}}" class="link-btn" bindtap="handleLeaveTeam">退出团队</button>
-    <button wx:if="{{!isCreator}}" class="link-btn" bindtap="handleLeaveActivity">退出活动</button>
+  <view class="extra-actions padding-sm" wx:if="{{!isEnded && myTeam && !isTeamCreator}}">
+    <button class="link-btn" bindtap="handleLeaveTeam">退出团队</button>
   </view>
 
-  <!-- 底部操作栏 -->
-  <view class="action-bar" wx:if="{{!isEnded}}">
-    <button class="add-btn" bindtap="handlePrimaryFab">+</button>
-    <button wx:if="{{isCreator}}" class="end-btn" bindtap="handleEndActivity">结束活动</button>
-  </view>
+</view>
+</scroll-view>
+</view>
 
-  <!-- 加入团队（邀请码）；wx:if 避免 iOS 原生 input placeholder 穿透 -->
+<!-- 底部操作栏：+ 记账；创建者-结束活动 / 非创建者-退出活动 -->
+<view class="action-bar" wx:if="{{!isEnded}}">
+  <button class="add-btn" bindtap="handlePrimaryFab">+</button>
+  <button wx:if="{{isCreator}}" class="bar-danger-btn" bindtap="handleEndActivity">结束活动</button>
+  <button wx:if="{{!isCreator}}" class="bar-danger-btn" bindtap="handleLeaveActivity">退出活动</button>
+</view>
+
+<!-- 加入团队（邀请码）；wx:if 避免 iOS 原生 input placeholder 穿透 -->
   <view wx:if="{{showJoinTeamModal}}" class="modal show" catchtap="hideJoinTeamModal">
     <view class="modal-content" catchtap="stopPropagation">
       <view class="modal-header">
@@ -161,8 +179,10 @@
             maxlength="6"
           />
         </view>
-        <button class="btn-primary margin-top-sm" bindtap="handleJoinTeamByInvite">加入团队</button>
-        <button class="btn-apply margin-top-sm" bindtap="handleJoinTeamApply">申请加入</button>
+      </view>
+      <view class="modal-footer">
+        <button class="btn-apply" bindtap="handleJoinTeamApply">申请加入</button>
+        <button class="btn-primary" bindtap="handleJoinTeamByInvite">加入团队</button>
       </view>
     </view>
   </view>
@@ -327,12 +347,19 @@
         <text class="modal-title">{{selectedMemberName}}的支付记录</text>
         <text class="modal-close" bindtap="hideMemberPayments">×</text>
       </view>
+      <view class="expense-hint-bar" wx:if="{{selectedMemberId && userId && selectedMemberId === userId}}">
+        <text class="expense-hint-text">长按可删除自己的记录</text>
+      </view>
       <view class="modal-body">
         <view wx:if="{{memberPayments.length > 0}}">
           <view 
-            class="payment-item" 
+            class="payment-item {{selectedMemberId === userId ? 'payment-item-deletable' : ''}}" 
             wx:for="{{memberPayments}}" 
             wx:key="_id"
+            bindlongpress="onMemberPaymentLongPress"
+            data-payment-id="{{item._id}}"
+            data-amount="{{item.amount}}"
+            data-remark="{{item.remark}}"
           >
             <view class="payment-info">
               <text class="payment-amount">¥{{item.amount}}</text>
@@ -422,4 +449,3 @@
       </view>
     </view>
   </view>
-</view>

@@ -1,6 +1,15 @@
 /* pages/history/detail.wxss */
 @import '../activity/detail.wxss';
 
+page {
+  background: #f7f8fa;
+}
+
+/* 与 scroll-view 可视高度一致，少内容时也占满一屏 */
+.history-detail-page {
+  box-sizing: border-box;
+}
+
 .end-time {
   margin-top: 20rpx;
   text-align: center;

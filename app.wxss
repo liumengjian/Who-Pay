@@ -54,12 +54,268 @@ page {
   line-height: 72rpx;
 }
 
-.btn-secondary::after, .btn-primary::after,
+.btn-secondary::after, .btn-primary::after, .btn-danger::after, .btn-apply::after,
 .add-btn::after, .end-btn::after, .logout-btn::after, .option-btn::after { border: none; }
 
-/* 弹窗/模态框内按钮统一样式 */
-.modal-footer button, .modal .cu-bar button {
+/* 弹窗/模态框 — 简约立体（全页复用） */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(32, 36, 48, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.28s ease, visibility 0.28s ease;
+}
+
+.modal.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.modal-content {
+  width: 82%;
+  max-width: 620rpx;
+  max-height: 82vh;
+  background: #fff;
+  border-radius: 28rpx;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  border: 1rpx solid rgba(255, 255, 255, 0.95);
+  box-shadow:
+    0 28rpx 72rpx rgba(31, 41, 55, 0.14),
+    0 10rpx 32rpx rgba(102, 126, 234, 0.12),
+    inset 0 1rpx 0 rgba(255, 255, 255, 1);
+}
+
+.team-select-content,
+.payment-list-content {
+  max-height: 72vh;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 28rpx 28rpx 24rpx;
+  background: linear-gradient(180deg, #fbfcfe 0%, #f5f6f8 100%);
+  border-bottom: 1rpx solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4rpx 12rpx rgba(31, 41, 55, 0.04);
+}
+
+.modal-title {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #1c1c1e;
+  letter-spacing: 0.5rpx;
+}
+
+.modal-close {
+  font-size: 36rpx;
+  color: #8e8e93;
+  line-height: 1;
+  width: 56rpx;
+  height: 56rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16rpx;
+  background: rgba(0, 0, 0, 0.05);
+  box-shadow: inset 0 1rpx 0 rgba(255, 255, 255, 0.65);
+}
+
+.modal-body {
+  padding: 28rpx;
+  overflow-y: auto;
+  flex: 1;
+  -webkit-overflow-scrolling: touch;
+  background: #fff;
+}
+
+.modal-footer {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  justify-content: stretch;
+  padding: 18rpx 24rpx 24rpx;
+  gap: 16rpx;
+  background: linear-gradient(180deg, #f8f9fb 0%, #f2f3f6 100%);
+  border-top: 1rpx solid rgba(0, 0, 0, 0.06);
+  box-shadow: inset 0 1rpx 0 rgba(255, 255, 255, 0.85);
+}
+
+.modal-footer button {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  height: 76rpx;
+  line-height: 76rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+  letter-spacing: 0.5rpx;
+  border-radius: 22rpx;
+  box-sizing: border-box;
+}
+
+.modal-footer button::after {
+  border: none;
+}
+
+.modal-footer .btn-secondary {
+  background: #fff !important;
+  color: #3a3a3c !important;
+  border: 1rpx solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow:
+    0 4rpx 12rpx rgba(31, 41, 55, 0.06),
+    inset 0 1rpx 0 rgba(255, 255, 255, 1);
+}
+
+.modal-footer .btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  color: #fff !important;
+  border: none !important;
+  box-shadow:
+    0 8rpx 20rpx rgba(102, 126, 234, 0.34),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.28);
+}
+
+.modal-footer .btn-danger {
+  background: linear-gradient(90deg, #ff6568 0%, #ef4444 45%, #dc2626 100%) !important;
+  color: #fff !important;
+  border: none !important;
+  box-shadow:
+    0 8rpx 18rpx rgba(239, 68, 68, 0.32),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.28);
+}
+
+.modal-footer .btn-apply {
+  background: linear-gradient(90deg, #34d399 0%, #10b981 50%, #059669 100%) !important;
+  color: #fff !important;
+  border: none !important;
+  box-shadow:
+    0 8rpx 18rpx rgba(16, 185, 129, 0.32),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.28);
+}
+
+.required {
+  color: #fa5151;
+}
+
+.modal-body .input-group {
+  margin-bottom: 36rpx;
+}
+
+.modal-body .input-group:last-child {
+  margin-bottom: 0;
+}
+
+.modal-body .input-label {
+  display: block;
+  margin-bottom: 16rpx;
+  line-height: 1.45;
+  font-size: 28rpx;
+  color: #3a3a3c;
+  font-weight: 500;
+}
+
+.modal-body .input {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 88rpx;
+  padding: 22rpx 24rpx;
+  border: 1rpx solid rgba(0, 0, 0, 0.08);
+  border-radius: 18rpx;
   font-size: 30rpx;
+  color: #1c1c1e;
+  background: linear-gradient(180deg, #f4f5f7 0%, #f0f1f3 100%);
+  box-shadow:
+    inset 0 2rpx 8rpx rgba(0, 0, 0, 0.05),
+    0 1rpx 0 rgba(255, 255, 255, 0.9);
+}
+
+.modal-body textarea.input.area {
+  min-height: 140rpx;
+  padding-top: 20rpx;
+  padding-bottom: 20rpx;
+}
+
+/* ColorUI 弹窗与自定义弹窗统一立体白卡片 */
+.cu-modal {
+  background: rgba(32, 36, 48, 0.45) !important;
+}
+
+.cu-dialog {
+  background-color: #fff !important;
+  border-radius: 28rpx !important;
+  overflow: hidden;
+  border: 1rpx solid rgba(255, 255, 255, 0.95) !important;
+  box-shadow:
+    0 28rpx 72rpx rgba(31, 41, 55, 0.14),
+    0 10rpx 32rpx rgba(102, 126, 234, 0.12),
+    inset 0 1rpx 0 rgba(255, 255, 255, 1) !important;
+}
+
+.cu-modal .cu-bar.bg-white:first-child {
+  background: linear-gradient(180deg, #fbfcfe 0%, #f5f6f8 100%) !important;
+  border-bottom: 1rpx solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4rpx 12rpx rgba(31, 41, 55, 0.04);
+}
+
+.cu-modal .cu-bar.padding.justify-end.bg-grey.light {
+  background: linear-gradient(180deg, #f8f9fb 0%, #f2f3f6 100%) !important;
+  border-top: 1rpx solid rgba(0, 0, 0, 0.06) !important;
+  box-shadow: inset 0 1rpx 0 rgba(255, 255, 255, 0.85);
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: stretch !important;
+  justify-content: stretch !important;
+  gap: 16rpx !important;
+  padding: 18rpx 24rpx 24rpx !important;
+}
+
+.cu-modal .cu-bar.padding.justify-end.bg-grey.light .cu-btn {
+  flex: 1 !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  height: 76rpx !important;
+  line-height: 76rpx !important;
+  padding: 0 !important;
+  font-size: 28rpx !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.5rpx !important;
+  border-radius: 22rpx !important;
+}
+
+.cu-modal .cu-bar.padding.justify-end.bg-grey.light .cu-btn::after {
+  border: none !important;
+}
+
+.cu-modal .cu-bar.padding.justify-end.bg-grey.light .cu-btn.bg-blue {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  color: #fff !important;
+  box-shadow:
+    0 8rpx 20rpx rgba(102, 126, 234, 0.34),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.28) !important;
+}
+
+.cu-modal .cu-bar.padding.justify-end.bg-grey.light .cu-btn:not(.bg-blue) {
+  background: #fff !important;
+  color: #3a3a3c !important;
+  border: 1rpx solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow:
+    0 4rpx 12rpx rgba(31, 41, 55, 0.06),
+    inset 0 1rpx 0 rgba(255, 255, 255, 1) !important;
 }
 
 /* 布局 */

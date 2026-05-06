@@ -8,6 +8,7 @@ const {
   formatAmount,
   formatDateTime
 } = require('../../utils/util.js');
+const { getNavTotalHeight } = require('../../utils/navHeight.js');
 
 Page({
   data: {
@@ -23,10 +24,14 @@ Page({
     showMemberPayments: false,
     selectedMemberId: '',
     selectedMemberName: '',
-    memberPayments: []
+    memberPayments: [],
+    triggered: false,
+    navHeight: 0
   },
 
   onLoad(options) {
+    this.setData({ navHeight: getNavTotalHeight() });
+
     const activityId = options.id;
     
     if (!activityId) {
@@ -42,6 +47,16 @@ Page({
     });
 
     this.loadActivityDetail();
+  },
+
+  onShow() {
+    this.setData({ navHeight: getNavTotalHeight() });
+  },
+
+  onRefresh() {
+    this.loadActivityDetail().finally(() => {
+      this.setData({ triggered: false });
+    });
   },
 
   // 加载活动详情

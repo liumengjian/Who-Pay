@@ -1,18 +1,29 @@
 // pages/history/list.js
 const { getMyActivities } = require('../../utils/cloud.js');
 const { showLoading, hideLoading, showError, formatAmount, formatDate } = require('../../utils/util.js');
+const { getNavTotalHeight } = require('../../utils/navHeight.js');
 
 Page({
   data: {
-    activities: []
+    activities: [],
+    triggered: false,
+    navHeight: 0
   },
 
   onLoad() {
+    this.setData({ navHeight: getNavTotalHeight() });
     this.loadHistoryActivities();
   },
 
   onShow() {
+    this.setData({ navHeight: getNavTotalHeight() });
     this.loadHistoryActivities();
+  },
+
+  onRefresh() {
+    this.loadHistoryActivities().finally(() => {
+      this.setData({ triggered: false });
+    });
   },
 
   // 加载历史活动列表

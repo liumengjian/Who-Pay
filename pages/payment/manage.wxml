@@ -1,7 +1,7 @@
 <!--pages/payment/manage.wxml-->
 <cu-custom bgColor="bg-gradual-blue" isBack="{{true}}">
-  <view slot="content" class="text-white">支付记录</view>
 </cu-custom>
+<scroll-view scroll-y class="refresh-scroll" style="height:calc(100vh - {{navHeight}}px)" refresherEnabled refresherThreshold="80" refresherTriggered="{{triggered}}" bindrefresherrefresh="onRefresh">
 <view class="manage-page">
   <view class="page-header">
     <text class="page-header-title">支付记录</text>
@@ -36,45 +36,47 @@
     </view>
   </view>
 
-  <!-- 底部添加按钮 -->
-  <view class="action-bar">
-    <button class="add-btn" bindtap="showAddModal">+ 添加记录</button>
-  </view>
+</view>
+</scroll-view>
 
-  <!-- 添加/编辑支付记录弹窗（wx:if 避免 iOS 原生 input 穿透） -->
-  <view wx:if="{{showModal}}" class="modal show" catchtap="hideModal">
-    <view class="modal-content" catchtap="stopPropagation">
-      <view class="modal-header">
-        <text class="modal-title">{{isEdit ? '编辑支付记录' : '添加支付记录'}}</text>
-        <text class="modal-close" bindtap="hideModal">×</text>
+<!-- 底部添加按钮 -->
+<view class="action-bar">
+  <button class="add-btn" bindtap="showAddModal">+ 添加记录</button>
+</view>
+
+<!-- 添加/编辑支付记录弹窗（wx:if 避免 iOS 原生 input 穿透） -->
+<view wx:if="{{showModal}}" class="modal show" catchtap="hideModal">
+  <view class="modal-content" catchtap="stopPropagation">
+    <view class="modal-header">
+      <text class="modal-title">{{isEdit ? '编辑支付记录' : '添加支付记录'}}</text>
+      <text class="modal-close" bindtap="hideModal">×</text>
+    </view>
+    <view class="modal-body">
+      <view class="input-group">
+        <text class="input-label">金额 <text class="required">*</text></text>
+        <input 
+          class="input" 
+          type="digit" 
+          placeholder="请输入金额"
+          value="{{formAmount}}"
+          bindinput="onAmountInput"
+        />
       </view>
-      <view class="modal-body">
-        <view class="input-group">
-          <text class="input-label">金额 <text class="required">*</text></text>
-          <input 
-            class="input" 
-            type="digit" 
-            placeholder="请输入金额"
-            value="{{formAmount}}"
-            bindinput="onAmountInput"
-          />
-        </view>
-        <view class="input-group">
-          <text class="input-label">备注</text>
-          <input 
-            class="input" 
-            type="text" 
-            placeholder="选填"
-            value="{{formRemark}}"
-            bindinput="onRemarkInput"
-            maxlength="50"
-          />
-        </view>
+      <view class="input-group">
+        <text class="input-label">备注</text>
+        <input 
+          class="input" 
+          type="text" 
+          placeholder="选填"
+          value="{{formRemark}}"
+          bindinput="onRemarkInput"
+          maxlength="50"
+        />
       </view>
-      <view class="modal-footer">
-        <button class="btn-secondary" bindtap="hideModal">取消</button>
-        <button class="btn-primary" bindtap="handleSubmit">确定</button>
-      </view>
+    </view>
+    <view class="modal-footer">
+      <button class="btn-secondary" bindtap="hideModal">取消</button>
+      <button class="btn-primary" bindtap="handleSubmit">确定</button>
     </view>
   </view>
 </view>

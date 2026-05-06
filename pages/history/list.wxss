@@ -1,4 +1,10 @@
 /* pages/history/list.wxss - ColorUI 年轻活泼 */
+
+/* scroll-view 下拉刷新容器 */
+.refresh-scroll {
+  overflow: hidden;
+}
+
 .history-page {
 }
 

@@ -8,6 +8,7 @@ const {
   applyForJoin
 } = require('../../utils/cloud.js');
 const { showLoading, hideLoading, showSuccess, showError, validateInviteCode, filePathToBase64Compressed } = require('../../utils/util.js');
+const { getNavTotalHeight } = require('../../utils/navHeight.js');
 
 Page({
   data: {
@@ -29,14 +30,18 @@ Page({
     activityAvatarUrl: '',
     activityAvatarTempPath: '',
     hallInviteInput: '',
-    loadingHallPreview: false
+    loadingHallPreview: false,
+    triggered: false,
+    navHeight: 0
   },
 
   onLoad() {
+    this.setData({ navHeight: getNavTotalHeight() });
     this.checkLogin();
   },
 
   onShow() {
+    this.setData({ navHeight: getNavTotalHeight() });
     if (wx.getStorageSync('token')) {
       const app = getApp();
       const userInfo = wx.getStorageSync('userInfo') || app.globalData.userInfo || {};
@@ -45,9 +50,9 @@ Page({
     }
   },
 
-  onPullDownRefresh() {
+  onRefresh() {
     this.refreshAll().finally(() => {
-      wx.stopPullDownRefresh();
+      this.setData({ triggered: false });
     });
   },
 

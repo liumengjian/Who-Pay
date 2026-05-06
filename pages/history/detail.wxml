@@ -1,8 +1,9 @@
 <!--pages/history/detail.wxml-->
-<cu-custom bgColor="bg-gradual-blue" isBack="{{true}}">
-  <view slot="content" class="text-white">历史详情</view>
+<view class="page-hero page-hero-detail">
+<cu-custom bgColor="bg-hero-transparent" isBack="{{true}}">
 </cu-custom>
-<view class="detail-page">
+<scroll-view scroll-y class="refresh-scroll hero-below-nav" style="height:calc(100vh - {{navHeight}}px)" refresherEnabled refresherThreshold="80" refresherTriggered="{{triggered}}" bindrefresherrefresh="onRefresh">
+<view class="detail-page history-detail-page" style="min-height: calc(100vh - {{navHeight}}px);">
   <!-- 概览区 -->
   <view class="overview-section">
     <view class="activity-header">
@@ -42,9 +43,6 @@
           <text class="team-diff {{team.diffAmount >= 0 ? 'positive' : 'negative'}}">
             {{team.diffAmount >= 0 ? '应收' : '应付'}}: ¥{{team.diffAmount >= 0 ? team.diffAmount : (-team.diffAmount)}}
           </text>
-          <text class="team-member-share" wx:if="{{team.memberCount > 0}}">
-            人均: ¥{{team.memberShareAmount}}
-          </text>
         </view>
       </view>
       <view class="members-list">
@@ -69,30 +67,33 @@
     </view>
   </view>
 
-  <!-- 成员支付记录弹窗 -->
-  <view wx:if="{{showMemberPayments}}" class="modal show" catchtap="hideMemberPayments">
-    <view class="modal-content payment-list-content" catchtap="stopPropagation">
-      <view class="modal-header">
-        <text class="modal-title">{{selectedMemberName}}的支付记录</text>
-        <text class="modal-close" bindtap="hideMemberPayments">×</text>
-      </view>
-      <view class="modal-body">
-        <view wx:if="{{memberPayments.length > 0}}">
-          <view 
-            class="payment-item" 
-            wx:for="{{memberPayments}}" 
-            wx:key="_id"
-          >
-            <view class="payment-info">
-              <text class="payment-amount">¥{{item.amount}}</text>
-              <text class="payment-remark" wx:if="{{item.remark}}">{{item.remark}}</text>
-            </view>
-            <text class="payment-time">{{item.createTime}}</text>
+</view>
+</scroll-view>
+</view>
+
+<!-- 成员支付记录弹窗 -->
+<view wx:if="{{showMemberPayments}}" class="modal show" catchtap="hideMemberPayments">
+  <view class="modal-content payment-list-content" catchtap="stopPropagation">
+    <view class="modal-header">
+      <text class="modal-title">{{selectedMemberName}}的支付记录</text>
+      <text class="modal-close" bindtap="hideMemberPayments">×</text>
+    </view>
+    <view class="modal-body">
+      <view wx:if="{{memberPayments.length > 0}}">
+        <view 
+          class="payment-item" 
+          wx:for="{{memberPayments}}" 
+          wx:key="_id"
+        >
+          <view class="payment-info">
+            <text class="payment-amount">¥{{item.amount}}</text>
+            <text class="payment-remark" wx:if="{{item.remark}}">{{item.remark}}</text>
           </view>
+          <text class="payment-time">{{item.createTime}}</text>
         </view>
-        <view wx:else class="empty-payments">
-          <text>暂无支付记录</text>
-        </view>
+      </view>
+      <view wx:else class="empty-payments">
+        <text>暂无支付记录</text>
       </view>
     </view>
   </view>
