@@ -5,13 +5,30 @@ const {
   getMyActivities,
   getActivityHall,
   getActivityPreview,
+  getActivityDetail,
   applyForJoin
 } = require('../../utils/cloud.js');
 const cloudStorage = require('../../utils/cloudStorage.js');
-const { showLoading, hideLoading, showSuccess, showError, validateInviteCode, filePathToBase64Compressed } = require('../../utils/util.js');
+const {
+  showLoading,
+  hideLoading,
+  showSuccess,
+  showError,
+  validateInviteCode,
+  filePathToBase64Compressed,
+  formatAmount
+} = require('../../utils/util.js');
+const noteStore = require('../../utils/activityNoteStorage.js');
+const {
+  dispatchActivityNoteMpHtmlLinkTap,
+  inferWxOpenDocumentFileType,
+  invokeOpenDocumentWithRetry
+} = require('../../utils/activityNoteLinks.js');
 const { getNavTotalHeight } = require('../../utils/navHeight.js');
 
 const HALL_PAGE_SIZE = 20;
+/** 与 showTabBar 动画、page-container duration 对齐，底部创建条在 tab 露完后再复位 */
+const TABBAR_TRANSITION_MS = 320;
 
 Page({
   data: {
@@ -39,7 +56,17 @@ Page({
     hallInviteInput: '',
     loadingHallPreview: false,
     triggered: false,
-    navHeight: 0
+    navHeight: 0,
+    showFloatNotesPanel: false,
+    actionBarAwaitTabBarShow: false,
+    floatNotesPageContainerStyle: '',
+    floatNotesLoading: false,
+    floatNoteCards: [],
+    floatNoteMpTagStyle: {
+      p: 'margin:0 0 22rpx 0;',
+      a: 'text-decoration:none;-webkit-tap-highlight-color:transparent;',
+      img: noteStore.NOTE_IMG_HTML_STYLE
+    }
   },
 
   onLoad() {
@@ -49,6 +76,19 @@ Page({
 
   onShow() {
     this.setData({ navHeight: getNavTotalHeight() });
+    /* 确保底部 tabBar 可见（曾被 hideTabBar 卡住的会话可恢复） */
+    if (!this.data.showFloatNotesPanel) {
+      if (this._actionBarTabTimer) {
+        clearTimeout(this._actionBarTabTimer);
+        this._actionBarTabTimer = null;
+      }
+      this.setData({ actionBarAwaitTabBarShow: false });
+      try {
+        if (typeof wx.showTabBar === 'function') {
+          wx.showTabBar({ animation: false });
+        }
+      } catch (e) {}
+    }
     if (wx.getStorageSync('token')) {
       const app = getApp();
       const userInfo = wx.getStorageSync('userInfo') || app.globalData.userInfo || {};
@@ -212,6 +252,253 @@ Page({
 
   stopPropagation() {},
   preventTouchMove() {},
+
+  _applyFloatNoteFromDetail(an) {
+    const raw = an || {};
+    const content = noteStore.ensureChipStylesInNoteHtml(
+      raw.content != null ? String(raw.content) : ''
+    );
+    const linkMap = noteStore.normalizeLinkMapForClient(raw.linkMap || {});
+    const preview = noteStore.notePreviewFromContent(content, linkMap);
+    return {
+      linkMap,
+      noteContent: content,
+      noteHasPreview: preview.activityNoteHasPreview
+    };
+  },
+
+  _getFloatNotesPageContainerStyle() {
+    try {
+      const win =
+        typeof wx.getWindowInfo === 'function'
+          ? wx.getWindowInfo()
+          : wx.getSystemInfoSync();
+      const w = win.windowWidth || win.screenWidth || 375;
+      const h = win.windowHeight || win.screenHeight || 667;
+      const pw = Math.round(w * 0.88);
+      const ph = Math.round(h * 0.9);
+      const left = Math.round((w - pw) / 2);
+      const top = Math.round((h - ph) / 2);
+      /* center + 百分比在真机易偏位；像素定位居中；弹出层默认灰底去掉 */
+      return `width:${pw}px;height:${ph}px;left:${left}px;top:${top}px;background-color:transparent;background:transparent;box-sizing:border-box;`;
+    } catch (e) {
+      return 'width:88%;height:90%;left:0;right:0;top:0;bottom:0;margin:auto;background-color:transparent;background:transparent;box-sizing:border-box;';
+    }
+  },
+
+  openFloatNotesPanel() {
+    const buildCards = (activities) =>
+      (activities || []).map((a) => ({
+        id: String(a._id),
+        name: a.name || '未命名活动',
+        avatarUrl: a.avatarUrl || '/images/default-avatar.png',
+        totalAmount: '…',
+        expanded: false,
+        detailLoaded: false,
+        detailError: false,
+        noteHasPreview: false,
+        noteContentForHtml: ''
+      }));
+
+    const list = this.data.myActivities || [];
+    const cards = buildCards(list);
+    this._floatNoteLinkMaps = Object.create(null);
+    try {
+      if (typeof wx.hideTabBar === 'function') {
+        wx.hideTabBar({ animation: true });
+      }
+    } catch (e) {}
+    if (this._actionBarTabTimer) {
+      clearTimeout(this._actionBarTabTimer);
+      this._actionBarTabTimer = null;
+    }
+    this.setData({
+      showFloatNotesPanel: true,
+      actionBarAwaitTabBarShow: false,
+      floatNoteCards: cards,
+      floatNotesLoading: cards.length > 0 || !list.length,
+      floatNotesPageContainerStyle: this._getFloatNotesPageContainerStyle()
+    });
+    if (cards.length) {
+      this._fetchFloatNoteCardDetails(cards);
+    }
+
+    this.loadMyActivities()
+      .then(() => {
+        if (!this.data.showFloatNotesPanel) return;
+        const fresh = this.data.myActivities || [];
+        const newCards = buildCards(fresh);
+        const prev = this.data.floatNoteCards || [];
+        const same =
+          newCards.length === prev.length &&
+          newCards.every((c, i) => c.id === (prev[i] && prev[i].id));
+        if (same) {
+          if (!newCards.length) {
+            this.setData({ floatNotesLoading: false });
+          }
+          return;
+        }
+        this._floatNoteLinkMaps = Object.create(null);
+        this.setData({
+          floatNoteCards: newCards,
+          floatNotesLoading: newCards.length > 0
+        });
+        if (!newCards.length) {
+          this.setData({ floatNotesLoading: false });
+          return;
+        }
+        this._fetchFloatNoteCardDetails(newCards);
+      })
+      .catch(() => {
+        if (!this.data.showFloatNotesPanel) return;
+        if (!(this.data.floatNoteCards || []).length) {
+          this.setData({ floatNotesLoading: false });
+        }
+      });
+  },
+
+  closeFloatNotesPanel() {
+    if (!this.data.showFloatNotesPanel) return;
+    this.setData({
+      showFloatNotesPanel: false,
+      actionBarAwaitTabBarShow: true
+    });
+  },
+
+  onFloatNotesPageContainerAfterLeave() {
+    this.setData({
+      showFloatNotesPanel: false,
+      floatNoteCards: [],
+      floatNotesLoading: false,
+      actionBarAwaitTabBarShow: true
+    });
+    try {
+      if (typeof wx.showTabBar === 'function') {
+        wx.showTabBar({ animation: true });
+      }
+    } catch (e) {}
+    if (this._actionBarTabTimer) {
+      clearTimeout(this._actionBarTabTimer);
+      this._actionBarTabTimer = null;
+    }
+    this._actionBarTabTimer = setTimeout(() => {
+      this._actionBarTabTimer = null;
+      this.setData({ actionBarAwaitTabBarShow: false });
+    }, TABBAR_TRANSITION_MS);
+  },
+
+  async _fetchFloatNoteCardDetails(cards) {
+    const results = await Promise.all(
+      cards.map(async (c) => {
+        try {
+          const result = await getActivityDetail(c.id);
+          const total = formatAmount(parseFloat(result.totalAmount || 0));
+          const note = this._applyFloatNoteFromDetail(result.activityNote);
+          return {
+            id: c.id,
+            ok: true,
+            totalAmount: total,
+            noteHasPreview: note.noteHasPreview,
+            noteContentForHtml: note.noteContent,
+            linkMap: note.linkMap
+          };
+        } catch (e) {
+          console.warn('[float-notes] detail', c.id, e);
+          return { id: c.id, ok: false };
+        }
+      })
+    );
+    const idToRes = {};
+    results.forEach((r) => {
+      idToRes[r.id] = r;
+    });
+    const linkMaps = Object.create(null);
+    const next = (this.data.floatNoteCards || []).map((row) => {
+      const r = idToRes[row.id];
+      if (!r || !r.ok) {
+        linkMaps[row.id] = {};
+        return {
+          ...row,
+          totalAmount: '--',
+          detailLoaded: true,
+          detailError: true,
+          noteHasPreview: false,
+          noteContentForHtml: ''
+        };
+      }
+      linkMaps[row.id] = r.linkMap || {};
+      return {
+        ...row,
+        totalAmount: r.totalAmount,
+        detailLoaded: true,
+        detailError: false,
+        noteHasPreview: r.noteHasPreview,
+        noteContentForHtml: r.noteContentForHtml || ''
+      };
+    });
+    this._floatNoteLinkMaps = linkMaps;
+    this.setData({ floatNoteCards: next, floatNotesLoading: false });
+  },
+
+  toggleFloatNoteCard(e) {
+    const id = String(e.currentTarget.dataset.id || '');
+    if (!id) return;
+    const cards = (this.data.floatNoteCards || []).map((c) =>
+      c.id === id ? { ...c, expanded: !c.expanded } : c
+    );
+    this.setData({ floatNoteCards: cards });
+  },
+
+  onFloatNoteLinkTap(e) {
+    let aid = String((e.currentTarget && e.currentTarget.dataset && e.currentTarget.dataset.aid) || '');
+    if (!aid) {
+      const expanded = (this.data.floatNoteCards || []).filter((c) => c.expanded);
+      if (expanded.length === 1) aid = String(expanded[0].id);
+    }
+    if (!aid) return;
+    dispatchActivityNoteMpHtmlLinkTap(e, {
+      showError,
+      openNoteAttachment: (params) => this._openFloatNoteAttachmentFromParams(params),
+      linkMap: this._floatNoteLinkMaps[aid] || {},
+      noteBlocksForLocResolve: []
+    });
+  },
+
+  async _openFloatNoteAttachmentFromParams(params) {
+    const url = (params && params.url) || '';
+    if (!String(url).trim()) {
+      showError('附件地址无效');
+      return;
+    }
+    showLoading('打开附件...');
+    try {
+      const filePath = await cloudStorage.downloadNoteAttachmentToTempPath(url);
+      hideLoading();
+      const name = (params && params.name) || '';
+      const fileType = inferWxOpenDocumentFileType(name, url);
+      invokeOpenDocumentWithRetry(filePath, fileType, showError);
+    } catch (err) {
+      hideLoading();
+      showError((err && err.message) || '打开附件失败');
+    }
+  },
+
+  onFloatNoteImgTap(e) {
+    let aid = String((e.currentTarget && e.currentTarget.dataset && e.currentTarget.dataset.aid) || '');
+    if (!aid) {
+      const expanded = (this.data.floatNoteCards || []).filter((c) => c.expanded);
+      if (expanded.length === 1) aid = String(expanded[0].id);
+    }
+    const src = (e.detail && e.detail.src) || '';
+    if (!src || !aid) return;
+    const card = (this.data.floatNoteCards || []).find((c) => String(c.id) === aid);
+    const html = (card && card.noteContentForHtml) || '';
+    const urls = noteStore.extractImageUrlsFromHtml(html);
+    wx.previewImage({
+      current: src,
+      urls: urls.length ? urls : [src]
+    });
+  },
 
   async onOpenHallActivity(e) {
     const activityId = String(e.currentTarget.dataset.id);

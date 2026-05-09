@@ -1,6 +1,6 @@
 /* pages/activity/index.wxss - ColorUI 年轻活泼 */
 
-/* 页面拦截层，覆盖整个视口（包括 tabbar），阻止底层点击 */
+/* 大厅 / 创建弹窗打开时占位（与 cu-modal 叠放）；pointer-events 不拦截，由弹窗自身处理 */
 .page-blocker {
   position: fixed;
   top: 0;
@@ -110,6 +110,9 @@
   min-height: 96rpx;
   padding: 14rpx 28rpx calc(14rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
+  /* 与 wx.hideTabBar/showTabBar 默认动画约 300ms 对齐，缓和 tab 显隐时底部位移 */
+  transition: transform 300ms cubic-bezier(0.33, 1, 0.68, 1),
+    padding-bottom 300ms cubic-bezier(0.33, 1, 0.68, 1);
 }
 
 .action-bar.flex.padding {
@@ -130,6 +133,12 @@
 }
 .action-bar-active {
   padding: 36rpx !important;
+}
+
+/* 弹窗打开：禁用点击；略向下平移，贴近 tab 收起后的位置，与原生 tab 动画同步 */
+.action-bar--under-modal {
+  pointer-events: none;
+  transform: translateY(calc(96rpx + env(safe-area-inset-bottom)));
 }
 
 /* 与活动详情页「+ / 添加支付」主按钮一致的紫蓝渐变 */
@@ -416,3 +425,278 @@
   margin: 0 auto;
 }
 
+/* ========== 首页悬浮笔记入口 + 弹层 ========== */
+.float-notes-fab {
+  position: fixed;
+  right: 28rpx;
+  bottom: calc(196rpx + env(safe-area-inset-bottom));
+  z-index: 150;
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow:
+    0 12rpx 36rpx rgba(102, 126, 234, 0.28),
+    0 2rpx 8rpx rgba(15, 23, 42, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.float-notes-fab--hover {
+  opacity: 0.9;
+  transform: scale(0.96);
+}
+
+.float-notes-fab__img {
+  width: 110rpx;
+  height: 110rpx;
+  border-radius: 50%;
+}
+
+/* page-container 只包一层弹窗壳：居中 90% 高，内容从右下角方向缩放入场（呼应悬浮按钮） */
+.float-notes-modal {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  /* 上内边距固定；底部只留安全区，关闭钮走文档流由 flex 占位，避免被 sheet 挡住 */
+  padding: 90rpx 8rpx 0;
+  padding-bottom: env(safe-area-inset-bottom);
+  background: transparent;
+  transform-origin: 92% 94%;
+  animation: float-notes-from-fab 0.36s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes float-notes-from-fab {
+  from {
+    opacity: 0;
+    transform: scale(0.52);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* 白卡片下方居中，距卡片 16px；参与 flex 占位，不用 absolute，避免被 sheet 盖住 */
+.float-notes-modal__close {
+  flex-shrink: 0;
+  align-self: center;
+  margin-top: 16px;
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  border: 2rpx solid #ffffff;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  font-size: 40rpx;
+  font-weight: 300;
+  line-height: 1;
+  color: #ffffff;
+  position: relative;
+  z-index: 2;
+}
+
+.float-notes-modal__close--hover {
+  opacity: 0.82;
+}
+
+.float-notes-sheet {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  margin-top: 0;
+  background: #fff;
+  border-radius: 24rpx;
+  box-shadow:
+    0 24rpx 72rpx rgba(15, 23, 42, 0.18),
+    0 0 0 1rpx rgba(15, 23, 42, 0.04);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-sizing: border-box;
+  z-index: 1;
+}
+
+.float-notes-sheet__head {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 36rpx 32rpx;
+  border-bottom: 1rpx solid rgba(15, 23, 42, 0.06);
+}
+
+.float-notes-sheet__title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: 0.5rpx;
+}
+
+.float-notes-loading {
+  flex-shrink: 0;
+  padding: 16rpx 32rpx 8rpx;
+}
+
+.float-notes-scroll {
+  flex: 1;
+  height: 0;
+  min-height: 0;
+  padding: 12rpx 20rpx 28rpx;
+  box-sizing: border-box;
+}
+
+.float-notes-scroll__foot {
+  height: 24rpx;
+}
+
+.float-notes-empty {
+  padding: 80rpx 32rpx;
+  text-align: center;
+}
+
+.float-notes-card {
+  background: #ffffff;
+  border-radius: 20rpx;
+  margin-bottom: 24rpx;
+  overflow: hidden;
+  box-shadow:
+    0 4rpx 20rpx rgba(102, 126, 234, 0.07),
+    0 0 0 1rpx rgba(15, 23, 42, 0.05);
+  transition: box-shadow 0.28s ease, transform 0.28s ease;
+}
+
+.float-notes-card--expanded {
+  box-shadow:
+    0 12rpx 40rpx rgba(102, 126, 234, 0.12),
+    0 0 0 1rpx rgba(102, 126, 234, 0.1);
+}
+
+.float-notes-card__head {
+  display: flex;
+  align-items: center;
+  padding: 24rpx 22rpx;
+  gap: 20rpx;
+  background: linear-gradient(180deg, #fafbff 0%, #ffffff 100%);
+}
+
+.float-notes-card__avatar {
+  width: 92rpx;
+  height: 92rpx;
+  border-radius: 20rpx;
+  flex-shrink: 0;
+  background: #eef2f7;
+  box-shadow: 0 2rpx 10rpx rgba(15, 23, 42, 0.06);
+}
+
+.float-notes-card__meta {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+}
+
+.float-notes-card__name {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #0f172a;
+  letter-spacing: 0.3rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.float-notes-card__total-row {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8rpx 12rpx;
+}
+
+.float-notes-card__total-label {
+  font-size: 24rpx;
+  color: #64748b;
+}
+
+.float-notes-card__total-num {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #667eea;
+  font-variant-numeric: tabular-nums;
+}
+
+.float-notes-card__chev-wrap {
+  flex-shrink: 0;
+  width: 48rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(102, 126, 234, 0.08);
+}
+
+.float-notes-card__chev {
+  width: 14rpx;
+  height: 14rpx;
+  border-right: 3rpx solid #667eea;
+  border-bottom: 3rpx solid #667eea;
+  transform: rotate(-45deg);
+  margin-top: -6rpx;
+  transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.float-notes-card--expanded .float-notes-card__chev {
+  transform: rotate(45deg);
+  margin-top: 0;
+}
+
+.float-notes-card__body {
+  padding: 4rpx 22rpx 24rpx;
+  border-top: 1rpx solid rgba(102, 126, 234, 0.08);
+  background: #fff;
+  animation: float-notes-body-in 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes float-notes-body-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10rpx);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.float-notes-card__hint {
+  padding: 20rpx 4rpx 12rpx;
+}
+
+.float-notes-note-wrap {
+  max-height: 55vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-top: 8rpx;
+  padding: 16rpx 4rpx 12rpx;
+  border-radius: 12rpx;
+  background: #f8fafc;
+  box-sizing: border-box;
+}
+
+.float-notes-mp-html {
+  word-break: break-word;
+}

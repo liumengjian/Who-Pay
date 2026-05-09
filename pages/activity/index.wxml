@@ -111,9 +111,90 @@
   </swiper>
 </view>
 
-<view class="action-bar flex padding bg-white action-bar-active">
+<view class="action-bar flex padding bg-white action-bar-active {{showFloatNotesPanel || actionBarAwaitTabBarShow ? 'action-bar--under-modal' : ''}}">
   <button class="cu-btn block flex-sub shadow round action-bar-single activity-create-btn" bindtap="showCreateModal">创建活动</button>
 </view>
+
+<!-- 首页笔记入口：右下角悬浮 -->
+<view wx:if="{{!showFloatNotesPanel}}" class="float-notes-fab" hover-class="float-notes-fab--hover" hover-stay-time="100" bindtap="openFloatNotesPanel">
+  <image class="float-notes-fab__img" src="/images/float-icon.png" mode="aspectFit" />
+</view>
+
+<!--
+  page-container 仅包裹「笔记弹窗」壳层（遮罩 + 居中容器），盖住胶囊；打开前 hideTabBar，afterleave 里 showTabBar。
+  弹窗从右下角悬浮按钮方向缩放入场，非底部抽屉。
+-->
+<page-container
+  show="{{showFloatNotesPanel}}"
+  position="center"
+  round="{{false}}"
+  z-index="10001"
+  overlay="{{true}}"
+  overlay-style="background-color: rgba(15, 23, 42, 0.52);"
+  custom-style="{{floatNotesPageContainerStyle}}"
+  duration="{{320}}"
+  bind:clickoverlay="closeFloatNotesPanel"
+  bind:afterleave="onFloatNotesPageContainerAfterLeave"
+>
+  <view class="float-notes-modal" catchtap="stopPropagation">
+    <view class="float-notes-sheet">
+      <view class="float-notes-sheet__head">
+        <text class="float-notes-sheet__title">我的活动笔记</text>
+      </view>
+      <view wx:if="{{floatNotesLoading}}" class="float-notes-loading text-gray text-sm">同步活动与笔记中…</view>
+      <scroll-view scroll-y class="float-notes-scroll">
+        <view wx:if="{{!floatNotesLoading && floatNoteCards.length === 0}}" class="float-notes-empty text-gray text-sm">暂无进行中的活动</view>
+        <view
+          wx:for="{{floatNoteCards}}"
+          wx:key="id"
+          class="float-notes-card {{item.expanded ? 'float-notes-card--expanded' : ''}}"
+        >
+          <view class="float-notes-card__head" bindtap="toggleFloatNoteCard" data-id="{{item.id}}">
+            <image class="float-notes-card__avatar" src="{{item.avatarUrl}}" mode="aspectFill" />
+            <view class="float-notes-card__meta">
+              <text class="float-notes-card__name">{{item.name}}</text>
+              <view class="float-notes-card__total-row">
+                <text class="float-notes-card__total-label">总花费</text>
+                <text class="float-notes-card__total-num">¥{{item.totalAmount}}</text>
+              </view>
+            </view>
+            <view class="float-notes-card__chev-wrap">
+              <view class="float-notes-card__chev"></view>
+            </view>
+          </view>
+          <view wx:if="{{item.expanded}}" class="float-notes-card__body">
+            <view wx:if="{{!item.detailLoaded}}" class="float-notes-card__hint text-gray text-sm">加载中…</view>
+            <view wx:elif="{{item.detailError}}" class="float-notes-card__hint text-gray text-sm">加载失败，请下拉刷新后重试</view>
+            <block wx:elif="{{item.noteHasPreview}}">
+              <view class="float-notes-note-wrap">
+                <mp-html
+                  class="float-notes-mp-html note-mp-html"
+                  content="{{item.noteContentForHtml}}"
+                  container-style="font-size:30rpx;line-height:1.65;color:#333;"
+                  tag-style="{{floatNoteMpTagStyle}}"
+                  copy-link="{{false}}"
+                  preview-img="{{false}}"
+                  selectable="{{true}}"
+                  data-aid="{{item.id}}"
+                  bindlinktap="onFloatNoteLinkTap"
+                  bindimgtap="onFloatNoteImgTap"
+                />
+              </view>
+            </block>
+            <view wx:else class="float-notes-card__hint text-gray text-sm">暂无笔记，可在活动详情中编辑</view>
+          </view>
+        </view>
+        <view class="float-notes-scroll__foot"></view>
+      </scroll-view>
+    </view>
+    <view
+      class="float-notes-modal__close"
+      hover-class="float-notes-modal__close--hover"
+      hover-stay-time="100"
+      catchtap="closeFloatNotesPanel"
+    >×</view>
+  </view>
+</page-container>
 
 <!-- 大厅活动详情弹窗 -->
     <view wx:if="{{showHallDetail}}" class="cu-modal show" catchtap="hideHallDetailModal">
