@@ -29,6 +29,22 @@
   min-height: 0;
 }
 
+.main-tab-swiper {
+  flex: 1;
+  height: 0;
+  min-height: 0;
+  width: 100%;
+}
+
+.main-tab-swiper-item {
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.main-tab-scroll {
+  height: 100%;
+}
+
 .activity-page {
   background: transparent;
   padding-bottom: 180rpx;

@@ -17,30 +17,41 @@ const {
   settleEqualShare
 } = require('../../utils/cloud.js');
 const {
+  computeEqualShareFromTeamsData
+} = require('../../utils/equalShare.js');
+const {
   showLoading,
   hideLoading,
   showSuccess,
   showError,
   copyToClipboard,
   formatAmount,
+  roundAmount1,
   formatDateTime,
   formatDate,
   validateAmount,
-  validateInviteCode,
-  filePathToBase64Compressed
+  validateInviteCode
 } = require('../../utils/util.js');
 const { getNavTotalHeight } = require('../../utils/navHeight.js');
+const noteStore = require('../../utils/activityNoteStorage.js');
+const cloudStorage = require('../../utils/cloudStorage.js');
+const {
+  dispatchActivityNoteMpHtmlLinkTap,
+  inferWxOpenDocumentFileType,
+  invokeOpenDocumentWithRetry
+} = require('../../utils/activityNoteLinks.js');
 
 Page({
   data: {
     activityId: '',
     activityInfo: {},
     teams: [],
-    totalAmount: '0.00',
-    shareAmount: '0.00',
+    totalAmount: '0.0',
+    shareAmount: '0.0',
     myTeam: null,
     myTeamDiff: 0,
-    myPersonalDiff: 0,
+    myTeamDiffAbsStr: '0.0',
+    myPersonalDiff: '0.0',
     isCreator: false,
     isTeamCreator: false,
     isEnded: false,
@@ -83,7 +94,28 @@ Page({
     showEqualizeBtn: false,
     shareBalancedComplete: false,
     triggered: false,
-    navHeight: 0
+    navHeight: 0,
+    noteContent: '',
+    activityNoteHasPreview: false,
+    activityNotePreviewHtml: '',
+    noteMpHtmlPreviewTagStyle: {
+      p: 'margin:0 0 22rpx 0;',
+      a: 'text-decoration:none;-webkit-tap-highlight-color:transparent;',
+      img: noteStore.NOTE_IMG_HTML_STYLE
+    }
+  },
+
+  _applyActivityNoteFromDetail(an) {
+    const raw = an || {};
+    const content = noteStore.ensureChipStylesInNoteHtml(
+      raw.content != null ? String(raw.content) : ''
+    );
+    const linkMap = noteStore.normalizeLinkMapForClient(raw.linkMap || {});
+    this._activityNoteLinkMap = linkMap;
+    return {
+      noteContent: content,
+      ...noteStore.notePreviewFromContent(content, linkMap)
+    };
   },
 
   onLoad(options) {
@@ -138,7 +170,6 @@ Page({
       const isEnded = activityInfo.status === 'ended';
 
       const teamsData = result.teams || [];
-      // 计算总人数（所有团队人数之和）用于人均均摊
       const rawMemberCount = teamsData.reduce(
         (sum, team) => sum + ((team.members || []).length || 0),
         0
@@ -146,16 +177,18 @@ Page({
       const totalMemberCount = rawMemberCount || 1;
 
       const totalAmount = parseFloat(result.totalAmount || 0);
-      // 人均均摊：总花费 / 总人数
-      const shareAmount = totalAmount / totalMemberCount;
+      const eq = computeEqualShareFromTeamsData(teamsData, totalAmount);
+      const shareAmount = eq.displaySharePerHead;
 
       const teams = teamsData.map((teamData) => {
+        const tid = String(teamData._id || teamData.id);
         const teamTotal = parseFloat(teamData.totalAmount || 0);
-        // 团队差异：团队总支付 - 团队应均摊金额（人数 × 人均）
         const teamMemberCount = (teamData.members || []).length || 1;
-        const teamShouldPay = teamMemberCount * shareAmount;
-        const diffAmount = teamTotal - teamShouldPay;
-        const memberShareAmount = teamMemberCount > 0 ? Math.abs(diffAmount) / teamMemberCount : 0;
+        const teamShouldPay = eq.teamTargetSum[tid] || 0;
+        const diffAmount = roundAmount1(teamTotal - teamShouldPay);
+        const diffAmountDisplay = formatAmount(Math.abs(diffAmount));
+        const memberShareAmount =
+          teamMemberCount > 0 ? Math.abs(diffAmount) / teamMemberCount : 0;
 
         return {
           _id: teamData._id || teamData.id,
@@ -164,7 +197,8 @@ Page({
           inviteCode: teamData.inviteCode || '',
           creatorId: teamData.creatorId || '',
           totalAmount: formatAmount(teamTotal),
-          diffAmount: parseFloat(diffAmount.toFixed(2)),
+          diffAmount: roundAmount1(diffAmount),
+          diffAmountDisplay,
           memberCount: teamMemberCount,
           memberShareAmount: formatAmount(memberShareAmount),
           iCreated: String(teamData.creatorId || '') === String(userId),
@@ -180,7 +214,7 @@ Page({
 
       let myTeam = null;
       let myTeamDiff = 0;
-      let myPersonalDiff = 0;
+      let myPersonalDiffNum = 0;
       let isTeamCreator = false;
 
       for (const team of teams) {
@@ -190,9 +224,13 @@ Page({
           myTeamDiff = team.diffAmount;
           isTeamCreator = String(team.creatorId) === String(userId);
           if (team.diffAmount < 0) {
-            myPersonalDiff = parseFloat((Math.abs(team.diffAmount) / team.memberCount).toFixed(2));
+            myPersonalDiffNum = parseFloat(
+              (Math.abs(team.diffAmount) / team.memberCount).toFixed(1)
+            );
           } else if (team.diffAmount > 0) {
-            myPersonalDiff = parseFloat((team.diffAmount / team.memberCount).toFixed(2));
+            myPersonalDiffNum = parseFloat(
+              (team.diffAmount / team.memberCount).toFixed(1)
+            );
           }
           break;
         }
@@ -202,28 +240,30 @@ Page({
         !isEnded &&
         teams.length > 0 &&
         rawMemberCount > 0 &&
-        teams.some((t) => Math.abs(t.diffAmount) >= 0.01);
+        teams.some((t) => Math.abs(t.diffAmount) >= 0.05);
 
-      /* 人均实付与全局人均应付一致（每人付的一样），视为已均摊完成 */
-      const targetPerHead =
-        rawMemberCount > 0
-          ? Math.round((totalAmount / rawMemberCount) * 100) / 100
-          : 0;
+      /* 每人实付（角）与按人次拆分后的目标（角）一致，视为已均摊完成 */
       let shareBalancedComplete = false;
-      if (rawMemberCount > 0 && teamsData.length > 0) {
+      if (rawMemberCount > 0 && teamsData.length > 0 && eq.nSlots > 0) {
         shareBalancedComplete = true;
+        const paidTenthsByUser = {};
         for (const teamData of teamsData) {
           for (const m of teamData.members || []) {
-            const paid =
-              Math.round(parseFloat(m.totalAmount || 0) * 100) / 100;
-            if (Math.abs(paid - targetPerHead) >= 0.01) {
-              shareBalancedComplete = false;
-              break;
-            }
+            const uid = String(m.userId);
+            paidTenthsByUser[uid] = Math.round(
+              roundAmount1(parseFloat(m.totalAmount || 0)) * 10
+            );
           }
-          if (!shareBalancedComplete) break;
+        }
+        for (const uid of Object.keys(eq.userTargetTenths)) {
+          if (paidTenthsByUser[uid] !== eq.userTargetTenths[uid]) {
+            shareBalancedComplete = false;
+            break;
+          }
         }
       }
+
+      const notePatch = this._applyActivityNoteFromDetail(result.activityNote);
 
       this.setData({
         activityInfo: activityInfo,
@@ -233,12 +273,14 @@ Page({
         totalMemberCount: totalMemberCount,
         myTeam: myTeam,
         myTeamDiff: myTeamDiff,
-        myPersonalDiff: myPersonalDiff,
+        myTeamDiffAbsStr: formatAmount(Math.abs(myTeamDiff)),
+        myPersonalDiff: formatAmount(myPersonalDiffNum),
         isCreator: isCreator,
         isTeamCreator: isTeamCreator,
         isEnded: isEnded,
         showEqualizeBtn: showEqualizeBtn,
-        shareBalancedComplete: shareBalancedComplete
+        shareBalancedComplete: shareBalancedComplete,
+        ...notePatch
       });
 
       if (this._openCreateTeamAfterLoad && !isEnded && !myTeam) {
@@ -262,22 +304,23 @@ Page({
   // ========== 日期筛选费用明细 ==========
   async _loadExpenseDetail() {
     const result = await getActivityPayments(this.data.activityId);
-    const payments = (result.payments || []).map((p) => ({
-      ...p,
-      createTime: formatDateTime(p.createTime),
-      dateKey: formatDate(p.createTime),
-      payerName: p.payerName || p.username || '未知'
-    }));
-
-    // 计算每日总花费
+    const list = result.payments || [];
     const dateMap = {};
-    payments.forEach((p) => {
-      const date = p.dateKey;
+    list.forEach((p) => {
+      const date = formatDate(p.createTime);
       if (!dateMap[date]) {
         dateMap[date] = { date, total: 0 };
       }
       dateMap[date].total += parseFloat(p.amount || 0);
     });
+
+    const payments = list.map((p) => ({
+      ...p,
+      amount: formatAmount(p.amount),
+      createTime: formatDateTime(p.createTime),
+      dateKey: formatDate(p.createTime),
+      payerName: p.payerName || p.username || '未知'
+    }));
 
     const totalMemberCount = this.data.totalMemberCount || 1;
     const dailySummary = Object.values(dateMap)
@@ -285,7 +328,11 @@ Page({
       .map((d) => ({
         date: d.date,
         total: formatAmount(d.total),
-        perPerson: formatAmount(d.total / totalMemberCount)
+        perPerson: formatAmount(
+          totalMemberCount > 0
+            ? Math.round((d.total * 10) / totalMemberCount) / 10
+            : 0
+        )
       }));
 
     // 默认选中第一天
@@ -438,10 +485,25 @@ Page({
         slogan: (this.data.editActivitySlogan || '').trim()
       };
       const temp = this.data.editActivityAvatarTempPath;
+      const prevAvatar =
+        this.data.activityInfo && this.data.activityInfo.avatarUrl;
       if (temp) {
-        body.avatar = await filePathToBase64Compressed(temp);
+        const newId = await cloudStorage.uploadLocalImage(
+          temp,
+          `activities/${this.data.activityId}/cover_${Date.now()}.jpg`,
+          { compressQuality: 78 }
+        );
+        body.avatar = newId;
       }
       await updateActivity(this.data.activityId, body);
+      if (
+        temp &&
+        cloudStorage.isCloudFileId(prevAvatar) &&
+        body.avatar &&
+        prevAvatar !== body.avatar
+      ) {
+        cloudStorage.deleteCloudFiles([prevAvatar]);
+      }
       hideLoading();
       showSuccess('已保存');
       this.hideEditActivityModal();
@@ -554,6 +616,7 @@ Page({
       const result = await getMemberPayments(this.data.activityId, userId);
       const payments = (result.payments || []).map((p) => ({
         ...p,
+        amount: formatAmount(p.amount),
         createTime: formatDateTime(p.createTime)
       }));
 
@@ -603,6 +666,7 @@ Page({
       const result = await getMemberPayments(this.data.activityId, userId);
       const payments = (result.payments || []).map((p) => ({
         ...p,
+        amount: formatAmount(p.amount),
         createTime: formatDateTime(p.createTime)
       }));
       this.setData({ memberPayments: payments });
@@ -914,7 +978,7 @@ Page({
     wx.showModal({
       title: '一键均摊',
       content:
-        '将为每人自动添加「均摊付款」或「均摊收款」记录，使所有人实付等于当前人均花费。是否继续？',
+        '将为每人自动添加「均摊付款」或「均摊收款」记录，使各人实付与目标一致。是否继续？',
       success: async (res) => {
         if (!res.confirm) return;
         showLoading('均摊中...');
@@ -935,6 +999,56 @@ Page({
           showError(e.message || '均摊失败');
         }
       }
+    });
+  },
+
+  openActivityNoteFullscreen() {
+    if (this.data.isEnded) {
+      wx.showToast({ title: '活动已结束，可在上方预览笔记', icon: 'none' });
+      return;
+    }
+    const id = this.data.activityId;
+    if (!id) return;
+    wx.navigateTo({
+      url: '/pages/activity/note?id=' + encodeURIComponent(id)
+    });
+  },
+
+  onActivityNoteMpHtmlLinkTap(e) {
+    dispatchActivityNoteMpHtmlLinkTap(e, {
+      showError,
+      openNoteAttachment: (params) => this._openNoteAttachmentFromParams(params),
+      linkMap: this._activityNoteLinkMap || {},
+      noteBlocksForLocResolve: []
+    });
+  },
+
+  async _openNoteAttachmentFromParams(params) {
+    const url = (params && params.url) || '';
+    if (!String(url).trim()) {
+      showError('附件地址无效');
+      return;
+    }
+    showLoading('打开附件...');
+    try {
+      const filePath = await cloudStorage.downloadNoteAttachmentToTempPath(url);
+      hideLoading();
+      const name = (params && params.name) || '';
+      const fileType = inferWxOpenDocumentFileType(name, url);
+      invokeOpenDocumentWithRetry(filePath, fileType, showError);
+    } catch (err) {
+      hideLoading();
+      showError((err && err.message) || '打开附件失败');
+    }
+  },
+
+  onActivityNoteMpHtmlImgTap(e) {
+    const src = (e.detail && e.detail.src) || '';
+    if (!src) return;
+    const urls = noteStore.extractImageUrlsFromHtml(this.data.noteContent || '');
+    wx.previewImage({
+      current: src,
+      urls: urls.length ? urls : [src]
     });
   },
 

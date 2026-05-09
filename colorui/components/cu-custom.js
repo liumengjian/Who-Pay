@@ -15,19 +15,19 @@ function getNavHeights() {
 }
 
 function fetchNavHeights(callback) {
-  wx.getSystemInfo({
-    success(e) {
-      const sb = e.statusBarHeight || 0;
-      const custom = wx.getMenuButtonBoundingClientRect?.() || {};
-      const cb = (custom.bottom || custom.top + 48) - sb;
-      app.globalData.StatusBar = sb;
-      app.globalData.CustomBar = cb;
-      app.globalData.NavTotalHeight = computeNavTotalHeight(sb, cb);
-      app.globalData.Custom = custom;
-      callback(getNavHeights());
-    },
-    fail: () => callback(getNavHeights())
-  });
+  try {
+    const win = typeof wx.getWindowInfo === 'function' ? wx.getWindowInfo() : null;
+    const sb = (win && win.statusBarHeight) || 0;
+    const custom = wx.getMenuButtonBoundingClientRect?.() || {};
+    const cb = (custom.bottom || custom.top + 48) - sb;
+    app.globalData.StatusBar = sb;
+    app.globalData.CustomBar = cb;
+    app.globalData.NavTotalHeight = computeNavTotalHeight(sb, cb);
+    app.globalData.Custom = custom;
+    callback(getNavHeights());
+  } catch (e) {
+    callback(getNavHeights());
+  }
 }
 
 Component({

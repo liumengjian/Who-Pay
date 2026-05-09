@@ -363,7 +363,6 @@ page {
   background-color: #fff;
   border-radius: 20rpx;
   padding: 30rpx;
-  margin-bottom: 24rpx;
   box-shadow: 0 4rpx 20rpx rgba(102, 126, 234, 0.12);
   transition: transform 0.2s ease;
 }
@@ -961,14 +960,452 @@ page {
   color: #fff !important;
 }
 
-/* 参与人数显示 */
-.amount-info {
-  display: flex;
-  justify-content: space-around;
+/* ========== 活动笔记 ========== */
+.activity-note-section {
+  padding: 0 20rpx 20rpx;
+  margin-bottom: 16px;
 }
 
-.amount-item {
+.activity-note-section-card {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 28rpx 30rpx;
+  box-shadow: 0 4rpx 16rpx rgba(102, 126, 234, 0.08);
+}
+
+.activity-note-section-card--hover {
+  opacity: 0.94;
+}
+
+.activity-note-section-card--ended {
+  box-shadow: 0 2rpx 10rpx rgba(102, 126, 234, 0.05);
+}
+
+.activity-note-ended-hint {
+  font-size: 24rpx;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.activity-note-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.activity-note-title-block {
   display: flex;
   flex-direction: column;
+  gap: 6rpx;
+}
+
+.activity-note-hint {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.activity-note-arrow {
+  font-size: 48rpx;
+  color: #ccc;
+  font-weight: 300;
+}
+
+.activity-note-preview {
+  margin-top: 20rpx;
+}
+
+.note-mp-html {
+  word-break: break-word;
+}
+
+.note-mp-html--preview {
+  max-height: 360rpx;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.note-preview-flow {
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
+  gap: 8rpx 10rpx;
+}
+
+.note-preview-inline-rich {
+  font-size: 28rpx;
+  color: #444;
+  line-height: 1.55;
+}
+
+.note-preview-inline-text {
+  font-size: 28rpx;
+  color: #444;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.note-preview-item-text {
+  max-width: 100%;
+  flex: 1 1 auto;
+}
+
+.note-preview-item-img {
+  flex-shrink: 0;
+  line-height: 0;
+}
+
+.note-preview-inline-img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: 4rpx;
+}
+
+.activity-note-empty {
+  font-size: 26rpx;
+  color: #999;
+}
+
+.activity-note-fs {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 3000;
+  background: #f7f8fa;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.activity-note-fs-header {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16rpx 24rpx;
+  box-sizing: border-box;
+  background: #fff;
+  border-bottom: 1rpx solid #eee;
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.activity-note-fs-title {
+  flex: 1;
+  text-align: center;
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.activity-note-fs-side {
+  min-width: 96rpx;
+  font-size: 30rpx;
+  color: #666;
+}
+
+.activity-note-fs-action {
+  text-align: right;
+  color: #667eea;
+  font-weight: 500;
+}
+
+.activity-note-fs-scroll {
+  box-sizing: border-box;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.activity-note-fs-inner {
+  padding: 24rpx 24rpx 48rpx;
+  min-height: 100%;
+}
+
+.activity-note-fs-inner--edit {
+  padding-bottom: 24rpx;
+}
+
+.note-edit-toolbar {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  align-items: center;
+  padding: 24rpx 16rpx;
+  padding-bottom: calc(14rpx + env(safe-area-inset-bottom));
+  background: #fff;
+  border-top: 1rpx solidrgb(240, 240, 240);
+  box-shadow: 0 -6rpx 24rpx rgba(0, 0, 0, 0.06);
+  box-sizing: border-box;
+}
+
+.note-edit-toolbar--kb {
+  padding-bottom: 14rpx;
+}
+
+.note-tool-icon {
+  width: 66rpx;
+  height: 66rpx;
+  border-radius: 16rpx;
+  background:rgb(245, 245, 245);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.note-tool-icon--on {
+  background: #e8ecff;
+  box-shadow: inset 0 0 0 2rpx #667eea;
+}
+
+.note-tool-img {
+  width: 40rpx;
+  height: 40rpx;
+}
+
+.note-rich-editor--writing {
+  padding: 16rpx 18rpx;
+  min-height: 360rpx;
+}
+
+/* 编辑态：由 note.wxml 绑定 min-height/height，去掉默认小高度限制 */
+.note-rich-shell--edit .note-rich-editor--writing {
+  min-height: 0;
+  box-sizing: border-box;
+}
+
+.note-rich-shell--edit .note-editor-main {
+  min-height: 0;
+  box-sizing: border-box;
+}
+
+.note-editor-main {
+  display: block;
+  width: 100%;
+  min-height: 400rpx;
+  font-size: 30rpx;
+  line-height: 1.65;
+  color: #333;
+}
+
+/* 与 NOTE_IMG_HTML_STYLE / 阅读态 mp-html 一致，避免 insertImage 宽高与样式不一致导致变形 */
+.note-editor-main img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  width: auto;
+  vertical-align: top;
+  box-sizing: border-box;
+}
+
+.note-rich-editor--readonly {
+  min-height: 120rpx;
+  padding: 16rpx 18rpx;
+  box-sizing: border-box;
+}
+
+.note-rich-flow--read {
+  align-items: center;
+}
+
+.note-flow-read-text {
+  flex: 1 1 100%;
+  max-width: 100%;
+  font-size: 30rpx;
+  line-height: 1.65;
+  color: #333;
+}
+
+.note-flow-attach {
+  display: inline-flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 6rpx 14rpx;
+  background: #f4f4f5;
+  border-radius: 8rpx;
+  max-width: 100%;
+}
+
+.note-attach-label {
+  font-size: 20rpx;
+  color: #667eea;
+  flex-shrink: 0;
+}
+
+.note-attach-name {
+  font-size: 26rpx;
+  color: #333;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.note-preview-attach-chip {
+  padding: 4rpx 12rpx;
+  background: #f0f2f5;
+  border-radius: 8rpx;
+}
+
+.note-preview-attach-txt {
+  font-size: 24rpx;
+  color: #555;
+}
+
+.note-full-empty {
+  padding: 80rpx 32rpx;
+  text-align: center;
+  font-size: 28rpx;
+  color: #999;
+  line-height: 1.6;
+}
+
+.note-rich-shell {
+  width: 100%;
+}
+
+.note-rich-editor {
+  width: 100%;
+  background: #fff;
+  border: 1rpx solid #e5e7eb;
+  border-radius: 16rpx;
+  padding: 20rpx 22rpx;
+  box-sizing: border-box;
+  min-height: 220rpx;
+}
+
+.note-rich-flow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  align-content: flex-start;
+  gap: 8rpx 10rpx;
+  width: 100%;
+}
+
+.note-flow-text-wrap {
+  display: inline-block;
+  vertical-align: middle;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.note-flow-text-wrap--focus {
+  display: block;
+  width: 100%;
+  flex: 1 1 100%;
+}
+
+.note-textarea--rich {
+  width: 100%;
+  min-height: 72rpx;
+  font-size: 30rpx;
+  line-height: 1.6;
+  color: #333;
+  background: #fafafa;
+  border-radius: 10rpx;
+  padding: 10rpx 12rpx;
+  box-sizing: border-box;
+}
+
+.note-text-tap--rich {
+  display: inline-block;
+  min-width: 64rpx;
+  max-width: 100%;
+  padding: 6rpx 12rpx;
+  background: #fafafa;
+  border-radius: 10rpx;
+  vertical-align: middle;
+  box-sizing: border-box;
+}
+
+.note-text-tap-ph-text {
+  font-size: 28rpx;
+  color: #b0b0b0;
+  line-height: 1.5;
+}
+
+.note-text-read--rich {
+  font-size: 30rpx;
+  color: #333;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  word-break: break-word;
+  vertical-align: middle;
+}
+
+.note-flow-img-wrap {
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
+  line-height: 0;
+}
+
+.note-inline-img-wrap {
+  position: relative;
+  display: inline-block;
+  vertical-align: middle;
+  line-height: 0;
+}
+
+.note-inline-img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: 6rpx;
+  vertical-align: middle;
+}
+
+.note-inline-img-del {
+  position: absolute;
+  top: -10rpx;
+  right: -10rpx;
+  width: 30rpx;
+  height: 30rpx;
+  line-height: 28rpx;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.65);
+  color: #fff;
+  border-radius: 50%;
+  font-size: 22rpx;
+  z-index: 1;
+}
+
+.note-flow-loc-wrap {
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
+  max-width: 100%;
+}
+
+.note-loc-chip {
+  min-height: 48rpx;
+  padding: 18rpx 26rpx;
+  box-sizing: border-box;
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 14rpx;
+  max-width: 100%;
+  border-radius: 999rpx;
+  background: rgba(113, 94, 189, 0.16);
+  border: 2rpx solid rgba(113, 94, 189, 0.35);
+  box-shadow: 0 6rpx 18rpx rgba(113, 94, 189, 0.12);
+}
+
+.note-loc-chip-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 28rpx;
+  color: rgb(95, 78, 168);
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+  max-width: 480rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

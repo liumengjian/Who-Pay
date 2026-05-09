@@ -1,5 +1,6 @@
 // pages/user/profile.js
 const { updateUserInfo, getApplicationList } = require('../../utils/cloud.js');
+const cloudStorage = require('../../utils/cloudStorage.js');
 const { showLoading, hideLoading, showSuccess, showError, chooseImage, filePathToBase64Compressed } = require('../../utils/util.js');
 const { getNavTotalHeight } = require('../../utils/navHeight.js');
 
@@ -54,6 +55,44 @@ Page({
       userInfo: userInfo,
       editNickname: userInfo.nickName || ''
     });
+    this.migrateLegacyAvatarIfNeeded(userInfo);
+  },
+
+  /**
+   * 历史 base64 头像迁移为云 fileID，写回服务端与本地缓存（失败则保持原样，不影响展示）。
+   */
+  async migrateLegacyAvatarIfNeeded(userInfo) {
+    if (this._avatarMigrating) return;
+    const userId = wx.getStorageSync('userId') || getApp().globalData.userId;
+    if (!userId || userId === 'admin') return;
+    const raw = (userInfo && (userInfo.avatarUrl || userInfo.avatar)) || '';
+    if (!cloudStorage.needsMigrateToCloud(raw)) return;
+    if (!cloudStorage.cloudReady()) return;
+    const id =
+      userInfo && userInfo.id != null && userInfo.id !== ''
+        ? userInfo.id
+        : parseInt(userId, 10) || userId;
+    this._avatarMigrating = true;
+    try {
+      const newId = await cloudStorage.migrateImageUrlToCloudIfNeeded(
+        raw,
+        `users/${id}/avatar_mig_${Date.now()}.jpg`
+      );
+      if (!newId || newId === raw) return;
+      await updateUserInfo({ id, avatar: newId });
+      const updatedUserInfo = {
+        ...userInfo,
+        avatarUrl: newId,
+        avatar: newId
+      };
+      wx.setStorageSync('userInfo', updatedUserInfo);
+      getApp().setUserInfo(updatedUserInfo);
+      this.setData({ userInfo: updatedUserInfo });
+    } catch (e) {
+      console.warn('[profile] 头像迁移失败', e);
+    } finally {
+      this._avatarMigrating = false;
+    }
   },
 
   // 编辑头像
@@ -100,8 +139,31 @@ Page({
     showLoading('设置中...');
     try {
       const tempPath = await this.copyPackageFileToTemp(packagePath);
-      const avatar = await filePathToBase64Compressed(tempPath);
+      const userId = wx.getStorageSync('userId') || getApp().globalData.userId;
+      const currentUserInfo = this.data.userInfo;
+      const id =
+        currentUserInfo.id != null && currentUserInfo.id !== ''
+          ? currentUserInfo.id
+          : parseInt(userId, 10) || userId;
+      const prevAvatar = currentUserInfo.avatarUrl || currentUserInfo.avatar;
+      let avatar;
+      if (cloudStorage.cloudReady()) {
+        avatar = await cloudStorage.uploadLocalImage(
+          tempPath,
+          `users/${id}/avatar_${Date.now()}.jpg`,
+          { compressQuality: 78 }
+        );
+      } else {
+        avatar = await filePathToBase64Compressed(tempPath);
+      }
       await this.submitUpdateUserInfo({ avatar });
+      if (
+        cloudStorage.isCloudFileId(prevAvatar) &&
+        cloudStorage.isCloudFileId(avatar) &&
+        prevAvatar !== avatar
+      ) {
+        cloudStorage.deleteCloudFiles([prevAvatar]);
+      }
       this.hideEditAvatar();
     } catch (error) {
       console.error('设置默认头像失败:', error);
@@ -127,8 +189,31 @@ Page({
   async uploadAvatar(filePath) {
     showLoading('上传中...');
     try {
-      const avatar = await filePathToBase64Compressed(filePath);
+      const userId = wx.getStorageSync('userId') || getApp().globalData.userId;
+      const currentUserInfo = this.data.userInfo;
+      const id =
+        currentUserInfo.id != null && currentUserInfo.id !== ''
+          ? currentUserInfo.id
+          : parseInt(userId, 10) || userId;
+      const prevAvatar = currentUserInfo.avatarUrl || currentUserInfo.avatar;
+      let avatar;
+      if (cloudStorage.cloudReady()) {
+        avatar = await cloudStorage.uploadLocalImage(
+          filePath,
+          `users/${id}/avatar_${Date.now()}.jpg`,
+          { compressQuality: 78 }
+        );
+      } else {
+        avatar = await filePathToBase64Compressed(filePath);
+      }
       await this.submitUpdateUserInfo({ avatar });
+      if (
+        cloudStorage.isCloudFileId(prevAvatar) &&
+        cloudStorage.isCloudFileId(avatar) &&
+        prevAvatar !== avatar
+      ) {
+        cloudStorage.deleteCloudFiles([prevAvatar]);
+      }
     } catch (error) {
       console.error('上传头像失败:', error);
       showError(error.message || '上传头像失败');

@@ -7,6 +7,7 @@
     "pages/login/login",
     "pages/activity/index",
     "pages/activity/detail",
+    "pages/activity/note",
     "pages/payment/manage",
     "pages/payment/history",
     "pages/user/profile",
@@ -43,5 +44,14 @@
     ]
   },
   "style": "v2",
-  "sitemapLocation": "sitemap.json"
+  "sitemapLocation": "sitemap.json",
+  "requiredPrivateInfos": [
+    "getFuzzyLocation",
+    "chooseLocation"
+  ],
+  "permission": {
+    "scope.userFuzzyLocation": {
+      "desc": "用于在笔记中选择地点时的地图定位"
+    }
+  }
 }

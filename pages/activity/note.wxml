@@ -1,0 +1,142 @@
+<!-- pages/activity/note.wxml -->
+<view class="activity-note-fs page-hero-note">
+  <view id="anote-header" class="activity-note-fs-header" style="padding-top:{{navHeight}}px">
+    <text class="activity-note-fs-side" bindtap="closeActivityNote">关闭</text>
+    <text class="activity-note-fs-title">活动笔记</text>
+    <text
+      wx:if="{{!isEnded}}"
+      class="activity-note-fs-side activity-note-fs-action"
+      bindtap="onActivityNoteHeaderAction"
+    >{{noteEditMode ? '保存' : '编辑'}}</text>
+    <text wx:else class="activity-note-fs-side"></text>
+  </view>
+  <scroll-view
+    scroll-y="{{true}}"
+    class="activity-note-fs-scroll"
+    style="height: {{noteScrollH}}px;"
+    enable-back-to-top="{{true}}"
+  >
+    <view class="activity-note-fs-inner {{noteEditMode ? 'activity-note-fs-inner--edit' : ''}}">
+      <view wx:if="{{!activityNoteHasPreview && !noteEditMode}}" class="note-full-empty">
+        <text wx:if="{{isEnded}}">暂无笔记</text>
+        <text wx:else>暂无内容，点击右上角「编辑」添加</text>
+      </view>
+      <view wx:elif="{{noteEditMode}}" class="note-rich-shell note-rich-shell--edit" style="min-height: {{noteScrollH}}px;">
+        <view class="note-rich-editor note-rich-editor--writing">
+          <editor
+            id="noteEditor"
+            class="note-editor-main"
+            style="height: {{noteEditorAreaH}}px;"
+            placeholder="写笔记：字号、颜色、粗体、图片、地点与附件"
+            show-img-size="{{false}}"
+            bindready="onNoteEditorReady"
+            bindfocus="onNoteEditorFocus"
+            bindstatuschange="onNoteEditorStatusChange"
+            bindlinktap="onActivityNoteMpHtmlLinkTap"
+          />
+        </view>
+      </view>
+      <view wx:else class="note-rich-shell">
+        <view class="note-rich-editor note-rich-editor--readonly">
+          <!-- 原生小程序用 bindlinktap；uni-app 写法则为 @linktap -->
+          <mp-html
+            class="note-mp-html note-mp-html--read"
+            content="{{activityNoteReadHtml}}"
+            container-style="font-size:30rpx;line-height:1.65;color:#333;"
+            tag-style="{{noteMpHtmlTagStyle}}"
+            copy-link="{{false}}"
+            preview-img="{{false}}"
+            selectable="{{true}}"
+            bindlinktap="onActivityNoteMpHtmlLinkTap"
+            bindimgtap="onActivityNoteMpHtmlImgTap"
+          />
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+  <view
+    wx:if="{{noteEditMode}}"
+    class="note-edit-bottom-wrap"
+    id="anote-edit-bottom"
+    catchtap="stopPropagation"
+  >
+    <view wx:if="{{noteFontSizePanelOpen}}" class="note-fontsize-panel">
+      <view class="note-fontsize-panel-row">
+        <text class="note-fontsize-hint">字号</text>
+        <slider
+          class="note-fontsize-slider"
+          min="8"
+          max="50"
+          step="1"
+          value="{{noteFontSizePx}}"
+          activeColor="#5c6bc0"
+          backgroundColor="#e8eaf6"
+          block-size="20"
+          bindchanging="onNoteFontSizeChanging"
+          bindchange="onNoteFontSizeChange"
+        />
+        <text class="note-fontsize-val">{{noteFontSizePx}}px</text>
+      </view>
+    </view>
+    <view wx:if="{{noteColorPanelOpen}}" class="note-color-panel note-color-panel--v2">
+      <view class="note-color-panel-hint">拖动彩虹条选色相，或点击下方预设</view>
+      <view
+        class="note-hue-strip-hit"
+        catchtouchstart="onNoteColorHueTouch"
+        catchtouchmove="onNoteColorHueTouch"
+      >
+        <view class="note-hue-strip-bg"></view>
+        <view
+          class="note-hue-thumb"
+          style="left: {{noteColorHueThumbLeftPct}}%;"
+        ></view>
+      </view>
+      <view class="note-color-presets">
+        <view
+          wx:for="{{noteColorPresets}}"
+          wx:key="*this"
+          class="note-color-preset-swatch"
+          style="background-color: {{item}};"
+          data-hex="{{item}}"
+          catchtap="onNoteColorPresetTap"
+        ></view>
+      </view>
+      <view class="note-color-panel-footer">
+        <text class="note-color-reset" catchtap="onNoteColorDefault">默认 #333</text>
+        <view
+          class="note-color-preview"
+          style="background: {{noteColorPreviewBackground}};"
+        ></view>
+      </view>
+    </view>
+    <view
+      id="anote-toolbar"
+      class="note-edit-toolbar {{noteKeyboardOpen ? 'note-edit-toolbar--kb' : ''}}"
+    >
+      <view
+        class="note-tool-icon {{noteFontSizePanelOpen ? 'note-tool-icon--on' : ''}}"
+        bindtap="onNoteToolFontSize"
+      >
+        <image class="note-tool-img" src="/images/bar-daxiao.png" mode="aspectFit" />
+      </view>
+      <view
+        class="note-tool-icon {{noteColorPanelOpen ? 'note-tool-icon--on' : ''}}"
+        bindtap="onNoteToolColor"
+      >
+        <image class="note-tool-img" src="/images/bar-ziti.png" mode="aspectFit" />
+      </view>
+      <view class="note-tool-icon {{noteBoldActive ? 'note-tool-icon--on' : ''}}" bindtap="onNoteToolBold">
+        <image class="note-tool-img" src="/images/bar-cuti.png" mode="aspectFit" />
+      </view>
+      <view class="note-tool-icon" bindtap="onNoteToolImage">
+        <image class="note-tool-img" src="/images/bar-tupian.png" mode="aspectFit" />
+      </view>
+      <view class="note-tool-icon" bindtap="onNoteToolNav">
+        <image class="note-tool-img" src="/images/bar-daohang.png" mode="aspectFit" />
+      </view>
+      <view class="note-tool-icon" bindtap="onNoteToolAttach">
+        <image class="note-tool-img" src="/images/bar-fujian.png" mode="aspectFit" />
+      </view>
+    </view>
+  </view>
+</view>

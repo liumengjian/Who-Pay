@@ -51,6 +51,11 @@ function getActivityDetail(activityId) {
   return callAPI(`/api/activity/${activityId}`, 'GET');
 }
 
+/** 保存活动笔记（进行中、参与者可写） */
+function saveActivityNote(activityId, body) {
+  return callAPI(`/api/activity/${activityId}/note`, 'PUT', body || {});
+}
+
 /** 已参与者查看活动下团队列表（含团队邀请码） */
 function getActivityTeams(activityId) {
   return callAPI(`/api/activity/${activityId}/teams`, 'GET');
@@ -204,6 +209,7 @@ module.exports = {
   createActivity,
   joinActivity,
   getActivityDetail,
+  saveActivityNote,
   getActivityTeams,
   getTeamMembers,
   leaveActivity,

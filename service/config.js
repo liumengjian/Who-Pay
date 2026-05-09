@@ -9,8 +9,20 @@
  */
 const USE_CLOUD_CONTAINER = true;
 
-/** 云开发环境 ID（与 wx.cloud.init、callContainer 的 config.env 一致） */
+/** 云开发 / 云托管环境 ID（与 wx.cloud.init、callContainer、uploadFile 的 config.env 一致） */
 const CLOUD_ENV = 'prod-4g6txya8d2f21745';
+
+/** 对象存储桶 ID（控制台对象存储 · 存储桶列表，与 fileID 中 bucket 段一致） */
+const CLOUD_STORAGE_BUCKET = '7072-prod-4g6txya8d2f21745-1413661498';
+
+/** 对象存储地域 */
+const CLOUD_STORAGE_REGION = 'ap-shanghai';
+
+/**
+ * 控制台「存储路径」中的业务目录前缀（7072-.../files → 上传 cloudPath 使用 files/...）
+ * 设为 '' 则仍用代码里写的路径（如 users/、activities/）直传根目录。
+ */
+const CLOUD_STORAGE_PATH_PREFIX = 'files';
 
 /**
  * 云托管服务名，必须与 callContainer 请求头 X-WX-SERVICE 一致
@@ -29,5 +41,8 @@ module.exports = {
   API_BASE_URL,
   USE_CLOUD_CONTAINER,
   CLOUD_ENV,
-  CLOUD_SERVICE
+  CLOUD_SERVICE,
+  CLOUD_STORAGE_BUCKET,
+  CLOUD_STORAGE_REGION,
+  CLOUD_STORAGE_PATH_PREFIX
 };

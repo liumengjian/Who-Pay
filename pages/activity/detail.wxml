@@ -47,7 +47,7 @@
           <view class="settlement-equalized-dot"></view>
           <text class="settlement-equalized-title">已均摊完成</text>
         </view>
-        <text class="settlement-equalized-desc">所有人实付金额与人均应付一致，暂无差额。</text>
+        <text class="settlement-equalized-desc">各人实付已与均摊目标一致。</text>
       </view>
       <block wx:else>
         <view class="settlement-item team-settlement">
@@ -55,7 +55,7 @@
           <text class="settlement-value {{myTeamDiff >= 0 ? 'positive' : 'negative'}}">
             <text wx:if="{{myTeamDiff < 0}}">需要向其他团队支付</text>
             <text wx:else>可以从其他团队收款</text>
-            <text class="amount">¥{{myTeamDiff >= 0 ? myTeamDiff : (-myTeamDiff)}}</text>
+            <text class="amount">¥{{myTeamDiffAbsStr}}</text>
           </text>
         </view>
         <view class="settlement-item personal-settlement">
@@ -101,7 +101,7 @@
         <view class="team-stats">
           <text class="team-total">支付: ¥{{team.totalAmount}}</text>
           <text class="team-diff {{team.diffAmount >= 0 ? 'positive' : 'negative'}}">
-            {{team.diffAmount >= 0 ? '应收' : '应付'}}: ¥{{team.diffAmount >= 0 ? team.diffAmount : (-team.diffAmount)}}
+            {{team.diffAmount >= 0 ? '应收' : '应付'}}: ¥{{team.diffAmountDisplay}}
           </text>
           <text class="team-member-share" wx:if="{{team.memberCount > 0}}">
           </text>
@@ -141,6 +141,42 @@
         <text class="expense-hint">按日期查看</text>
       </view>
       <text class="expense-arrow">›</text>
+    </view>
+  </view>
+
+  <!-- 活动笔记：未结束可点进全屏；已结束仅展示预览 -->
+  <view class="activity-note-section">
+    <view
+      class="activity-note-section-card {{isEnded ? 'activity-note-section-card--ended' : ''}}"
+      bindtap="openActivityNoteFullscreen"
+      hover-class="{{isEnded ? '' : 'activity-note-section-card--hover'}}"
+      hover-stay-time="70"
+    >
+      <view class="activity-note-section-head">
+        <view class="activity-note-title-block">
+          <text class="section-title-text">活动笔记</text>
+          <text wx:if="{{isEnded}}" class="activity-note-ended-hint">已结束 · 仅摘要预览</text>
+        </view>
+        <text wx:if="{{!isEnded}}" class="activity-note-arrow">›</text>
+      </view>
+      <view class="activity-note-preview">
+        <block wx:if="{{activityNoteHasPreview}}">
+          <!-- 原生小程序用 bindlinktap；uni-app 写法则为 @linktap -->
+          <mp-html
+            class="note-mp-html note-mp-html--preview"
+            content="{{activityNotePreviewHtml}}"
+            container-style="font-size:30rpx;line-height:1.65;color:#333;"
+            tag-style="{{noteMpHtmlPreviewTagStyle}}"
+            copy-link="{{false}}"
+            preview-img="{{false}}"
+            selectable="{{true}}"
+            bindlinktap="onActivityNoteMpHtmlLinkTap"
+            bindimgtap="onActivityNoteMpHtmlImgTap"
+          />
+        </block>
+        <text wx:elif="{{isEnded}}" class="activity-note-empty">活动已结束，暂无笔记内容</text>
+        <text wx:else class="activity-note-empty">点击本区域查看或编辑全文</text>
+      </view>
     </view>
   </view>
 

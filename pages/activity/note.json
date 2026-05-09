@@ -1,7 +1,6 @@
 {
-  "navigationBarTitleText": "历史活动详情",
   "navigationStyle": "custom",
-  "enablePullDownRefresh": false,
+  "navigationBarTitleText": "活动笔记",
   "usingComponents": {
     "mp-html": "/components/mp-html/index"
   }

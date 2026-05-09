@@ -1,13 +1,23 @@
 // utils/util.js - 工具函数
 
 /**
- * 格式化金额（保留两位小数）
+ * 格式化金额（统一保留一位小数，用于全站展示）
  */
 function formatAmount(amount) {
   if (amount === null || amount === undefined) {
-    return '0.00';
+    return '0.0';
   }
-  return parseFloat(amount).toFixed(2);
+  return parseFloat(amount).toFixed(1);
+}
+
+/** @deprecated 与 formatAmount 相同，保留导出以兼容旧代码 */
+function formatAmount1(amount) {
+  return formatAmount(amount);
+}
+
+/** 四舍五入到角（元） */
+function roundAmount1(x) {
+  return Math.round(parseFloat(x) * 10) / 10;
 }
 
 /**
@@ -211,9 +221,13 @@ function validateInviteCode(code) {
   return '';
 }
 
-// 导出所有函数
-module.exports = {
+const equalShare = require('./equalShare.js');
+
+// 导出所有函数（均摊算法单独模块，避免大 util 在真机/缓存下偶发缺失导出）
+module.exports = Object.assign({}, equalShare, {
   formatAmount,
+  formatAmount1,
+  roundAmount1,
   formatDateTime,
   formatDate,
   showSuccess,
@@ -228,4 +242,4 @@ module.exports = {
   filePathToBase64,
   compressImageIfNeeded,
   filePathToBase64Compressed
-};
+});

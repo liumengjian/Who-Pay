@@ -1,0 +1,11 @@
+{
+  "name": "who-pay-miniprogram",
+  "private": true,
+  "description": "Who Pay 微信小程序",
+  "scripts": {
+    "postinstall": "node scripts/copy-mp-html.js"
+  },
+  "dependencies": {
+    "mp-html": "^2.5.2"
+  }
+}

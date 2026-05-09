@@ -7,6 +7,7 @@ const {
   getActivityPreview,
   applyForJoin
 } = require('../../utils/cloud.js');
+const cloudStorage = require('../../utils/cloudStorage.js');
 const { showLoading, hideLoading, showSuccess, showError, validateInviteCode, filePathToBase64Compressed } = require('../../utils/util.js');
 const { getNavTotalHeight } = require('../../utils/navHeight.js');
 
@@ -14,6 +15,7 @@ Page({
   data: {
     userInfo: {},
     mainTab: 'hall',
+    mainTabIndex: 0,
     hallActivities: [],
     hallDisplayList: [],
     hallSearchKeyword: '',
@@ -75,11 +77,17 @@ Page({
   },
 
   switchTabHall() {
-    this.setData({ mainTab: 'hall' });
+    this.setData({ mainTab: 'hall', mainTabIndex: 0 });
   },
 
   switchTabMine() {
-    this.setData({ mainTab: 'mine' });
+    this.setData({ mainTab: 'mine', mainTabIndex: 1 });
+  },
+
+  onMainTabSwiperChange(e) {
+    const cur = e.detail.current;
+    const tab = cur === 0 ? 'hall' : 'mine';
+    this.setData({ mainTabIndex: cur, mainTab: tab });
   },
 
   async refreshAll() {
@@ -291,9 +299,22 @@ Page({
       };
       if (activityAvatarTempPath) {
         try {
-          payload.avatar = await filePathToBase64Compressed(activityAvatarTempPath);
+          if (cloudStorage.cloudReady()) {
+            payload.avatar = await cloudStorage.uploadLocalImage(
+              activityAvatarTempPath,
+              `activities/new/cover_${Date.now()}.jpg`,
+              { compressQuality: 78 }
+            );
+          } else {
+            payload.avatar = await filePathToBase64Compressed(activityAvatarTempPath);
+          }
         } catch (err) {
-          console.warn('活动头像读取失败:', err);
+          console.warn('活动头像上传失败，尝试 base64:', err);
+          try {
+            payload.avatar = await filePathToBase64Compressed(activityAvatarTempPath);
+          } catch (e2) {
+            console.warn('活动头像读取失败:', e2);
+          }
         }
       }
       const result = await createActivity(payload);

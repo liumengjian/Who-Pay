@@ -1,5 +1,6 @@
 // pages/login/login.js
 const { loginWithAccount, register } = require('../../utils/cloud.js');
+const cloudStorage = require('../../utils/cloudStorage.js');
 const { showLoading, hideLoading, showError, showSuccess, filePathToBase64Compressed } = require('../../utils/util.js');
 
 Page({
@@ -173,9 +174,22 @@ Page({
 
       if (avatarTempPath) {
         try {
-          avatar = await filePathToBase64Compressed(avatarTempPath);
+          if (cloudStorage.cloudReady()) {
+            avatar = await cloudStorage.uploadLocalImage(
+              avatarTempPath,
+              `users/register/avatar_${Date.now()}.jpg`,
+              { compressQuality: 78 }
+            );
+          } else {
+            avatar = await filePathToBase64Compressed(avatarTempPath);
+          }
         } catch (err) {
-          console.warn('头像转 base64 失败:', err);
+          console.warn('头像上传失败，尝试 base64:', err);
+          try {
+            avatar = await filePathToBase64Compressed(avatarTempPath);
+          } catch (e2) {
+            console.warn('头像转 base64 失败:', e2);
+          }
         }
       }
 

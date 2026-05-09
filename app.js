@@ -11,23 +11,25 @@ App({
         traceUser: true
       });
     }
-    // 获取系统信息，用于 cu-custom 导航栏
-    wx.getSystemInfo({
-      success: e => {
-        this.globalData.StatusBar = e.statusBarHeight || 0;
-        const custom = wx.getMenuButtonBoundingClientRect
-          ? wx.getMenuButtonBoundingClientRect()
-          : { bottom: 0, top: 0 };
-        this.globalData.Custom = custom;
-        this.globalData.CustomBar =
-          (custom.bottom ? custom.bottom : custom.top + 48) -
-          (e.statusBarHeight || 0);
-        this.globalData.NavTotalHeight = computeNavTotalHeight(
-          e.statusBarHeight || 0,
-          this.globalData.CustomBar
-        );
-      }
-    });
+    // 窗口信息，用于 cu-custom 导航栏（避免 getSystemInfo / getSystemInfoSync 废弃告警）
+    try {
+      const win =
+        typeof wx.getWindowInfo === 'function' ? wx.getWindowInfo() : null;
+      const sb = (win && win.statusBarHeight) || 0;
+      this.globalData.StatusBar = sb;
+      const custom = wx.getMenuButtonBoundingClientRect
+        ? wx.getMenuButtonBoundingClientRect()
+        : { bottom: 0, top: 0 };
+      this.globalData.Custom = custom;
+      this.globalData.CustomBar =
+        (custom.bottom ? custom.bottom : custom.top + 48) - sb;
+      this.globalData.NavTotalHeight = computeNavTotalHeight(
+        sb,
+        this.globalData.CustomBar
+      );
+    } catch (e) {
+      /* 保持默认 0，由 cu-custom attached 再补一次 */
+    }
     // 检查登录态
     this.checkLogin();
   },

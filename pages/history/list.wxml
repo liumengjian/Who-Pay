@@ -23,11 +23,11 @@
           </view>
           <view class="info-item">
             <text class="info-label">总花费</text>
-            <text class="info-value">¥{{item.totalAmount || '0.00'}}</text>
+            <text class="info-value">¥{{item.totalAmount || '0.0'}}</text>
           </view>
           <view class="info-item">
             <text class="info-label">均摊额</text>
-            <text class="info-value">¥{{item.shareAmount || '0.00'}}</text>
+            <text class="info-value">¥{{item.shareAmount || '0.0'}}</text>
           </view>
           <view class="info-item">
             <text class="info-label">结束时间</text>
