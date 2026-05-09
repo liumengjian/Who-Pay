@@ -47,7 +47,7 @@
 
 .activity-page {
   background: transparent;
-  padding-bottom: 180rpx;
+  padding-bottom: 120rpx;
 }
 
 .bg-gradual-blue {
@@ -78,6 +78,7 @@
 
 .activity-list {
   margin-top: 0;
+  padding: 30rpx 42rpx;
 }
 
 
@@ -152,6 +153,7 @@
   border-radius: 999rpx;
   padding: 0 16rpx;
   min-height: 60rpx;
+  margin: 0;
 }
 
 .hall-search .search-form input {

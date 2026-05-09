@@ -11,6 +11,8 @@ const cloudStorage = require('../../utils/cloudStorage.js');
 const { showLoading, hideLoading, showSuccess, showError, validateInviteCode, filePathToBase64Compressed } = require('../../utils/util.js');
 const { getNavTotalHeight } = require('../../utils/navHeight.js');
 
+const HALL_PAGE_SIZE = 20;
+
 Page({
   data: {
     userInfo: {},
@@ -19,6 +21,9 @@ Page({
     hallActivities: [],
     hallDisplayList: [],
     hallSearchKeyword: '',
+    hallPageOffset: 0,
+    hallHasMore: true,
+    hallLoadingMore: false,
     myActivities: [],
     showCreate: false,
     showHallDetail: false,
@@ -105,18 +110,53 @@ Page({
     this.setData({ hallSearchKeyword: e.detail.value }, () => this.applyHallSearchFilter());
   },
 
-  async loadHall() {
+  async loadHall(reset = true) {
+    if (this._hallFetching) return;
+    if (!reset) {
+      if (!this.data.hallHasMore || this.data.hallLoadingMore) return;
+      if ((this.data.hallActivities || []).length === 0) return;
+    }
+    this._hallFetching = true;
+    if (reset) {
+      this.setData({ hallHasMore: true });
+    }
+    const offset = reset ? 0 : this.data.hallPageOffset;
+    if (!reset) {
+      this.setData({ hallLoadingMore: true });
+    }
     try {
-      const result = await getActivityHall();
-      const list = result.activities || [];
-      this.setData({
-        hallActivities: list,
-        hallSearchKeyword: ''
-      }, () => this.applyHallSearchFilter());
+      const result = await getActivityHall({ offset, limit: HALL_PAGE_SIZE });
+      const batch = result.activities || [];
+      const hasMore =
+        typeof result.hasMore === 'boolean'
+          ? result.hasMore
+          : batch.length >= HALL_PAGE_SIZE;
+      const merged = reset
+        ? batch
+        : (this.data.hallActivities || []).concat(batch);
+      this.setData(
+        {
+          hallActivities: merged,
+          hallPageOffset: offset + batch.length,
+          hallHasMore: hasMore,
+          ...(reset ? { hallSearchKeyword: '' } : {})
+        },
+        () => this.applyHallSearchFilter()
+      );
     } catch (error) {
       console.error('加载活动大厅失败:', error);
       showError(error.message || '加载大厅失败');
+    } finally {
+      this._hallFetching = false;
+      if (!reset) {
+        this.setData({ hallLoadingMore: false });
+      }
     }
+  },
+
+  onHallScrollToLower() {
+    if (this.data.mainTab !== 'hall') return;
+    this.loadHall(false);
   },
 
   async loadMyActivities() {

@@ -24,9 +24,11 @@ function register(params) {
   return callAPI('/api/auth/register', 'POST', params);
 }
 
-/** 活动大厅（全部进行中活动） */
-function getActivityHall() {
-  return callAPI('/api/activity/hall', 'GET');
+/** 活动大厅（进行中活动，分页） @param {{ offset?: number, limit?: number }} q */
+function getActivityHall(q = {}) {
+  const offset = typeof q.offset === 'number' && q.offset >= 0 ? q.offset : 0;
+  const limit = typeof q.limit === 'number' && q.limit > 0 ? q.limit : 20;
+  return callAPI('/api/activity/hall', 'GET', { offset, limit });
 }
 
 /** 未加入也可查看：团队与成员预览 */
