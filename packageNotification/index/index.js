@@ -49,15 +49,22 @@ Page({
   async loadSystem() {
     try {
       const result = await getSystemNotices();
-      return (result.notices || []).map((n) => ({
-        msgType: '系统通知',
-        _id: `sys_${n.id}`,
-        sysNoticeId: n.id,
-        systemTitle: n.title,
-        read: !!n.read,
-        createTime: formatDateTime(n.createTime),
-        createTimeRaw: n.createTime
-      }));
+      return (result.notices || []).map((n) => {
+        const cat = n.category || 'version_update';
+        let systemSubLabel = '通知';
+        if (cat === 'onboarding') systemSubLabel = '新手指引';
+        else if (cat === 'version_update') systemSubLabel = '版本更新';
+        return {
+          msgType: '系统通知',
+          _id: `sys_${n.id}`,
+          sysNoticeId: n.id,
+          systemTitle: n.title,
+          systemSubLabel,
+          read: !!n.read,
+          createTime: formatDateTime(n.createTime),
+          createTimeRaw: n.createTime
+        };
+      });
     } catch (error) {
       console.error('加载系统通知失败:', error);
       return [];

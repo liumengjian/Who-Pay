@@ -22,6 +22,7 @@
             <view class="msg-system-title-wrap">
               <text class="msg-system-title">{{item.systemTitle}}</text>
             </view>
+            <text class="msg-system-sub">{{item.systemSubLabel}}</text>
             <text class="msg-system-time">{{item.createTime}}</text>
           </view>
           <view class="msg-system-go">
