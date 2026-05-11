@@ -110,6 +110,19 @@ page {
   font-weight: 600;
 }
 
+.menu-badge {
+  margin-left: 12rpx;
+  padding: 2rpx 14rpx;
+  border-radius: 20rpx;
+  background: #ef4444;
+  color: #fff;
+  font-size: 22rpx;
+  font-weight: 600;
+  line-height: 1.35;
+  min-width: 36rpx;
+  text-align: center;
+}
+
 .menu-arrow {
   display: flex;
   align-items: center;

@@ -1,11 +1,17 @@
-// pages/notification/index.js
-const { getApplicationList, handleApplication, getMyApplications, cancelApplication } = require('../../utils/cloud.js');
+// packageNotification/index/index.js
+const {
+  getApplicationList,
+  handleApplication,
+  getMyApplications,
+  cancelApplication,
+  getSystemNotices
+} = require('../../utils/cloud.js');
 const { showLoading, hideLoading, showSuccess, showError, formatDateTime } = require('../../utils/util.js');
 const { getNavTotalHeight } = require('../../utils/navHeight.js');
 
 Page({
   data: {
-    messages: [],   // 统一消息列表
+    messages: [],
     loading: true,
     navHeight: 0,
     triggered: false
@@ -29,12 +35,33 @@ Page({
 
   async loadAll() {
     this.setData({ loading: true });
-    const [received, sent] = await Promise.all([this.loadReceived(), this.loadSent()]);
-    // 合并结果，按时间倒序
-    const messages = [...received, ...sent].sort(
+    const [received, sent, system] = await Promise.all([
+      this.loadReceived(),
+      this.loadSent(),
+      this.loadSystem()
+    ]);
+    const messages = [...received, ...sent, ...system].sort(
       (a, b) => new Date(b.createTimeRaw) - new Date(a.createTimeRaw)
     );
     this.setData({ messages, loading: false });
+  },
+
+  async loadSystem() {
+    try {
+      const result = await getSystemNotices();
+      return (result.notices || []).map((n) => ({
+        msgType: '系统通知',
+        _id: `sys_${n.id}`,
+        sysNoticeId: n.id,
+        systemTitle: n.title,
+        read: !!n.read,
+        createTime: formatDateTime(n.createTime),
+        createTimeRaw: n.createTime
+      }));
+    } catch (error) {
+      console.error('加载系统通知失败:', error);
+      return [];
+    }
   },
 
   async loadReceived() {
@@ -51,7 +78,7 @@ Page({
         status: app.status || 'pending',
         createTime: formatDateTime(app.createTime),
         createTimeRaw: app.createTime,
-        actionLabel: (app.status === 'pending' || !app.status) ? '处理' : ''
+        actionLabel: app.status === 'pending' || !app.status ? '处理' : ''
       }));
     } catch (error) {
       console.error('加载审批消息失败:', error);
@@ -77,6 +104,14 @@ Page({
       console.error('加载申请消息失败:', error);
       return [];
     }
+  },
+
+  goSystemNoticeDetail(e) {
+    const id = e.currentTarget.dataset.id;
+    if (id == null) return;
+    wx.navigateTo({
+      url: `/packageNotification/detail/detail?id=${id}`
+    });
   },
 
   async handleApplication(e) {

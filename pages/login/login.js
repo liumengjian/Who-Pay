@@ -3,6 +3,10 @@ const { loginWithAccount, register } = require('../../utils/cloud.js');
 const cloudStorage = require('../../utils/cloudStorage.js');
 const { showLoading, hideLoading, showError, showSuccess, filePathToBase64Compressed } = require('../../utils/util.js');
 
+function hasChinese(str) {
+  return /[\u4e00-\u9fff]/.test(String(str || ''));
+}
+
 Page({
   data: {
     currentTab: 'login',
@@ -76,6 +80,10 @@ Page({
     const { account, password } = this.data.loginForm;
     if (!account || !password) {
       showError('请输入账号和密码');
+      return;
+    }
+    if (hasChinese(account) || hasChinese(password)) {
+      showError('账号和密码不能包含中文');
       return;
     }
 
@@ -165,6 +173,10 @@ Page({
     }
     if (password.length < 6) {
       showError('密码长度至少6位');
+      return;
+    }
+    if (hasChinese(account) || hasChinese(password)) {
+      showError('账号和密码不能包含中文');
       return;
     }
 

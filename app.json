@@ -31,7 +31,7 @@
     {
       "root": "packageNotification",
       "name": "notification",
-      "pages": ["index/index"]
+      "pages": ["index/index", "publish/publish", "detail/detail"]
     }
   ],
   "preloadRule": {

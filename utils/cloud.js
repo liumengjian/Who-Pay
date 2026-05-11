@@ -201,6 +201,26 @@ function settleEqualShare(activityId) {
   return callAPI(`/api/activity/${activityId}/settle-equal-share`, 'POST', {});
 }
 
+function getNotificationBadgeCount() {
+  return callAPI('/api/notifications/badge-count', 'GET');
+}
+
+function getSystemNotices() {
+  return callAPI('/api/notifications/system/list', 'GET');
+}
+
+function getSystemNotice(id) {
+  return callAPI(`/api/notifications/system/${id}`, 'GET');
+}
+
+function markSystemNoticeRead(id) {
+  return callAPI(`/api/notifications/system/${id}/read`, 'POST', {});
+}
+
+function publishSystemNotice(title, body) {
+  return callAPI('/api/admin/system-notice/publish', 'POST', { title, body });
+}
+
 module.exports = {
   callAPI,
   login,
@@ -236,5 +256,10 @@ module.exports = {
   handleApplication,
   getMyApplications,
   cancelApplication,
-  settleEqualShare
+  settleEqualShare,
+  getNotificationBadgeCount,
+  getSystemNotices,
+  getSystemNotice,
+  markSystemNoticeRead,
+  publishSystemNotice
 };

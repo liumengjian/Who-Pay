@@ -1,0 +1,11 @@
+<cu-custom bgColor="bg-gradual-blue" isBack="{{true}}">
+</cu-custom>
+<scroll-view scroll-y class="detail-scroll" style="height:calc(100vh - {{navHeight}}px);">
+  <view wx:if="{{loading}}" class="detail-loading">
+    <text class="text-muted">加载中...</text>
+  </view>
+  <view wx:else class="detail-body">
+    <text class="detail-title">{{title}}</text>
+    <text class="detail-content">{{body}}</text>
+  </view>
+</scroll-view>

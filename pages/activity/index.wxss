@@ -431,10 +431,9 @@
   right: 28rpx;
   bottom: calc(196rpx + env(safe-area-inset-bottom));
   z-index: 150;
-  width: 100rpx;
-  height: 100rpx;
+  width: 110rpx;
+  height: 110rpx;
   border-radius: 50%;
-  background: #fff;
   box-shadow:
     0 12rpx 36rpx rgba(102, 126, 234, 0.28),
     0 2rpx 8rpx rgba(15, 23, 42, 0.06);

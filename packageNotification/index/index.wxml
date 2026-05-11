@@ -1,82 +1,96 @@
-<!--pages/notification/index.wxml-->
+<!-- packageNotification/index/index.wxml -->
 <cu-custom bgColor="bg-gradual-blue" isBack="{{true}}">
 </cu-custom>
 <scroll-view scroll-y class="refresh-scroll notification-scroll" style="height:calc(100vh - {{navHeight}}px)" refresherEnabled refresherThreshold="80" refresherTriggered="{{triggered}}" bindrefresherrefresh="onRefresh">
 <view class="notification-page">
-  <!-- 加载中 -->
   <view wx:if="{{loading}}" class="loading-state">
     <text class="text-gray">加载中...</text>
   </view>
 
-  <!-- 消息列表 -->
   <view wx:elif="{{messages.length > 0}}">
     <view
-      class="msg-item {{item.msgType === '审批' ? 'msg-approve' : 'msg-apply'}} {{item.status !== 'pending' ? 'msg-item-done' : ''}}"
+      class="msg-item {{item.msgType === '审批' ? 'msg-approve' : ''}} {{item.msgType === '申请' ? 'msg-apply' : ''}} {{item.msgType === '系统通知' ? 'msg-system' : ''}} {{(item.msgType === '审批' && item.status !== 'pending') || (item.msgType === '申请' && item.status !== 'pending') || (item.msgType === '系统通知' && item.read) ? 'msg-item-done' : ''}} {{item.msgType === '系统通知' && !item.read ? 'msg-system-unread' : ''}}"
       wx:for="{{messages}}"
       wx:key="_id"
     >
-      <!-- 消息类型标签 -->
-      <view class="msg-type-tag {{item.msgType === '审批' ? 'tag-approve' : 'tag-apply'}}">
-        {{item.msgType}}
-      </view>
-
-      <!-- 审批类型：展示申请人头像和信息 -->
-      <view wx:if="{{item.msgType === '审批'}}" class="msg-body">
-        <view class="msg-left">
-          <image class="msg-avatar" src="{{item.applicantAvatar}}" mode="aspectFill"></image>
-          <view class="msg-info">
-            <text class="msg-name">{{item.applicantName}}</text>
-            <text class="msg-desc">申请加入：{{item.targetName}}</text>
-            <text class="msg-time">{{item.createTime}}</text>
+      <!-- 系统通知 -->
+      <block wx:if="{{item.msgType === '系统通知'}}">
+        <view class="msg-type-tag tag-system">系统通知</view>
+        <view class="msg-system-row" bindtap="goSystemNoticeDetail" data-id="{{item.sysNoticeId}}">
+          <image class="msg-system-icon" src="/images/system-notice.png" mode="aspectFit"></image>
+          <view class="msg-system-main">
+            <view class="msg-system-title-wrap">
+              <text class="msg-system-title">{{item.systemTitle}}</text>
+            </view>
+            <text class="msg-system-time">{{item.createTime}}</text>
+          </view>
+          <view class="msg-system-go">
+            <image class="msg-system-arrow" src="/images/pointer-right.png" mode="aspectFit"></image>
           </view>
         </view>
-        <view class="msg-actions">
-          <block wx:if="{{item.status === 'pending'}}">
-            <button
-              class="btn-approve"
-              bindtap="handleApplication"
-              data-id="{{item._id}}"
-              data-action="approve"
-            >同意</button>
-            <button
-              class="btn-reject"
-              bindtap="handleApplication"
-              data-id="{{item._id}}"
-              data-action="reject"
-            >拒绝</button>
-          </block>
-          <view wx:elif="{{item.status === 'approved'}}" class="status-tag tag-approved">已同意</view>
-          <view wx:elif="{{item.status === 'cancelled'}}" class="status-tag tag-rejected">已撤销</view>
-          <view wx:else class="status-tag tag-rejected">已拒绝</view>
-        </view>
-      </view>
+      </block>
 
-      <!-- 申请类型：展示申请目标和状态 -->
-      <view wx:else class="msg-body">
-        <view class="msg-left">
-          <view class="msg-info">
-            <text class="msg-name">{{item.targetName}}</text>
-            <text class="msg-desc">{{item.targetType === 'activity' ? '申请加入活动' : '申请加入团队'}}</text>
-            <text class="msg-time">{{item.createTime}}</text>
+      <!-- 审批 / 申请（原样） -->
+      <block wx:else>
+        <view class="msg-type-tag {{item.msgType === '审批' ? 'tag-approve' : 'tag-apply'}}">
+          {{item.msgType}}
+        </view>
+
+        <view wx:if="{{item.msgType === '审批'}}" class="msg-body">
+          <view class="msg-left">
+            <image class="msg-avatar" src="{{item.applicantAvatar}}" mode="aspectFill"></image>
+            <view class="msg-info">
+              <text class="msg-name">{{item.applicantName}}</text>
+              <text class="msg-desc">申请加入：{{item.targetName}}</text>
+              <text class="msg-time">{{item.createTime}}</text>
+            </view>
+          </view>
+          <view class="msg-actions">
+            <block wx:if="{{item.status === 'pending'}}">
+              <button
+                class="btn-approve"
+                bindtap="handleApplication"
+                data-id="{{item._id}}"
+                data-action="approve"
+              >同意</button>
+              <button
+                class="btn-reject"
+                bindtap="handleApplication"
+                data-id="{{item._id}}"
+                data-action="reject"
+              >拒绝</button>
+            </block>
+            <view wx:elif="{{item.status === 'approved'}}" class="status-tag tag-approved">已同意</view>
+            <view wx:elif="{{item.status === 'cancelled'}}" class="status-tag tag-rejected">已撤销</view>
+            <view wx:else class="status-tag tag-rejected">已拒绝</view>
           </view>
         </view>
-        <view class="msg-actions">
-          <view wx:if="{{item.status === 'pending'}}" class="status-tag tag-pending">待处理</view>
-          <view wx:elif="{{item.status === 'approved'}}" class="status-tag tag-approved">已同意</view>
-          <view wx:elif="{{item.status === 'cancelled'}}" class="status-tag tag-rejected">已撤销</view>
-          <view wx:else class="status-tag tag-rejected">已拒绝</view>
-          <button
-            wx:if="{{item.status === 'pending'}}"
-            class="btn-cancel"
-            bindtap="cancelApplication"
-            data-id="{{item._id}}"
-          >撤销</button>
+
+        <view wx:else class="msg-body">
+          <view class="msg-left">
+            <view class="msg-info">
+              <text class="msg-name">{{item.targetName}}</text>
+              <text class="msg-desc">{{item.targetType === 'activity' ? '申请加入活动' : '申请加入团队'}}</text>
+              <text class="msg-time">{{item.createTime}}</text>
+            </view>
+          </view>
+          <view class="msg-actions">
+            <view wx:if="{{item.status === 'pending'}}" class="status-tag tag-pending">待处理</view>
+            <view wx:elif="{{item.status === 'approved'}}" class="status-tag tag-approved">已同意</view>
+            <view wx:elif="{{item.status === 'cancelled'}}" class="status-tag tag-rejected">已撤销</view>
+            <view wx:else class="status-tag tag-rejected">已拒绝</view>
+            <button
+              wx:if="{{item.status === 'pending'}}"
+              class="btn-cancel"
+              bindtap="cancelApplication"
+              data-id="{{item._id}}"
+            >撤销</button>
+          </view>
         </view>
-      </view>
+      </block>
     </view>
   </view>
 
-  <!-- 无数据 -->
   <view wx:else class="empty-wrapper">
     <empty-state tip="暂无消息通知" />
   </view>

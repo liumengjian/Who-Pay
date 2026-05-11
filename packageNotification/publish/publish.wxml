@@ -1,0 +1,25 @@
+<cu-custom bgColor="bg-gradual-blue" isBack="{{true}}">
+</cu-custom>
+<view class="publish-page">
+  <view class="form-card">
+    <text class="field-label">通知标题</text>
+    <input
+      class="field-input"
+      placeholder="请输入标题"
+      value="{{title}}"
+      maxlength="500"
+      bindinput="onTitleInput"
+    />
+    <text class="field-label margin-top">通知正文</text>
+    <textarea
+      class="field-textarea"
+      placeholder="请输入正文内容"
+      value="{{body}}"
+      maxlength="8000"
+      auto-height
+      bindinput="onBodyInput"
+    />
+    <button class="publish-btn" bindtap="onPublish">发布</button>
+    <text class="publish-hint">将向所有注册用户推送一条「版本更新」类系统通知</text>
+  </view>
+</view>

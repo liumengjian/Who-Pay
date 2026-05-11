@@ -1,8 +1,9 @@
 // pages/user/profile.js
-const { updateUserInfo, getApplicationList } = require('../../utils/cloud.js');
+const { updateUserInfo, getNotificationBadgeCount } = require('../../utils/cloud.js');
 const cloudStorage = require('../../utils/cloudStorage.js');
 const { showLoading, hideLoading, showSuccess, showError, chooseImage, filePathToBase64Compressed } = require('../../utils/util.js');
 const { getNavTotalHeight } = require('../../utils/navHeight.js');
+const { ADMIN_USERNAME } = require('../../utils/constants.js');
 
 const DEFAULT_AVATARS = [
   '/images/default-user-photo/animal-_1.png',
@@ -29,7 +30,10 @@ Page({
     editNickname: '',
     defaultAvatars: DEFAULT_AVATARS,
     triggered: false,
-    navHeight: 0
+    navHeight: 0,
+    isAdminUser: false,
+    notificationBadgeCount: 0,
+    notificationBadgeText: ''
   },
 
   onLoad() {
@@ -51,11 +55,34 @@ Page({
   loadUserInfo() {
     const app = getApp();
     const userInfo = wx.getStorageSync('userInfo') || app.globalData.userInfo || {};
+    const uname = String((userInfo && userInfo.username) || '');
     this.setData({
       userInfo: userInfo,
-      editNickname: userInfo.nickName || ''
+      editNickname: userInfo.nickName || '',
+      isAdminUser: uname === ADMIN_USERNAME
     });
     this.migrateLegacyAvatarIfNeeded(userInfo);
+    this.refreshNotificationBadge();
+  },
+
+  async refreshNotificationBadge() {
+    const token = wx.getStorageSync('token');
+    const userId = wx.getStorageSync('userId') || getApp().globalData.userId;
+    if (!token || !userId || userId === 'admin') {
+      this.setData({ notificationBadgeCount: 0, notificationBadgeText: '' });
+      return;
+    }
+    try {
+      const r = await getNotificationBadgeCount();
+      const n = typeof r.count === 'number' ? r.count : parseInt(r.count, 10) || 0;
+      const capped = n > 99 ? 99 : n;
+      this.setData({
+        notificationBadgeCount: capped,
+        notificationBadgeText: n > 99 ? '99+' : String(n)
+      });
+    } catch (e) {
+      this.setData({ notificationBadgeCount: 0, notificationBadgeText: '' });
+    }
   },
 
   /**
@@ -272,6 +299,10 @@ Page({
 
   goToNotifications() {
     wx.navigateTo({ url: '/packageNotification/index/index' });
+  },
+
+  goToPublishNotice() {
+    wx.navigateTo({ url: '/packageNotification/publish/publish' });
   },
 
   handleLogout() {
