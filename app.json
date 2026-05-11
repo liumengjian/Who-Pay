@@ -4,17 +4,46 @@
     "cu-custom": "/colorui/components/cu-custom"
   },
   "pages": [
-    "pages/login/login",
     "pages/activity/index",
-    "pages/activity/detail",
-    "pages/activity/note",
-    "pages/payment/manage",
-    "pages/payment/history",
-    "pages/user/profile",
-    "pages/history/list",
-    "pages/history/detail",
-    "pages/notification/index"
+    "pages/user/profile"
   ],
+  "subPackages": [
+    {
+      "root": "pages/login",
+      "name": "login",
+      "pages": ["login"]
+    },
+    {
+      "root": "packageActivity",
+      "name": "activity-ext",
+      "pages": ["detail/detail", "note/note"]
+    },
+    {
+      "root": "packagePayment",
+      "name": "payment",
+      "pages": ["manage/manage", "history/history"]
+    },
+    {
+      "root": "packageHistory",
+      "name": "history",
+      "pages": ["list/list", "detail/detail"]
+    },
+    {
+      "root": "packageNotification",
+      "name": "notification",
+      "pages": ["index/index"]
+    }
+  ],
+  "preloadRule": {
+    "pages/activity/index": {
+      "network": "all",
+      "packages": ["login", "activity-ext"]
+    },
+    "pages/user/profile": {
+      "network": "all",
+      "packages": ["history", "payment", "notification"]
+    }
+  },
   "window": {
     "backgroundTextStyle": "dark",
     "navigationBarBackgroundColor": "#667eea",

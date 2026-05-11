@@ -53,7 +53,7 @@ Page({
   goToDetail(e) {
     const activityId = e.currentTarget.dataset.id;
     wx.navigateTo({
-      url: `/pages/history/detail?id=${activityId}`
+      url: `/packageHistory/detail/detail?id=${activityId}`
     });
   }
 });

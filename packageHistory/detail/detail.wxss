@@ -1,5 +1,5 @@
-/* pages/history/detail.wxss */
-@import '../activity/detail.wxss';
+/* pages/history/detail.wxss — 与活动详情共用主包样式文件（分包间不可互相 import） */
+@import '../../styles/activity-detail-shared.wxss';
 
 page {
   background: #f7f8fa;

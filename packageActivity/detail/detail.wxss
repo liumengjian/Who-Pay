@@ -1,0 +1,2 @@
+/* 样式在主包 styles/activity-detail-shared.wxss，供 history 等分包 @import */
+@import '../../styles/activity-detail-shared.wxss';

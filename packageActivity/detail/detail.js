@@ -1010,7 +1010,7 @@ Page({
     const id = this.data.activityId;
     if (!id) return;
     wx.navigateTo({
-      url: '/pages/activity/note?id=' + encodeURIComponent(id)
+      url: '/packageActivity/note/note?id=' + encodeURIComponent(id)
     });
   },
 

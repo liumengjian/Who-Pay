@@ -263,15 +263,15 @@ Page({
   },
 
   goToHistory() {
-    wx.navigateTo({ url: '/pages/history/list' });
+    wx.navigateTo({ url: '/packageHistory/list/list' });
   },
 
   goToPaymentManage() {
-    wx.navigateTo({ url: '/pages/payment/history' });
+    wx.navigateTo({ url: '/packagePayment/history/history' });
   },
 
   goToNotifications() {
-    wx.navigateTo({ url: '/pages/notification/index' });
+    wx.navigateTo({ url: '/packageNotification/index/index' });
   },
 
   handleLogout() {

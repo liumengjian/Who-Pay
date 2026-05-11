@@ -218,7 +218,7 @@ Page({
   goToDetail(e) {
     const activityId = e.currentTarget.dataset.id;
     wx.navigateTo({
-      url: `/pages/activity/detail?id=${activityId}`
+      url: `/packageActivity/detail/detail?id=${activityId}`
     });
   },
 
@@ -506,7 +506,7 @@ Page({
     const joined = this.isJoinedActivity(activityId);
     if (joined) {
       wx.navigateTo({
-        url: `/pages/activity/detail?id=${activityId}`
+        url: `/packageActivity/detail/detail?id=${activityId}`
       });
       return;
     }
@@ -538,7 +538,7 @@ Page({
     if (!id) return;
     this.hideHallDetailModal();
     wx.navigateTo({
-      url: `/pages/activity/detail?id=${id}`
+      url: `/packageActivity/detail/detail?id=${id}`
     });
   },
 
@@ -564,7 +564,7 @@ Page({
       this.hideHallDetailModal();
       if (result.activityId) {
         wx.navigateTo({
-          url: `/pages/activity/detail?id=${result.activityId}&needSelectTeam=true`
+          url: `/packageActivity/detail/detail?id=${result.activityId}&needSelectTeam=true`
         });
       } else {
         showSuccess('加入成功');
@@ -652,7 +652,7 @@ Page({
 
       if (result.activityId) {
         wx.navigateTo({
-          url: `/pages/activity/detail?id=${result.activityId}&needSelectTeam=true`
+          url: `/packageActivity/detail/detail?id=${result.activityId}&needSelectTeam=true`
         });
       } else {
         this.refreshAll();
