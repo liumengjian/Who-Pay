@@ -26,9 +26,9 @@
       <view class="menu-left">
         <image class="menu-icon" src="/images/tixing.png" mode="aspectFit" />
         <text class="menu-text">消息通知</text>
-        <text class="menu-badge" wx:if="{{notificationBadgeCount > 0}}">{{notificationBadgeText}}</text>
       </view>
       <view class="menu-arrow">
+        <text class="menu-badge" wx:if="{{notificationBadgeCount > 0}}">{{notificationBadgeText}}</text>
         <image src="/images/pointer-right.png" mode="aspectFit" />
       </view>
     </view>
