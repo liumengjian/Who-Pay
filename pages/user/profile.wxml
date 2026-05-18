@@ -1,37 +1,33 @@
 <!--pages/user/profile.wxml-->
 <view class="page-profile">
   <!-- 仅导航+头像区铺一条渐变，避免与下方区域叠两层紫色 -->
-  <view class="profile-hero">
+  <view class="profile-hero {{profileBgUrl ? 'profile-hero--custom' : ''}}">
+    <image wx:if="{{profileBgUrl}}" class="profile-hero__bg" src="{{profileBgUrl}}" mode="aspectFill" />
+    <!-- <view wx:if="{{profileBgUrl}}" class="profile-hero__shade"></view> -->
+    <view class="profile-hero__inner">
     <cu-custom bgColor="bg-hero-transparent">
     </cu-custom>
     <view class="user-card">
       <view class="user-header">
-        <image 
-          class="avatar" 
-          src="{{userInfo.avatarUrl || userInfo.avatar || '/images/default-avatar.png'}}" 
+        <image
+          class="avatar"
+          src="{{userInfo.avatarUrl || userInfo.avatar || '/images/default-avatar.png'}}"
           mode="aspectFill"
-          bindtap="editAvatar"
+          bindtap="goMyHome"
         ></image>
         <view class="user-info">
-          <text class="nickname" bindtap="editNickname">{{userInfo.nickName || '未设置'}}</text>
+          <text class="nickname" bindtap="goMyHome">{{userInfo.nickName || '未设置'}}</text>
+          <text wx:if="{{userInfo.bio}}" class="user-bio" bindtap="goMyHome">{{userInfo.bio}}</text>
+          <text wx:else class="user-bio user-bio-placeholder" bindtap="goMyHome">暂无签名，点此进入主页编辑</text>
         </view>
       </view>
+    </view>
     </view>
   </view>
 
   <view class="profile-body">
   <!-- 功能列表 -->
   <view class="menu-list">
-    <view class="menu-item" bindtap="goToNotifications">
-      <view class="menu-left">
-        <image class="menu-icon" src="/images/tixing.png" mode="aspectFit" />
-        <text class="menu-text">消息通知</text>
-      </view>
-      <view class="menu-arrow">
-        <text class="menu-badge" wx:if="{{notificationBadgeCount > 0}}">{{notificationBadgeText}}</text>
-        <image src="/images/pointer-right.png" mode="aspectFit" />
-      </view>
-    </view>
     <view class="menu-item" wx:if="{{isAdminUser}}" bindtap="goToPublishNotice">
       <view class="menu-left">
         <image class="menu-icon" src="/images/tixing.png" mode="aspectFit" />
@@ -41,6 +37,36 @@
         <image src="/images/pointer-right.png" mode="aspectFit" />
       </view>
     </view>
+    <view class="menu-item" bindtap="goToFriends">
+      <view class="menu-left">
+        <image class="menu-icon" src="/images/friend.png" mode="aspectFit" />
+        <text class="menu-text">好友</text>
+      </view>
+      <view class="menu-arrow">
+        <image src="/images/pointer-right.png" mode="aspectFit" />
+      </view>
+    </view>
+    <view class="menu-item" bindtap="goToChats">
+      <view class="menu-left">
+        <image class="menu-icon" src="/images/chat.png" mode="aspectFit" />
+        <text class="menu-text">聊天</text>
+      </view>
+      <view class="menu-arrow">
+        <text class="menu-badge" wx:if="{{unreadChatCount > 0}}">{{unreadChatCount}}</text>
+        <image src="/images/pointer-right.png" mode="aspectFit" />
+      </view>
+    </view>
+     <view class="menu-item" bindtap="goToNotifications">
+      <view class="menu-left">
+        <image class="menu-icon" src="/images/tixing.png" mode="aspectFit" />
+        <text class="menu-text">消息通知</text>
+      </view>
+      <view class="menu-arrow">
+        <text class="menu-badge" wx:if="{{notificationBadgeCount > 0}}">{{notificationBadgeText}}</text>
+        <image src="/images/pointer-right.png" mode="aspectFit" />
+      </view>
+    </view>
+    
     <view class="menu-item" bindtap="goToHistory">
       <view class="menu-left">
         <image class="menu-icon" src="/images/lishi.png" mode="aspectFit" />
@@ -74,58 +100,5 @@
   <view class="logout-section">
     <button class="logout-btn" bindtap="handleLogout">退出登录</button>
   </view>
-  </view>
-</view>
-
-<!-- 编辑昵称弹窗 -->
-<view wx:if="{{showEditNickname}}" class="modal show" catchtap="hideEditNickname">
-  <view class="modal-content" catchtap="stopPropagation">
-    <view class="modal-header">
-      <text class="modal-title">修改昵称</text>
-      <text class="modal-close" bindtap="hideEditNickname">×</text>
-    </view>
-    <view class="modal-body">
-      <input 
-        class="input" 
-        type="text" 
-        placeholder="请输入昵称"
-        value="{{editNickname}}"
-        bindinput="onNicknameInput"
-        maxlength="20"
-      />
-    </view>
-    <view class="modal-footer">
-      <button class="btn-secondary" bindtap="hideEditNickname">取消</button>
-      <button class="btn-primary" bindtap="handleUpdateNickname">确定</button>
-    </view>
-  </view>
-</view>
-
-<!-- 编辑头像弹窗 -->
-<view wx:if="{{showEditAvatar}}" class="modal show" catchtap="hideEditAvatar">
-  <view class="modal-content" catchtap="stopPropagation">
-    <view class="modal-header">
-      <text class="modal-title">修改头像</text>
-      <text class="modal-close" bindtap="hideEditAvatar">×</text>
-    </view>
-    <view class="modal-body">
-      <view class="avatar-options">
-        <button class="option-btn" bindtap="chooseFromAlbum">从相册选择</button>
-        <view class="default-avatars">
-          <text class="avatar-label">默认头像</text>
-          <view class="avatar-grid">
-            <image
-              wx:for="{{defaultAvatars}}"
-              wx:key="*this"
-              class="avatar-item"
-              src="{{item}}"
-              mode="aspectFill"
-              bindtap="selectDefaultAvatar"
-              data-url="{{item}}"
-            />
-          </view>
-        </view>
-      </view>
-    </view>
   </view>
 </view>

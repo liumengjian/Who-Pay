@@ -1,0 +1,287 @@
+.page-home {
+  min-height: 100vh;
+  background: #f7f8fa;
+  padding-bottom: calc(180rpx + env(safe-area-inset-bottom));
+}
+
+.hero {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 24rpx 0 56rpx;
+  color: #fff;
+}
+
+.hero--custom {
+  background: transparent;
+}
+
+.hero-bg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+.hero-shade {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 0.78) 0%,
+    rgba(118, 75, 162, 0.74) 100%
+  );
+}
+
+.hero-inner {
+  position: relative;
+  z-index: 2;
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: 64rpx;
+}
+
+.nav-dot {
+  font-size: 44rpx;
+  padding: 8rpx 16rpx;
+  opacity: 0.95;
+}
+
+.nav-edit {
+  font-size: 28rpx;
+  padding: 8rpx 16rpx;
+}
+
+.friend-menu-mask {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 998;
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.friend-menu {
+  position: fixed;
+  right: 24rpx;
+  top: 120rpx;
+  z-index: 999;
+  background: #fff;
+  border-radius: 12rpx;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.12);
+  min-width: 280rpx;
+  overflow: hidden;
+}
+
+.friend-menu-item {
+  padding: 28rpx 32rpx;
+  font-size: 28rpx;
+  color: #333;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.friend-menu-item:last-child {
+  border-bottom: none;
+}
+
+.card-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 8rpx;
+  position: relative;
+}
+.avatar {
+  position: relative;
+}
+
+.avatar-xl {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 50%;
+  border: 4rpx solid rgba(255, 255, 255, 0.35);
+}
+.avatar-ed {
+  width: 32rpx;
+  height: 32rpx;
+  position: absolute;
+  bottom: 14rpx;
+  right: -24rpx;
+}
+
+.avatar-edit-btn {
+  width: 36rpx;
+  height: 36rpx;
+  position: absolute;
+  bottom: 4rpx;
+  right: 4rpx;
+  opacity: 0.5;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 6rpx;
+  box-sizing: content-box;
+}
+
+.name-xl {
+  margin-top: 20rpx;
+  font-size: 40rpx;
+  font-weight: 600;
+}
+
+.remark-line {
+  margin-top: 12rpx;
+  font-size: 28rpx;
+  opacity: 0.9;
+}
+
+.body {
+  margin: -32rpx 24rpx 0;
+  position: relative;
+  z-index: 2;
+}
+
+.panel {
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 28rpx 32rpx;
+  margin-bottom: 24rpx;
+}
+
+.panel-title {
+  font-size: 26rpx;
+  color: #909399;
+  margin-bottom: 12rpx;
+}
+
+.panel-text {
+  font-size: 28rpx;
+  color: #333;
+  line-height: 1.6;
+}
+
+.album-scroll {
+  white-space: nowrap;
+  margin-top: 8rpx;
+}
+
+.album-img {
+  width: 200rpx;
+  height: 200rpx;
+  border-radius: 12rpx;
+  margin-right: 16rpx;
+  display: inline-block;
+  vertical-align: top;
+}
+
+.bottom-actions {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  display: flex;
+  gap: 20rpx;
+  padding: 20rpx 24rpx calc(20rpx + env(safe-area-inset-bottom));
+  background: #fff;
+  border-top: 1rpx solid #eee;
+  box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.04);
+}
+
+.btn-full {
+  flex: 1;
+  height: 80rpx;
+  line-height: 80rpx;
+  text-align: center;
+  border-radius: 44rpx;
+  font-size: 28rpx;
+  border: none;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.btn-primary {
+  background: #667eea;
+  color: #fff;
+}
+
+.btn-muted {
+  background: #e8eaf0;
+  color: #666;
+}
+
+.btn-half {
+  flex: 1;
+}
+
+.btn-danger {
+  background: #fff0f0;
+  color: #e54d42;
+  padding: 0 24rpx;
+}
+
+.modal-mask {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-box {
+  width: 86%;
+  max-width: 620rpx;
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 32rpx;
+}
+
+.modal-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  margin-bottom: 24rpx;
+}
+
+.modal-field {
+  margin-bottom: 20rpx;
+}
+
+.modal-label {
+  font-size: 24rpx;
+  color: #909399;
+  margin-bottom: 8rpx;
+}
+
+.modal-input {
+  border: 1rpx solid #e5e5e5;
+  border-radius: 8rpx;
+  padding: 16rpx;
+  font-size: 28rpx;
+  height: 88rpx;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 20rpx;
+  margin-top: 28rpx;
+}
+
+.modal-actions button {
+  flex: 1;
+}

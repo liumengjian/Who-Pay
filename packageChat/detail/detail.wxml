@@ -1,0 +1,83 @@
+<view class="chat-detail-page">
+  <cu-custom bgColor="bg-gradual-blue" isBack="{{true}}">
+    <view slot="content" class="nav-title-white nav-title-ellipsis">{{navTitle}}</view>
+  </cu-custom>
+  <view class="container" style="height: calc(100vh - {{navHeight}}px)">
+    <scroll-view
+      class="messages"
+      scroll-y
+      style="height: {{messagesHeight}}px;"
+      scroll-top="{{scrollTop}}"
+      scroll-into-view="{{scrollIntoView}}"
+      scroll-with-animation
+      upper-threshold="80"
+      bindscrolltoupper="onLoadMore"
+    >
+      <view class="msg-list">
+        <view wx:if="{{loadingMore}}" class="load-hint">加载中…</view>
+        <view
+          id="anchor-{{item.id}}"
+          class="msg-item {{item.senderId == myId ? 'sent' : 'received'}}"
+          wx:for="{{messages}}"
+          wx:key="id"
+        >
+          <image class="avatar" src="{{item.senderId == myId ? myAvatar : friendAvatar || '/images/default-avatar.png'}}" mode="aspectFill" bindtap="onAvatarTap" data-sender-id="{{item.senderId}}"></image>
+          <view class="bubble-wrap">
+            <view class="bubble" bindtap="onBubbleTap" data-msg="{{item}}">
+              <block wx:if="{{item.bubble.kind === 'text'}}">
+                <text class="bubble-text">{{item.bubble.text}}</text>
+              </block>
+              <image
+                wx:elif="{{item.bubble.kind === 'image'}}"
+                class="bubble-img"
+                src="{{item.bubble.url}}"
+                mode="widthFix"
+              />
+              <view wx:elif="{{item.bubble.kind === 'location'}}" class="bubble-card">
+                <view class="bubble-card-title">
+                  <image class="bubble-card-icon" src="/images/position.png" mode="aspectFill" />
+                  {{item.bubble.name || '位置'}}
+                </view>
+                <text class="bubble-card-sub">{{item.bubble.address}}</text>
+                <text class="bubble-card-tip">点击查看地图</text>
+              </view>
+              <view wx:elif="{{item.bubble.kind === 'attachment'}}" class="bubble-card">
+                <text class="bubble-card-title">📎 {{item.bubble.name}}</text>
+                <text class="bubble-card-tip">点击预览</text>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+    <view class="input-bar-container">
+      <view class="input-bar">
+        <view class="plus-btn" bindtap="toggleExtra">+</view>
+        <input
+          class="input"
+          placeholder="发送消息"
+          adjust-position="{{false}}"
+          cursor-spacing="8"
+          confirm-type="send"
+          bindinput="onInput"
+          bindconfirm="send"
+          value="{{inputText}}"
+        />
+        <view class="send-btn" bindtap="send">发送</view>
+      </view>
+      <view wx:if="{{showExtra}}" class="extra-bar">
+        <view class="extra-grid">
+          <view class="extra-cell" bindtap="pickExtraImage">
+            <image class="extra-icon" src="/images/bar-tupian.png" mode="aspectFit" />
+          </view>
+          <view class="extra-cell" bindtap="pickExtraAttach">
+            <image class="extra-icon" src="/images/bar-fujian.png" mode="aspectFit" />
+          </view>
+          <view class="extra-cell" bindtap="pickExtraLocation">
+            <image class="extra-icon" src="/images/bar-daohang.png" mode="aspectFit" />
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

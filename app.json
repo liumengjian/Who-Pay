@@ -32,6 +32,16 @@
       "root": "packageNotification",
       "name": "notification",
       "pages": ["index/index", "publish/publish", "detail/detail"]
+    },
+    {
+      "root": "packageFriend",
+      "name": "friend",
+      "pages": ["list/list", "add/add", "home/home", "edit/edit", "album/album"]
+    },
+    {
+      "root": "packageChat",
+      "name": "chat",
+      "pages": ["list/list", "detail/detail"]
     }
   ],
   "preloadRule": {
@@ -41,7 +51,7 @@
     },
     "pages/user/profile": {
       "network": "all",
-      "packages": ["history", "payment", "notification"]
+      "packages": ["history", "payment", "notification", "friend", "chat"]
     }
   },
   "window": {

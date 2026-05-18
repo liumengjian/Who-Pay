@@ -1,0 +1,107 @@
+.page {
+  min-height: 100vh;
+  background: #f7f8fa;
+  padding: 24rpx;
+  padding-bottom: calc(160rpx + env(safe-area-inset-bottom));
+}
+
+.tip {
+  font-size: 24rpx;
+  color: #909399;
+  margin-bottom: 20rpx;
+}
+
+.grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.cell {
+  width: 31%;
+  height: 220rpx;
+  position: relative;
+  border-radius: 12rpx;
+  overflow: hidden;
+  background: #eee;
+}
+
+.cell image {
+  width: 100%;
+  height: 100%;
+}
+
+.del {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 48rpx;
+  height: 48rpx;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  font-size: 36rpx;
+  line-height: 48rpx;
+  text-align: center;
+  z-index: 2;
+}
+
+.sort-hint {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  font-size: 20rpx;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.35);
+  text-align: center;
+  padding: 4rpx 0;
+}
+
+.add-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2rpx dashed #ccc;
+  color: #909399;
+  font-size: 64rpx;
+}
+
+.bottom {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 20rpx 32rpx calc(20rpx + env(safe-area-inset-bottom));
+  background: #fff;
+  border-top: 1rpx solid #eee;
+}
+
+.done {
+  width: 100%;
+  height: 72rpx;
+  line-height: 46rpx;
+  background: #667eea;
+  color: #fff;
+  border-radius: 44rpx;
+  border: none;
+  font-size: 28rpx;
+}
+
+.mode-bar {
+  margin-bottom: 16rpx;
+}
+
+.mode-btn {
+  display: inline-block;
+  padding: 12rpx 24rpx;
+  border-radius: 8rpx;
+  font-size: 24rpx;
+  margin-right: 16rpx;
+  background: #e8eaf0;
+  color: #606266;
+}
+
+.mode-btn.on {
+  background: #667eea;
+  color: #fff;
+}

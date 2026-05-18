@@ -9,7 +9,7 @@
 
   <view wx:elif="{{messages.length > 0}}">
     <view
-      class="msg-item {{item.msgType === '审批' ? 'msg-approve' : ''}} {{item.msgType === '申请' ? 'msg-apply' : ''}} {{item.msgType === '系统通知' ? 'msg-system' : ''}} {{(item.msgType === '审批' && item.status !== 'pending') || (item.msgType === '申请' && item.status !== 'pending') || (item.msgType === '系统通知' && item.read) ? 'msg-item-done' : ''}} {{item.msgType === '系统通知' && !item.read ? 'msg-system-unread' : ''}}"
+      class="msg-item {{item.msgType === '审批' ? 'msg-approve' : ''}} {{item.msgType === '申请' ? 'msg-apply' : ''}} {{item.msgType === '系统通知' ? 'msg-system' : ''}} {{item.msgType === '好友申请' ? 'msg-friend' : ''}} {{item.msgType === '发出好友申请' ? 'msg-friend-out' : ''}} {{(item.msgType === '审批' && item.status !== 'pending') || (item.msgType === '申请' && item.status !== 'pending') || (item.msgType === '好友申请' && item.status !== 'pending') || (item.msgType === '发出好友申请' && item.status !== 'pending') || (item.msgType === '系统通知' && item.read) ? 'msg-item-done' : ''}} {{item.msgType === '系统通知' && !item.read ? 'msg-system-unread' : ''}}"
       wx:for="{{messages}}"
       wx:key="_id"
     >
@@ -31,7 +31,62 @@
         </view>
       </block>
 
-      <!-- 审批 / 申请（原样） -->
+      <!-- 好友申请 -->
+      <block wx:elif="{{item.msgType === '好友申请'}}">
+        <view class="msg-type-tag tag-friend">好友申请</view>
+        <view class="msg-body">
+          <view class="msg-left">
+            <image class="msg-avatar" src="{{item.applicantAvatar}}" mode="aspectFill"></image>
+            <view class="msg-info">
+              <text class="msg-name">{{item.applicantName}}</text>
+              <text class="msg-desc">{{item.status === 'accepted' ? '你已同意，已互为好友' : '申请加你为好友'}}</text>
+              <text wx:if="{{item.verifyMessage}}" class="msg-verify">验证信息：{{item.verifyMessage}}</text>
+              <text class="msg-time">{{item.createTime}}</text>
+            </view>
+          </view>
+          <view class="msg-actions">
+            <block wx:if="{{item.status === 'pending'}}">
+              <button
+                class="btn-approve"
+                bindtap="handleApplication"
+                data-id="{{item.friendId}}"
+                data-action="approve"
+                data-type="friend"
+              >同意</button>
+              <button
+                class="btn-reject"
+                bindtap="handleApplication"
+                data-id="{{item.friendId}}"
+                data-action="reject"
+                data-type="friend"
+              >拒绝</button>
+            </block>
+            <view wx:else class="status-tag tag-approved">已同意</view>
+          </view>
+        </view>
+      </block>
+
+      <!-- 我发出的好友申请 -->
+      <block wx:elif="{{item.msgType === '发出好友申请'}}">
+        <view class="msg-type-tag tag-friend-out">发出好友申请</view>
+        <view class="msg-body">
+          <view class="msg-left">
+            <image class="msg-avatar" src="{{item.targetAvatar}}" mode="aspectFill"></image>
+            <view class="msg-info">
+              <text class="msg-name">{{item.targetName}}</text>
+              <text class="msg-desc">{{item.status === 'accepted' ? '对方已同意你的好友申请' : '已发送好友申请，等待对方通过'}}</text>
+              <text wx:if="{{item.verifyMessage}}" class="msg-verify">验证信息：{{item.verifyMessage}}</text>
+              <text class="msg-time">{{item.createTime}}</text>
+            </view>
+          </view>
+          <view class="msg-actions">
+            <view wx:if="{{item.status === 'pending'}}" class="status-tag tag-pending">待通过</view>
+            <view wx:else class="status-tag tag-approved">已通过</view>
+          </view>
+        </view>
+      </block>
+
+      <!-- 审批 / 申请 -->
       <block wx:else>
         <view class="msg-type-tag {{item.msgType === '审批' ? 'tag-approve' : 'tag-apply'}}">
           {{item.msgType}}

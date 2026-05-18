@@ -1,5 +1,5 @@
 {
-  "navigationBarTitleText": "历史活动详情",
+  "navigationBarTitleText": "",
   "navigationStyle": "custom",
   "enablePullDownRefresh": false,
   "usingComponents": {

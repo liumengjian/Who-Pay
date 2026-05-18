@@ -1,0 +1,28 @@
+<cu-custom bgColor="bg-gradual-blue" isBack="{{true}}">
+  <view slot="content" class="nav-title-white">消息</view>
+</cu-custom>
+<scroll-view
+  class="chat-list-scroll"
+  scroll-y
+  style="height: calc(100vh - {{navHeight}}px)"
+  refresher-enabled="{{true}}"
+  refresher-threshold="{{80}}"
+  refresher-triggered="{{triggered}}"
+  bindrefresherrefresh="onPullRefresh"
+>
+  <view class="container">
+    <view class="chat-list" wx:if="{{chats.length > 0}}">
+      <view class="chat-item" wx:for="{{chats}}" wx:key="_rowKey" bindtap="goToChat" data-user="{{item.user}}">
+        <image class="avatar" src="{{item.user.avatarUrl || '/images/default-avatar.png'}}" mode="aspectFill"></image>
+        <view class="info">
+          <text class="nickname">{{item.user.nickName || item.user.username}}</text>
+          <text class="last-msg">{{item.lastMessage.content}}</text>
+        </view>
+        <view class="time">{{item.lastTimeText}}</view>
+        <view class="badge" wx:if="{{item.unread > 0}}">{{item.unread}}</view>
+      </view>
+    </view>
+
+    <empty-state wx:elif="{{!loading}}" title="暂无消息" desc="和好友开始聊天吧"></empty-state>
+  </view>
+</scroll-view>

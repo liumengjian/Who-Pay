@@ -1,0 +1,106 @@
+.page-edit-body {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  background: #f7f8fa;
+}
+
+.page-edit-scroll {
+  flex: 1;
+  min-height: 0;
+}
+
+.nav-title-white {
+  color: #fff;
+  font-size: 32rpx;
+  font-weight: 500;
+}
+
+.list {
+  margin: 24rpx;
+  background: #fff;
+  border-radius: 16rpx;
+  overflow: hidden;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  padding: 28rpx 32rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.row-label {
+  width: 160rpx;
+  font-size: 28rpx;
+  color: #606266;
+  flex-shrink: 0;
+}
+
+.row-body {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: 72rpx;
+}
+
+.avatar-sm {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 50%;
+}
+
+.input-plain {
+  text-align: right;
+  font-size: 28rpx;
+  width: 100%;
+}
+
+.t-dark {
+  color: #333;
+}
+.t-ph {
+  color: #c0c4cc;
+}
+
+.row-body-bg {
+  justify-content: flex-end;
+  gap: 20rpx;
+}
+
+.bg-preview {
+  width: 140rpx;
+  height: 88rpx;
+  border-radius: 10rpx;
+  background: #eee;
+}
+
+.bg-clear {
+  font-size: 26rpx;
+  color: #909399;
+  padding: 8rpx 12rpx;
+  flex-shrink: 0;
+}
+
+.bottom-bar {
+  flex-shrink: 0;
+  padding: 20rpx 32rpx calc(20rpx + env(safe-area-inset-bottom));
+  background: #fff;
+  border-top: 1rpx solid #eee;
+}
+
+.save-btn {
+  width: 100%;
+  height: 76rpx;
+  line-height: 48rpx;
+  background: #667eea;
+  color: #fff;
+  border-radius: 44rpx;
+  font-size: 28rpx;
+  border: none;
+}

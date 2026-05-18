@@ -1,5 +1,5 @@
 {
-  "navigationBarTitleText": "支付流水",
+  "navigationBarTitleText": "",
   "navigationStyle": "custom",
   "enablePullDownRefresh": false,
   "usingComponents": {

@@ -4,7 +4,10 @@ const {
   handleApplication,
   getMyApplications,
   cancelApplication,
-  getSystemNotices
+  getSystemNotices,
+  getFriendRequests,
+  handleFriendRequest,
+  getNotificationBadgeCount
 } = require('../../utils/cloud.js');
 const { showLoading, hideLoading, showSuccess, showError, formatDateTime } = require('../../utils/util.js');
 const { getNavTotalHeight } = require('../../utils/navHeight.js');
@@ -35,12 +38,13 @@ Page({
 
   async loadAll() {
     this.setData({ loading: true });
-    const [received, sent, system] = await Promise.all([
+    const [received, sent, system, friendRequests] = await Promise.all([
       this.loadReceived(),
       this.loadSent(),
-      this.loadSystem()
+      this.loadSystem(),
+      this.loadFriendRequests()
     ]);
-    const messages = [...received, ...sent, ...system].sort(
+    const messages = [...friendRequests, ...received, ...sent, ...system].sort(
       (a, b) => new Date(b.createTimeRaw) - new Date(a.createTimeRaw)
     );
     this.setData({ messages, loading: false });
@@ -67,6 +71,38 @@ Page({
       });
     } catch (error) {
       console.error('加载系统通知失败:', error);
+      return [];
+    }
+  },
+
+  async loadFriendRequests() {
+    try {
+      const result = await getFriendRequests();
+      const incoming = (result.list || []).map((req) => ({
+        msgType: '好友申请',
+        _id: `friend_in_${req.id}`,
+        friendId: req.user.id,
+        applicantAvatar: req.user.avatarUrl || '/images/default-avatar.png',
+        applicantName: req.user.nickName || req.user.username,
+        verifyMessage: req.verifyMessage || '',
+        createTime: formatDateTime(req.createTime),
+        createTimeRaw: req.createTime,
+        status: req.status || 'pending',
+        actionLabel: req.status === 'pending' ? '处理' : ''
+      }));
+      const outgoing = (result.sent || []).map((req) => ({
+        msgType: '发出好友申请',
+        _id: `friend_out_${req.id}`,
+        targetAvatar: req.user.avatarUrl || '/images/default-avatar.png',
+        targetName: req.user.nickName || req.user.username,
+        verifyMessage: req.verifyMessage || '',
+        createTime: formatDateTime(req.createTime),
+        createTimeRaw: req.createTime,
+        status: req.status || 'pending'
+      }));
+      return [...incoming, ...outgoing];
+    } catch (error) {
+      console.error('加载好友请求失败:', error);
       return [];
     }
   },
@@ -122,8 +158,33 @@ Page({
   },
 
   async handleApplication(e) {
-    const { id, action } = e.currentTarget.dataset;
+    const { id, action, type } = e.currentTarget.dataset;
     const actionText = action === 'approve' ? '同意' : '拒绝';
+
+    // 好友申请
+    if (type === 'friend') {
+      const friendId = id;
+      wx.showModal({
+        title: `确认${actionText}`,
+        content: `确定要${actionText}该好友申请吗？`,
+        success: async (res) => {
+          if (!res.confirm) return;
+          showLoading('处理中...');
+          try {
+            await handleFriendRequest(friendId, action === 'approve' ? 'accept' : 'reject');
+            hideLoading();
+            showSuccess(`已${actionText}`);
+            await this.loadAll();
+          } catch (error) {
+            hideLoading();
+            showError(error.message || '处理失败');
+          }
+        }
+      });
+      return;
+    }
+
+    // 活动申请
     wx.showModal({
       title: `确认${actionText}`,
       content: `确定要${actionText}该申请吗？`,

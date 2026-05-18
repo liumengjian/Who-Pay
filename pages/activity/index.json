@@ -1,5 +1,5 @@
 {
-  "navigationBarTitleText": "活动",
+  "navigationBarTitleText": "",
   "navigationStyle": "custom",
   "enablePullDownRefresh": false,
   "usingComponents": {

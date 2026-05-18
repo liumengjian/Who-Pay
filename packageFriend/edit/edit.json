@@ -2,6 +2,6 @@
   "navigationStyle": "custom",
   "navigationBarTitleText": "",
   "usingComponents": {
-    "mp-html": "/components/mp-html/index"
+    "cu-custom": "/colorui/components/cu-custom"
   }
 }

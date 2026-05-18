@@ -1,0 +1,17 @@
+<view class="page">
+  <view class="tip">最多 9 张；排序模式下依次点两张图可交换位置。</view>
+  <view class="mode-bar">
+    <text class="mode-btn {{sortMode ? 'on' : ''}}" bindtap="toggleSort">排序模式</text>
+  </view>
+  <view class="grid">
+    <view class="cell" wx:for="{{urls}}" wx:key="*this" data-i="{{index}}" bindtap="onCellTap">
+      <image src="{{item}}" mode="aspectFill" />
+      <view class="del" catchtap="onRemove" data-i="{{index}}">×</view>
+      <view wx:if="{{sortMode}}" class="sort-hint">点选交换</view>
+    </view>
+    <view wx:if="{{urls.length < 9}}" class="cell add-cell" bindtap="onAdd">+</view>
+  </view>
+  <view class="bottom">
+    <button class="done" bindtap="done">完成</button>
+  </view>
+</view>

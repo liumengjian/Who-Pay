@@ -1,0 +1,123 @@
+<view class="page-home">
+  <view class="hero {{profileBgUrl ? 'hero--custom' : ''}}">
+    <image wx:if="{{profileBgUrl}}" class="hero-bg" src="{{profileBgUrl}}" mode="aspectFill" />
+    <!-- <view wx:if="{{profileBgUrl}}" class="hero-shade"></view> -->
+    <view class="hero-inner">
+      <cu-custom bgColor="bg-hero-transparent" isBack="{{true}}">
+      </cu-custom>
+      <view class="card-main">
+        <view class="avatar">
+          <image
+            class="avatar-xl"
+            src="{{user.avatarUrl || '/images/default-avatar.png'}}"
+            mode="aspectFill"
+            bindtap="onAvatarTap"
+          />
+          <image 
+            class="avatar-edit-btn"
+            src='/images/edit.png'
+            wx:if="{{isSelf}}"
+            bindtap="goEdit"
+          />
+          <image 
+            class="avatar-ed"
+            src='/images/edit.png'
+            wx:elif="{{relation === 'friend'}}"
+            bindtap="toggleFriendMenu"
+          />
+        </view>
+        <text wx:if="{{myRemarkDisplay}}" class="remark-line">{{myRemarkDisplay}}（{{user.nickName || user.username}}）</text>
+        <text wx:else class="name-xl">{{user.nickName || user.username}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="body">
+    <view class="panel" wx:if="{{user.bio}}">
+      <view class="panel-title">签名</view>
+      <text class="panel-text">{{user.bio}}</text>
+    </view>
+    <view class="panel" wx:if="{{user.region}}">
+      <view class="panel-title">地区</view>
+      <text class="panel-text">{{user.region}}</text>
+    </view>
+    <view class="panel" wx:if="{{albumList.length}}">
+      <view class="panel-title">相册</view>
+      <scroll-view class="album-scroll" scroll-x enable-flex>
+        <image
+          wx:for="{{albumList}}"
+          wx:key="*this"
+          class="album-img"
+          src="{{item}}"
+          mode="aspectFill"
+          data-url="{{item}}"
+          bindtap="previewAlbum"
+        />
+      </scroll-view>
+    </view>
+  </view>
+
+  <view wx:if="{{showFriendMenu}}" class="friend-menu-mask" catchtap="closeFriendMenu"></view>
+  <view wx:if="{{showFriendMenu}}" class="friend-menu" catchtap="noop" style="top: {{navHeight * 2 + 172 }}rpx;">
+    <view class="friend-menu-item" bindtap="onClearChat">删除聊天记录</view>
+    <view class="friend-menu-item" bindtap="onOpenRemarkEdit">修改备注</view>
+  </view>
+
+  <view class="bottom-actions" wx:if="{{!isSelf}}">
+    <button
+      wx:if="{{relation === 'none'}}"
+      class="btn-full btn-primary"
+      bindtap="openApplyModal"
+    >添加好友</button>
+    <button
+      wx:elif="{{relation === 'pending_out'}}"
+      class="btn-full btn-muted"
+      disabled
+    >等待验证</button>
+    <button
+      wx:elif="{{relation === 'pending_in'}}"
+      class="btn-full btn-primary"
+      bindtap="goNotifications"
+    >处理好友申请</button>
+    <block wx:elif="{{relation === 'friend'}}">
+      <button class="btn-full btn-primary btn-half" bindtap="goChat">聊天</button>
+      <button class="btn-full btn-danger btn-half" bindtap="onRemoveFriend">删除</button>
+    </block>
+  </view>
+</view>
+
+<view wx:if="{{showApplyModal}}" class="modal-mask" catchtap="closeApplyModal">
+  <view class="modal-box" catchtap="noop">
+    <view class="modal-title">添加好友</view>
+    <view class="modal-field">
+      <view class="modal-label">备注（通过后成为好友备注）</view>
+      <input class="modal-input" placeholder="选填" maxlength="32" value="{{applyRemark}}" bindinput="onApplyRemark" />
+    </view>
+    <view class="modal-field">
+      <view class="modal-label">验证信息</view>
+      <textarea
+        class="modal-input"
+        style="height: 140rpx;"
+        placeholder="让对方知道你是谁"
+        maxlength="200"
+        value="{{applyVerify}}"
+        bindinput="onApplyVerify"
+      />
+    </view>
+    <view class="modal-actions">
+      <button class="btn-muted btn-full" bindtap="closeApplyModal">取消</button>
+      <button class="btn-primary btn-full" bindtap="submitApply">发送</button>
+    </view>
+  </view>
+</view>
+
+<view wx:if="{{showRemarkModal}}" class="modal-mask" catchtap="closeRemarkModal">
+  <view class="modal-box" catchtap="noop">
+    <view class="modal-title">修改备注</view>
+    <input class="modal-input" placeholder="备注名" maxlength="32" value="{{remarkDraft}}" bindinput="onRemarkDraft" />
+    <view class="modal-actions">
+      <button class="btn-muted btn-full" bindtap="closeRemarkModal">取消</button>
+      <button class="btn-primary btn-full" bindtap="saveRemark">保存</button>
+    </view>
+  </view>
+</view>

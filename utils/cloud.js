@@ -221,6 +221,70 @@ function publishSystemNotice(title, body) {
   return callAPI('/api/admin/system-notice/publish', 'POST', { title, body });
 }
 
+// 好友相关
+function getFriendList() {
+  return callAPI('/api/friend/list', 'GET');
+}
+
+function getFriendRequests() {
+  return callAPI('/api/friend/requests', 'GET');
+}
+
+function searchUsers(keyword) {
+  return callAPI('/api/user/search', 'GET', { keyword });
+}
+
+function addFriend(friendId, extra = {}) {
+  return callAPI('/api/friend/add', 'POST', {
+    friendId,
+    verifyMessage: extra.verifyMessage,
+    remark: extra.remark
+  });
+}
+
+function handleFriendRequest(friendId, action) {
+  return callAPI('/api/friend/handle', 'POST', { friendId, action });
+}
+
+function removeFriend(friendId) {
+  return callAPI(`/api/friend/${friendId}`, 'DELETE');
+}
+
+// 聊天相关
+function sendMessage(receiverId, content, type = 'text') {
+  return callAPI('/api/message/send', 'POST', { receiverId, content, type });
+}
+
+function getChatList() {
+  return callAPI('/api/chat/list', 'GET');
+}
+
+function getChatHistory(friendId, opts = {}) {
+  const lim = opts.limit != null ? opts.limit : 30;
+  const q = { friendId, limit: lim };
+  if (opts.beforeId != null && opts.beforeId !== '') {
+    q.beforeId = opts.beforeId;
+  }
+  return callAPI('/api/chat/history', 'GET', q);
+}
+
+function getUnreadCount() {
+  return callAPI('/api/chat/unread', 'GET');
+}
+
+function getUserProfile(targetId) {
+  const id = encodeURIComponent(String(targetId));
+  return callAPI(`/api/user/profile/${id}`, 'GET');
+}
+
+function updateFriendRemark(friendId, remark) {
+  return callAPI('/api/friend/remark', 'PUT', { friendId, remark });
+}
+
+function clearChatWithFriend(friendId) {
+  return callAPI('/api/chat/clear', 'POST', { friendId });
+}
+
 module.exports = {
   callAPI,
   login,
@@ -261,5 +325,18 @@ module.exports = {
   getSystemNotices,
   getSystemNotice,
   markSystemNoticeRead,
-  publishSystemNotice
+  publishSystemNotice,
+  getFriendList,
+  getFriendRequests,
+  searchUsers,
+  addFriend,
+  handleFriendRequest,
+  removeFriend,
+  sendMessage,
+  getChatList,
+  getChatHistory,
+  getUnreadCount,
+  getUserProfile,
+  updateFriendRemark,
+  clearChatWithFriend
 };

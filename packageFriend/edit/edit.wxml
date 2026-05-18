@@ -1,0 +1,53 @@
+<cu-custom bgColor="bg-gradual-blue" isBack="{{true}}">
+  <view slot="content" class="nav-title-white">编辑主页</view>
+</cu-custom>
+<view class="page-edit-body" style="height: calc(100vh - {{navHeight}}px)">
+  <scroll-view class="page-edit-scroll" scroll-y>
+    <view class="list">
+      <view class="row" bindtap="pickAvatar">
+        <text class="row-label">头像</text>
+        <view class="row-body">
+          <image class="avatar-sm" src="{{avatarUrl || '/images/default-avatar.png'}}" mode="aspectFill"></image>
+        </view>
+      </view>
+      <view class="row" bindtap="pickBackground">
+        <text class="row-label">背景</text>
+        <view class="row-body row-body-bg">
+          <image wx:if="{{profileBackground}}" class="bg-preview" src="{{profileBackground}}" mode="aspectFill" />
+          <text wx:else class="input-plain t-ph">点击上传</text>
+          <text wx:if="{{profileBackground}}" class="bg-clear" catchtap="clearBackground">清除</text>
+        </view>
+      </view>
+      <view class="row">
+        <text class="row-label">昵称</text>
+        <view class="row-body">
+          <input class="input-plain" maxlength="20" placeholder="昵称" value="{{nickName}}" bindinput="onNick" />
+        </view>
+      </view>
+      <view class="row">
+        <text class="row-label">签名</text>
+        <view class="row-body">
+          <input class="input-plain" maxlength="120" placeholder="个性签名" value="{{bio}}" bindinput="onBio" />
+        </view>
+      </view>
+      <picker mode="region" value="{{regionPickerValue}}" bindchange="onRegion">
+        <view class="row">
+          <text class="row-label">地区</text>
+          <view class="row-body">
+            <text class="input-plain {{region ? 't-dark' : 't-ph'}}">{{region || '点击选择'}}</text>
+          </view>
+        </view>
+      </picker>
+      <view class="row" bindtap="goAlbum">
+        <text class="row-label">相册</text>
+        <view class="row-body">
+          <text class="input-plain" style="color: #909399;">{{albumUrls.length}} 张</text>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+
+  <view class="bottom-bar">
+    <button class="save-btn" bindtap="saveAll">保存</button>
+  </view>
+</view>

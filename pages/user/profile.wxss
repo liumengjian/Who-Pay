@@ -12,8 +12,43 @@ page {
 }
 
 .profile-hero {
+  position: relative;
+  overflow: hidden;
   background: var(--gradualBlue);
   box-sizing: border-box;
+}
+
+.profile-hero--custom {
+  background: transparent;
+}
+
+.profile-hero__bg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+.profile-hero__shade {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 0.78) 0%,
+    rgba(118, 75, 162, 0.74) 100%
+  );
+}
+
+.profile-hero__inner {
+  position: relative;
+  z-index: 2;
 }
 
 .profile-body {
@@ -35,7 +70,7 @@ page {
 
 .user-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
 }
 
 .user-header:active {
@@ -47,6 +82,7 @@ page {
   height: 120rpx;
   border-radius: 50%;
   margin-right: 30rpx;
+  margin-top: 4rpx;
   border: 4rpx solid rgba(255, 255, 255, 0.5);
   transition: transform 0.2s ease;
 }
@@ -61,7 +97,24 @@ page {
   font-size: 36rpx;
   font-weight: bold;
   color: #fff;
-  margin-bottom: 12rpx;
+  margin-bottom: 8rpx;
+}
+
+.user-bio {
+  font-size: 26rpx;
+  color: rgba(255, 255, 255, 0.92);
+  line-height: 1.45;
+  max-height: 76rpx;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  word-break: break-all;
+}
+
+.user-bio-placeholder {
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.55);
 }
 
 .edit-icon {

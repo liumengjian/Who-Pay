@@ -69,6 +69,24 @@
   color: #ea580c;
 }
 
+.tag-friend {
+  background: #eefeff;
+  color: #00a0e9;
+}
+
+.tag-friend-out {
+  background: #f0fdf4;
+  color: #059669;
+}
+
+.msg-friend {
+  border-left: 6rpx solid #00a0e9;
+}
+
+.msg-friend-out {
+  border-left: 6rpx solid #10b981;
+}
+
 .msg-system {
   border-left: 6rpx solid #ea580c;
 }
@@ -197,6 +215,15 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.msg-verify {
+  font-size: 24rpx;
+  color: #909399;
+  margin-bottom: 6rpx;
+  line-height: 1.4;
+  white-space: normal;
+  word-break: break-all;
 }
 
 .msg-time {

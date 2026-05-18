@@ -1,0 +1,172 @@
+.friend-scroll {
+  box-sizing: border-box;
+}
+
+.container {
+  min-height: 100%;
+  background-color: #f7f8fa;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0rpx 8rpx 16rpx;
+  position: relative;
+
+}
+
+.toolbar-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.toolbar-add {
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40rpx;
+  color: #667eea;
+}
+
+.content {
+  padding: 6rpx;
+}
+
+.search-wrap {
+  flex: 1;
+}
+
+.friend-search {
+  height: 72rpx;
+  padding: 0 24rpx;
+  background: #fff;
+  border-radius: 36rpx;
+  font-size: 28rpx;
+  border: 1rpx solid #eee;
+}
+
+.sub-name {
+  font-size: 24rpx;
+  color: #909399;
+  margin-top: 6rpx;
+  display: block;
+}
+
+.request-section {
+  margin-bottom: 30rpx;
+}
+
+.section-title {
+  font-size: 28rpx;
+  color: #909399;
+  padding: 20rpx 0;
+}
+
+.request-list {
+  background: #fff;
+  border-radius: 16rpx;
+  overflow: hidden;
+}
+
+.request-item {
+  display: flex;
+  align-items: center;
+  padding: 24rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.request-item:last-child {
+  border-bottom: none;
+}
+
+.avatar {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  margin-right: 20rpx;
+}
+
+.info {
+  flex: 1;
+}
+
+.nickname {
+  font-size: 30rpx;
+  color: #333;
+  display: block;
+}
+
+.time {
+  font-size: 24rpx;
+  color: #909399;
+  margin-top: 8rpx;
+  display: block;
+}
+
+.actions {
+  display: flex;
+  gap: 16rpx;
+}
+
+.cu-btn {
+  padding: 12rpx 24rpx;
+  font-size: 26rpx;
+  border-radius: 30rpx;
+  border: none;
+}
+
+.accept {
+  background: #667eea;
+  color: #fff;
+}
+
+.reject {
+  background: #f0f0f0;
+  color: #666;
+}
+
+.friend-list {
+  background: #fff;
+  border-radius: 16rpx;
+  overflow: hidden;
+}
+
+.friend-item {
+  display: flex;
+  align-items: center;
+  padding: 24rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.friend-item:last-child {
+  border-bottom: none;
+}
+
+.arrow {
+  color: #ccc;
+  font-size: 32rpx;
+}
+
+.bottom-bar {
+  padding: 30rpx;
+  padding-bottom: calc(30rpx + env(safe-area-inset-bottom));
+  background: #f7f8fa;
+}
+
+.add-friend-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16rpx;
+  width: 100%;
+  height: 74rpx;
+  background: #667eea;
+  color: #fff;
+  font-size: 28rpx;
+  border-radius: 48rpx;
+  border: none;
+}

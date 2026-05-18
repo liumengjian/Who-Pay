@@ -1,0 +1,50 @@
+<cu-custom bgColor="bg-gradual-blue" isBack="{{true}}">
+</cu-custom>
+<scroll-view
+  class="friend-scroll"
+  scroll-y
+  style="height: calc(100vh - {{navHeight}}px)"
+  refresher-enabled="{{true}}"
+  refresher-threshold="{{80}}"
+  refresher-triggered="{{triggered}}"
+  bindrefresherrefresh="onPullRefresh"
+>
+  <view class="container">
+    <view class="toolbar">
+      <view class="search-wrap">
+        <input
+          class="friend-search"
+          placeholder="搜索账号、昵称、备注"
+          value="{{friendSearch}}"
+          bindinput="onFriendSearch"
+        />
+      </view>
+      <view class="toolbar-add" bindtap="goToAdd">
+        <text class="cuIcon-add"></text>
+      </view>
+    </view>
+
+    <view class="content">
+      
+      <view class="friend-list" wx:if="{{friends.length > 0}}">
+        <view
+          class="friend-item"
+          wx:for="{{friends}}"
+          wx:key="id"
+          bindtap="goToUserHome"
+          data-user="{{item}}"
+        >
+          <image class="avatar" src="{{item.avatarUrl || '/images/default-avatar.png'}}" mode="aspectFill"></image>
+          <view class="info">
+            <text class="nickname">{{item.displayName || item.nickName || item.username}}</text>
+            <text wx:if="{{item.remark}}" class="sub-name">昵称：{{item.nickName || item.username}}</text>
+          </view>
+          <text class="cuIcon-right arrow"></text>
+        </view>
+      </view>
+
+      <empty-state wx:elif="{{friendsAll.length > 0}}" title="无匹配好友" desc="换个关键词试试"></empty-state>
+      <empty-state wx:else title="暂无好友" desc="点击下方按钮添加好友"></empty-state>
+    </view>
+  </view>
+</scroll-view>
