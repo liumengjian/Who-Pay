@@ -212,7 +212,7 @@
           <view wx:for="{{hallPreview.teams}}" wx:key="id" wx:for-item="team" class="margin-bottom">
             <text class="text-bold">{{team.name}}</text>
             <view class="flex flex-wrap margin-top-xs">
-              <view wx:for="{{team.members}}" wx:key="userId" wx:for-item="mem" class="hall-member padding-xs">
+              <view wx:for="{{team.members}}" wx:key="userId" wx:for-item="mem" class="hall-member padding-xs" catchtap="goHallMemberProfile" data-uid="{{mem.userId}}">
                 <image class="cu-avatar sm round" src="{{mem.avatarUrl || '/images/default-avatar.png'}}" mode="aspectFill"></image>
                 <text class="text-xs block text-center margin-top-xs">{{mem.nickName}}</text>
               </view>
@@ -255,10 +255,49 @@
             <view class="title">活动宣言</view>
             <textarea placeholder="选填，一句话介绍活动" value="{{activitySlogan}}" bindinput="onActivitySloganInput" maxlength="512" auto-height placeholder-class="text-gray"></textarea>
           </view>
+          <view class="invite-friends-row" catchtap="openInviteFriendsModal">
+            <text class="invite-friends-label">一键邀请</text>
+            <view class="invite-friends-right">
+              <text wx:if="{{invitedCount > 0}}" class="invite-friends-count">已选 {{invitedCount}} 位好友</text>
+              <text wx:else class="invite-friends-hint">选择好友加入活动</text>
+              <text class="cuIcon-right text-gray"></text>
+            </view>
+          </view>
         </view>
         <view class="cu-bar padding justify-end bg-grey light">
           <button class="cu-btn margin-right-sm" bindtap="hideCreateModal">取消</button>
           <button class="cu-btn bg-blue" bindtap="handleCreate">创建</button>
+        </view>
+      </view>
+    </view>
+
+    <!-- 邀请好友选择弹窗 -->
+    <view wx:if="{{showInviteFriends}}" class="cu-modal show" catchtap="hideInviteFriendsModal">
+      <view class="cu-dialog invite-dialog" catchtap="stopPropagation">
+        <view class="cu-bar bg-white justify-end">
+          <view class="content text-black text-bold">邀请好友</view>
+          <view class="action" bindtap="hideInviteFriendsModal"><text class="cuIcon-close text-gray"></text></view>
+        </view>
+        <scroll-view scroll-y class="invite-scroll">
+          <view wx:if="{{inviteFriendLoading}}" class="padding text-center text-gray text-sm">加载中...</view>
+          <view wx:elif="{{inviteFriendList.length === 0}}" class="padding text-center text-gray text-sm">暂无好友</view>
+          <view wx:else>
+            <view class="invite-friend-item {{item._selected ? 'invite-friend-selected' : ''}}"
+                  wx:for="{{inviteFriendList}}" wx:key="id"
+                  catchtap="toggleInviteFriend" data-uid="{{item.id}}">
+              <image class="invite-friend-avatar" src="{{item.avatarUrl || '/images/default-avatar.png'}}" mode="aspectFill"></image>
+              <view class="invite-friend-info">
+                <text class="invite-friend-name">{{item.nickName || item.username}}</text>
+              </view>
+              <view class="invite-friend-check {{item._selected ? 'invite-friend-check-on' : ''}}">
+                <text wx:if="{{item._selected}}" class="cuIcon-check"></text>
+              </view>
+            </view>
+          </view>
+        </scroll-view>
+        <view class="cu-bar padding justify-end bg-grey light">
+          <button class="cu-btn margin-right-sm" bindtap="hideInviteFriendsModal">取消</button>
+          <button class="cu-btn bg-blue" bindtap="confirmInviteFriends">确认（{{invitedCount}}）</button>
         </view>
       </view>
     </view>

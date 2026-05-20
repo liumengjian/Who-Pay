@@ -116,7 +116,7 @@
           catchtap="viewMemberPayments"
           data-userid="{{member.userId}}"
         >
-          <image class="member-avatar" src="{{member.avatarUrl || '/images/default-avatar.png'}}" mode="aspectFill"></image>
+          <image class="member-avatar" src="{{member.avatarUrl || '/images/default-avatar.png'}}" mode="aspectFill" catchtap="goMemberProfile" data-uid="{{member.userId}}"></image>
           <view class="member-info">
             <text class="member-name">{{member.nickName}}</text>
             <text class="member-amount">¥{{member.totalAmount}}</text>
@@ -448,7 +448,7 @@
             data-item="{{item}}"
           >
             <view class="expense-left">
-              <image class="expense-avatar" src="{{item.avatarUrl || '/images/default-avatar.png'}}" mode="aspectFill"></image>
+              <image class="expense-avatar" src="{{item.avatarUrl || '/images/default-avatar.png'}}" mode="aspectFill" catchtap="goMemberProfile" data-uid="{{item.userId}}"></image>
               <view class="expense-info">
                 <text class="expense-name">{{item.payerName}}</text>
                 <text class="expense-remark" wx:if="{{item.remark}}">{{item.remark}}</text>

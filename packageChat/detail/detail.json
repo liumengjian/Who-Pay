@@ -1,6 +1,7 @@
 {
   "navigationStyle": "custom",
   "navigationBarTitleText": "",
+  "disableScroll": true,
   "enablePullDownRefresh": false,
   "usingComponents": {
     "cu-custom": "/colorui/components/cu-custom"

@@ -6,7 +6,9 @@ const {
   getActivityHall,
   getActivityPreview,
   getActivityDetail,
-  applyForJoin
+  applyForJoin,
+  getFriendList,
+  inviteFriendsToActivity
 } = require('../../utils/cloud.js');
 const cloudStorage = require('../../utils/cloudStorage.js');
 const {
@@ -55,6 +57,10 @@ Page({
     activityAvatarTempPath: '',
     hallInviteInput: '',
     loadingHallPreview: false,
+    showInviteFriends: false,
+    inviteFriendList: [],
+    inviteFriendLoading: false,
+    invitedCount: 0,
     triggered: false,
     navHeight: 0,
     showFloatNotesPanel: false,
@@ -225,18 +231,24 @@ Page({
   showCreateModal() {
     const ui = this.data.userInfo || {};
     const defAvatar = ui.avatarUrl || '/images/default-avatar.png';
+    this._pendingInviteFriends = null;
     this.setData({
       showCreate: true,
       activityName: '',
       activitySlogan: '',
       activityAvatarUrl: defAvatar,
-      activityAvatarTempPath: ''
+      activityAvatarTempPath: '',
+      inviteFriendList: [],
+      invitedCount: 0
     });
   },
 
   hideCreateModal() {
+    this._pendingInviteFriends = null;
     this.setData({
-      showCreate: false
+      showCreate: false,
+      inviteFriendList: [],
+      invitedCount: 0
     });
   },
 
@@ -252,6 +264,12 @@ Page({
 
   stopPropagation() {},
   preventTouchMove() {},
+
+  goHallMemberProfile(e) {
+    const uid = e.currentTarget.dataset.uid;
+    if (!uid) return;
+    wx.navigateTo({ url: `/packageFriend/home/home?id=${uid}` });
+  },
 
   _applyFloatNoteFromDetail(an) {
     const raw = an || {};
@@ -647,7 +665,25 @@ Page({
       const result = await createActivity(payload);
       hideLoading();
       const invite = result.inviteCode ? `，邀请码 ${result.inviteCode}` : '';
-      showSuccess(`创建成功${invite}`);
+
+      // 邀请已选好友
+      const selectedFriends = this._pendingInviteFriends || [];
+      if (selectedFriends.length > 0 && result.activityId) {
+        const friendIds = selectedFriends.map((f) => String(f.id));
+        this._pendingInviteFriends = null;
+        try {
+          const invRes = await inviteFriendsToActivity(result.activityId, friendIds);
+          const added = invRes.added || 0;
+          const friendMsg = added > 0 ? `，已邀请 ${added} 位好友` : '';
+          showSuccess(`创建成功${invite}${friendMsg}`);
+        } catch (invErr) {
+          console.warn('邀请好友失败:', invErr);
+          showSuccess(`创建成功${invite}，好友邀请失败`);
+        }
+      } else {
+        showSuccess(`创建成功${invite}`);
+      }
+
       this.hideCreateModal();
 
       if (result.activityId) {
@@ -664,4 +700,49 @@ Page({
     }
   },
 
+  async openInviteFriendsModal() {
+    const previous = this._pendingInviteFriends || [];
+    const prevIds = new Set(previous.map((f) => String(f.id)));
+    this.setData({ showInviteFriends: true, inviteFriendLoading: true });
+    try {
+      const res = await getFriendList();
+      const list = (res.list || []).map((f) => ({
+        ...f,
+        _selected: prevIds.has(String(f.id))
+      }));
+      const count = list.filter((f) => f._selected).length;
+      this.setData({ inviteFriendList: list, inviteFriendLoading: false, invitedCount: count });
+    } catch (e) {
+      console.error('加载好友列表失败:', e);
+      this.setData({ inviteFriendLoading: false });
+      showError('加载好友列表失败');
+    }
+  },
+
+  toggleInviteFriend(e) {
+    const uid = e.currentTarget.dataset.uid;
+    const list = this.data.inviteFriendList.map((f) =>
+      String(f.id) === String(uid) ? { ...f, _selected: !f._selected } : f
+    );
+    const count = list.filter((f) => f._selected).length;
+    this.setData({ inviteFriendList: list, invitedCount: count });
+  },
+
+  hideInviteFriendsModal() {
+    this.setData({ showInviteFriends: false });
+  },
+
+  confirmInviteFriends() {
+    const selected = this.data.inviteFriendList.filter((f) => f._selected);
+    if (selected.length === 0) {
+      showError('请选择至少一位好友');
+      return;
+    }
+    // 保存已选好友，关闭弹窗，保留计数
+    this._pendingInviteFriends = selected;
+    this.setData({
+      showInviteFriends: false,
+      invitedCount: selected.length
+    });
+  }
 });

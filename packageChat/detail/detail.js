@@ -6,6 +6,38 @@ const { getNavTotalHeight } = require('../../utils/navHeight.js');
 
 const PAGE_SIZE = 25;
 
+function wxWindowHeight() {
+  try {
+    if (typeof wx.getWindowInfo === 'function') {
+      return Number(wx.getWindowInfo().windowHeight) || 667;
+    }
+  } catch (e) {
+    /* ignore */
+  }
+  try {
+    return Number(wx.getSystemInfoSync().windowHeight) || 667;
+  } catch (e) {
+    /* ignore */
+  }
+  return 667;
+}
+
+function wxWindowWidth() {
+  try {
+    if (typeof wx.getWindowInfo === 'function') {
+      return Number(wx.getWindowInfo().windowWidth) || 375;
+    }
+  } catch (e) {
+    /* ignore */
+  }
+  try {
+    return Number(wx.getSystemInfoSync().windowWidth) || 375;
+  } catch (e) {
+    /* ignore */
+  }
+  return 375;
+}
+
 function parseBubble(msg) {
   const type = msg.type || 'text';
   if (type === 'text' || type === 'system') {
@@ -53,7 +85,8 @@ Page({
     connected: false,
     messagesHeight: 0,
     keyboardHeight: 0,
-    safeBottom: 0,
+    kbViewportShrunk: false,
+    keyboardOpen: false,
     showExtra: false,
     loadingMore: false,
     hasMore: false,
@@ -65,43 +98,65 @@ Page({
     const friendId = String(options.friendId != null ? options.friendId : '').trim();
     const friendName = decodeURIComponent(options.nickName || '');
     const userInfo = wx.getStorageSync('userInfo') || {};
-
-    const sys = wx.getSystemInfoSync();
-    const safeBottom = (sys.safeAreaInsets && sys.safeAreaInsets.bottom) || 0;
     const navPx = getNavTotalHeight();
-    this._inputBarPx = 96 + safeBottom;
-    this._winHeight = sys.windowHeight - navPx;
-    this._extraPanelPx = 0;
-
     const title = (friendName && friendName.trim()) || '聊天';
+
+    this._chatBaselineWinH = wxWindowHeight();
 
     this.setData({
       friendId,
       friendName,
       myId: String(userInfo.id != null ? userInfo.id : ''),
       myAvatar: userInfo.avatarUrl || '',
-      safeBottom,
       navHeight: navPx,
-      navTitle: title,
-      messagesHeight: Math.max(120, this._winHeight - this._inputBarPx - safeBottom)
+      navTitle: title
     });
 
-    this._onKbHeight = (res) => {
-      const kh = res && res.height ? res.height : 0;
-      this.applyDockLayout(kh);
-    };
-    wx.onKeyboardHeightChange(this._onKbHeight);
+    if (wx.onKeyboardHeightChange) {
+      this._onKbHeight = (res) => {
+        const kb = Math.max(0, Number(res && res.height) || 0);
+        let viewportShrunk = false;
+        try {
+          const curWin = wxWindowHeight();
+          if (kb > 0 && this._chatBaselineWinH != null) {
+            const shrunk = this._chatBaselineWinH - curWin;
+            if (
+              shrunk >= 50 &&
+              (shrunk >= kb * 0.72 || shrunk + 48 >= kb)
+            ) {
+              viewportShrunk = true;
+            }
+          } else if (kb === 0) {
+            this._chatBaselineWinH = curWin;
+          }
+        } catch (e) {
+          /* ignore */
+        }
+        this.setData(
+          {
+            keyboardHeight: kb,
+            kbViewportShrunk: viewportShrunk,
+            keyboardOpen: kb > 0
+          },
+          () => this._scheduleRelayoutChat()
+        );
+      };
+      wx.onKeyboardHeightChange(this._onKbHeight);
+    }
 
+    if (wx.onWindowResize) {
+      this._onWinResize = () => this._scheduleRelayoutChat();
+      wx.onWindowResize(this._onWinResize);
+    }
+
+    this._scheduleRelayoutChat();
     this.loadHistory();
     this.loadPeer();
   },
 
   onShow() {
-    const sys = wx.getSystemInfoSync();
-    const navPx = getNavTotalHeight();
-    this._winHeight = sys.windowHeight - navPx;
-    this.setData({ navHeight: navPx });
-    this.applyDockLayout(this.data.keyboardHeight);
+    this.setData({ navHeight: getNavTotalHeight() });
+    this._scheduleRelayoutChat();
     if (!this.data.connected) {
       this.connectWS();
     }
@@ -112,22 +167,50 @@ Page({
       wx.offKeyboardHeightChange(this._onKbHeight);
       this._onKbHeight = null;
     }
+    if (this._onWinResize && wx.offWindowResize) {
+      wx.offWindowResize(this._onWinResize);
+      this._onWinResize = null;
+    }
     if (this.socketTask) {
       this.socketTask.close();
     }
   },
 
-  applyDockLayout(keyboardHeight, showExtraOverride) {
-    const showExtra =
-      showExtraOverride !== undefined ? showExtraOverride : this.data.showExtra;
-    const extra = showExtra ? this._extraPanelPx : 0;
-    const kh = keyboardHeight || 0;
-    const bottomInset = kh > 0 ? 0 : this.data.safeBottom;
-    const dock = this._inputBarPx + extra + kh + bottomInset;
-    const h = Math.max(120, this._winHeight - dock);
-    console.warn("+++",this._winHeight,dock, this._inputBarPx, extra, kh, bottomInset )
-    this.setData({ keyboardHeight: kh, messagesHeight: h });
-    this.scrollToBottom();
+  _scheduleRelayoutChat() {
+    const run = () => this._relayoutChat();
+    wx.nextTick(run);
+    setTimeout(run, 50);
+    setTimeout(run, 180);
+  },
+
+  _relayoutChat() {
+    const winH = wxWindowHeight();
+    const winW = wxWindowWidth();
+    const navH = this.data.navHeight || 0;
+    const r = winW / 750;
+    const fallbackBar = Math.ceil((12 + 12 + 64) * r) + 8;
+
+    wx.createSelectorQuery()
+      .in(this)
+      .select('#chat-input-bottom')
+      .boundingClientRect()
+      .exec((res) => {
+        const bottomChrome = res && res[0];
+        const inputBarH =
+          bottomChrome && bottomChrome.height > 0
+            ? bottomChrome.height
+            : fallbackBar;
+        const kb = this.data.keyboardHeight || 0;
+        const shrunk = this.data.kbViewportShrunk;
+        const kbLift = kb > 0 && !shrunk ? kb : 0;
+        const messagesHeight = Math.max(
+          120,
+          Math.floor(winH - navH - inputBarH - kbLift)
+        );
+        if (messagesHeight !== this.data.messagesHeight) {
+          this.setData({ messagesHeight }, () => this.scrollToBottom());
+        }
+      });
   },
 
   async loadPeer() {
@@ -151,14 +234,7 @@ Page({
 
   toggleExtra() {
     const show = !this.data.showExtra;
-    const sys = wx.getSystemInfoSync();
-    if (show) {
-      this._extraPanelPx = 90;
-    } else {
-      this._extraPanelPx = 0;
-    }
-    this.setData({ showExtra: show });
-    this.applyDockLayout(this.data.keyboardHeight, show);
+    this.setData({ showExtra: show }, () => this._scheduleRelayoutChat());
   },
 
   decorateMessages(raw) {
@@ -283,9 +359,7 @@ Page({
   },
 
   async pickExtraImage() {
-    this._extraPanelPx = 0;
-    this.setData({ showExtra: false });
-    this.applyDockLayout(this.data.keyboardHeight, false);
+    this.setData({ showExtra: false }, () => this._scheduleRelayoutChat());
     wx.chooseMedia({
       count: 1,
       mediaType: ['image'],
@@ -325,9 +399,7 @@ Page({
   },
 
   pickExtraAttach() {
-    this._extraPanelPx = 0;
-    this.setData({ showExtra: false });
-    this.applyDockLayout(this.data.keyboardHeight, false);
+    this.setData({ showExtra: false }, () => this._scheduleRelayoutChat());
     if (!wx.chooseMessageFile) {
       showError('当前版本不支持附件');
       return;
@@ -376,9 +448,7 @@ Page({
   },
 
   pickExtraLocation() {
-    this._extraPanelPx = 0;
-    this.setData({ showExtra: false });
-    this.applyDockLayout(this.data.keyboardHeight, false);
+    this.setData({ showExtra: false }, () => this._scheduleRelayoutChat());
     wx.chooseLocation({
       success: async (res) => {
         const payload = JSON.stringify({

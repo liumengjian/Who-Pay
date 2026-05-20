@@ -281,6 +281,11 @@ function updateFriendRemark(friendId, remark) {
   return callAPI('/api/friend/remark', 'PUT', { friendId, remark });
 }
 
+/** 创建者邀请好友加入活动（批量） */
+function inviteFriendsToActivity(activityId, friendIds) {
+  return callAPI(`/api/activity/${activityId}/invite-friends`, 'POST', { friendIds });
+}
+
 function clearChatWithFriend(friendId) {
   return callAPI('/api/chat/clear', 'POST', { friendId });
 }
@@ -338,5 +343,6 @@ module.exports = {
   getUnreadCount,
   getUserProfile,
   updateFriendRemark,
-  clearChatWithFriend
+  clearChatWithFriend,
+  inviteFriendsToActivity
 };

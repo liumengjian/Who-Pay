@@ -43,7 +43,7 @@ Page({
     this.setData({
       userInfo: userInfo,
       profileBgUrl,
-      isAdminUser: uname === ADMIN_USERNAME
+      isAdminUser: ADMIN_USERNAME.includes(String(uname))
     });
     this.migrateLegacyAvatarIfNeeded(userInfo);
     this.refreshNotificationBadge();

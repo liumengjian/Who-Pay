@@ -699,3 +699,106 @@
 .float-notes-mp-html {
   word-break: break-word;
 }
+
+/* ========== 邀请好友 ========== */
+.invite-friends-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24rpx 30rpx;
+  background: #fff;
+  border-top: 1rpx solid #f0f0f0;
+}
+
+.invite-friends-row:active {
+  background: #f9f9fb;
+}
+
+.invite-friends-label {
+  font-size: 30rpx;
+  color: #333;
+  font-weight: 500;
+}
+
+.invite-friends-right {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.invite-friends-hint {
+  font-size: 26rpx;
+  color: #aeaeb2;
+}
+
+.invite-friends-count {
+  font-size: 26rpx;
+  color: #667eea;
+  font-weight: 600;
+}
+
+.invite-dialog {
+  max-width: 620rpx;
+  width: 88%;
+}
+
+.invite-scroll {
+  max-height: 55vh;
+  padding: 0 16rpx;
+}
+
+.invite-friend-item {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 16rpx;
+  border-bottom: 1rpx solid #f5f5f5;
+}
+
+.invite-friend-item:active {
+  background: #f8f8fc;
+}
+
+.invite-friend-selected {
+  background: #f5f3ff;
+}
+
+.invite-friend-avatar {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.invite-friend-info {
+  flex: 1;
+  margin-left: 20rpx;
+  min-width: 0;
+}
+
+.invite-friend-name {
+  font-size: 30rpx;
+  color: #1c1c1e;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.invite-friend-check {
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: 50%;
+  border: 2rpx solid #d1d5db;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.invite-friend-check-on {
+  background: #667eea;
+  border-color: #667eea;
+  color: #fff;
+  font-size: 28rpx;
+}

@@ -1,8 +1,9 @@
 .chat-detail-page {
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
   background: #f7f8fa;
+  overflow: hidden;
 }
 
 .nav-title-white {
@@ -18,16 +19,9 @@
   white-space: nowrap;
 }
 
-.container {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  min-height: 0;
-  background: #f7f8fa;
-}
-
 .messages {
   flex-shrink: 0;
+  width: 100%;
   padding: 20rpx;
   box-sizing: border-box;
 }
@@ -133,30 +127,38 @@
   flex-shrink: 0;
   background: #fff;
   border-top: 1rpx solid #eee;
+  padding-bottom: env(safe-area-inset-bottom);
+  box-sizing: border-box;
+}
+
+.input-bar-container--kb {
+  padding-bottom: 0;
 }
 
 .input-bar {
   display: flex;
   align-items: center;
   padding: 12rpx 16rpx 12rpx 12rpx;
+  box-sizing: border-box;
+  margin-bottom: 12rpx;
 }
 
 .plus-btn {
-  width: 64rpx;
-  height: 64rpx;
+  width: 72rpx;
+  height: 72rpx;
   margin-right: 12rpx;
   border-radius: 12rpx;
   background: #f0f2f8;
   color: #667eea;
   font-size: 44rpx;
-  line-height: 60rpx;
+  line-height: 64rpx;
   text-align: center;
   flex-shrink: 0;
 }
 
 .input {
   flex: 1;
-  height: 64rpx;
+  height: 72rpx;
   padding: 0 16rpx;
   background: #f7f8fa;
   border-radius: 12rpx;
@@ -165,8 +167,8 @@
 
 .send-btn {
   padding: 0 28rpx;
-  height: 64rpx;
-  line-height: 64rpx;
+  height: 72rpx;
+  line-height: 72rpx;
   margin-left: 12rpx;
   background: #667eea;
   color: #fff;
@@ -176,14 +178,14 @@
 }
 
 .extra-bar {
-  padding: 16rpx 20rpx 24rpx;
+  padding: 36rpx;
   border-top: 1rpx solid #f0f0f0;
 }
 
 .extra-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 16rpx;
+  gap:  60rpx 88rpx;
 }
 
 .extra-cell {
@@ -194,12 +196,15 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
+  width: 90rpx;
+  height: 90rpx;
 }
 
 .extra-icon {
   display: block;
-  width: 46rpx;
-  height: 46rpx;
+  width: 36rpx;
+  height: 36rpx;
 }
 
 .extra-label {

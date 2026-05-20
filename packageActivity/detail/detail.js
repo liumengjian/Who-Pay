@@ -1052,5 +1052,11 @@ Page({
     });
   },
 
+  goMemberProfile(e) {
+    const uid = e.currentTarget.dataset.uid;
+    if (!uid) return;
+    wx.navigateTo({ url: `/packageFriend/home/home?id=${uid}` });
+  },
+
   stopPropagation() {}
 });
