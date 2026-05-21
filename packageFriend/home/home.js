@@ -135,9 +135,10 @@ Page({
 
   goChat() {
     const u = this.data.user;
+    const displayName = this.data.myRemarkDisplay || u.nickName || u.username || '';
     wx.navigateTo({
       url: `/packageChat/detail/detail?friendId=${this.data.targetId}&nickName=${encodeURIComponent(
-        u.nickName || u.username || ''
+        displayName
       )}`
     });
   },

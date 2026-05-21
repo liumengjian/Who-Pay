@@ -58,6 +58,10 @@ function sendMessage(receiverId, content, type = 'text') {
   return callAPI('/api/message/send', 'POST', { receiverId, content, type });
 }
 
+function recallMessage(messageId) {
+  return callAPI('/api/message/recall', 'POST', { messageId });
+}
+
 function getUnreadCount() {
   return callAPI('/api/chat/unread', 'GET');
 }
@@ -75,5 +79,6 @@ module.exports = {
   getChatList,
   getChatHistory,
   sendMessage,
+  recallMessage,
   getUnreadCount
 };

@@ -14,39 +14,63 @@
   >
     <view class="msg-list">
       <view wx:if="{{loadingMore}}" class="load-hint">加载中…</view>
-      <view
-        id="anchor-{{item.id}}"
-        class="msg-item {{item.senderId == myId ? 'sent' : 'received'}}"
-        wx:for="{{messages}}"
-        wx:key="id"
-      >
-        <image class="avatar" src="{{item.senderId == myId ? myAvatar : friendAvatar || '/images/default-avatar.png'}}" mode="aspectFill" bindtap="onAvatarTap" data-sender-id="{{item.senderId}}"></image>
-        <view class="bubble-wrap">
-          <view class="bubble" bindtap="onBubbleTap" data-msg="{{item}}">
-            <block wx:if="{{item.bubble.kind === 'text'}}">
-              <text class="bubble-text">{{item.bubble.text}}</text>
-            </block>
-            <image
-              wx:elif="{{item.bubble.kind === 'image'}}"
-              class="bubble-img"
-              src="{{item.bubble.url}}"
-              mode="widthFix"
-            />
-            <view wx:elif="{{item.bubble.kind === 'location'}}" class="bubble-card">
-              <view class="bubble-card-title">
-                <image class="bubble-card-icon" src="/images/position.png" mode="aspectFill" />
-                {{item.bubble.name || '位置'}}
+      <block wx:for="{{messages}}" wx:key="id">
+        <view wx:if="{{item.showTime}}" class="msg-time">{{item.timeLabel}}</view>
+        <view wx:if="{{item.recalled}}" class="msg-recall-hint">{{item.recallHint}}</view>
+        <view
+          wx:else
+          id="anchor-{{item.id}}"
+          class="msg-item {{item.senderId == myId ? 'sent' : 'received'}}"
+        >
+          <image
+            class="avatar"
+            src="{{item.senderId == myId ? myAvatar : friendAvatar || '/images/default-avatar.png'}}"
+            mode="aspectFill"
+            bindtap="onAvatarTap"
+            data-sender-id="{{item.senderId}}"
+          />
+          <view class="bubble-wrap">
+            <view
+              class="bubble {{item.bubble.isEmojiOnly ? 'bubble--emoji-only' : ''}}"
+              bindtap="onBubbleTap"
+              bindlongpress="onBubbleLongPress"
+              data-msg="{{item}}"
+            >
+              <block wx:if="{{item.bubble.kind === 'text'}}">
+                <view class="bubble-text-rich">
+                  <block wx:for="{{item.bubble.segments}}" wx:for-item="seg" wx:for-index="segIdx" wx:key="segIdx">
+                    <text wx:if="{{seg.type === 'text'}}" class="bubble-text">{{seg.text}}</text>
+                    <image
+                      wx:elif="{{seg.type === 'emoji'}}"
+                      class="bubble-emoji"
+                      src="{{seg.url || seg.preview}}"
+                      mode="aspectFit"
+                    />
+                  </block>
+                </view>
+              </block>
+              <image
+                wx:elif="{{item.bubble.kind === 'image'}}"
+                class="bubble-img"
+                src="{{item.bubble.url}}"
+                mode="widthFix"
+              />
+              <view wx:elif="{{item.bubble.kind === 'location'}}" class="bubble-card">
+                <view class="bubble-card-title">
+                  <image class="bubble-card-icon" src="/images/position.png" mode="aspectFill" />
+                  {{item.bubble.name || '位置'}}
+                </view>
+                <text class="bubble-card-sub">{{item.bubble.address}}</text>
+                <text class="bubble-card-tip">点击查看地图</text>
               </view>
-              <text class="bubble-card-sub">{{item.bubble.address}}</text>
-              <text class="bubble-card-tip">点击查看地图</text>
-            </view>
-            <view wx:elif="{{item.bubble.kind === 'attachment'}}" class="bubble-card">
-              <text class="bubble-card-title">📎 {{item.bubble.name}}</text>
-              <text class="bubble-card-tip">点击预览</text>
+              <view wx:elif="{{item.bubble.kind === 'attachment'}}" class="bubble-card">
+                <text class="bubble-card-title">📎 {{item.bubble.name}}</text>
+                <text class="bubble-card-tip">点击预览</text>
+              </view>
             </view>
           </view>
         </view>
-      </view>
+      </block>
     </view>
   </scroll-view>
   <view
@@ -54,18 +78,72 @@
     class="input-bar-container {{keyboardOpen ? 'input-bar-container--kb' : ''}}"
   >
     <view class="input-bar">
-      <view class="plus-btn" bindtap="toggleExtra">+</view>
-      <input
-        class="input"
-        placeholder="发送消息"
-        adjust-position="{{false}}"
-        cursor-spacing="8"
-        confirm-type="send"
-        bindinput="onInput"
-        bindconfirm="send"
-        value="{{inputText}}"
-      />
-      <view class="send-btn" bindtap="send">发送</view>
+      <view class="input-shell">
+        <editor
+          id="chatComposeEditor"
+          class="chat-compose-editor"
+          placeholder="发送消息"
+          show-img-size="{{false}}"
+          show-img-toolbar="{{false}}"
+          show-img-resize="{{false}}"
+          show-confirm-bar="{{true}}"
+          confirm-type="send"
+          adjust-position="{{false}}"
+          hold-keyboard="{{true}}"
+          bindready="onChatEditorReady"
+          bindinput="onEditorInput"
+          bindfocus="onEditorFocus"
+          bindblur="onEditorBlur"
+          bindconfirm="send"
+        />
+      </view>
+      <view class="bar-actions">
+        <view
+          class="bar-action-btn {{showEmoji ? 'bar-action-btn--on' : ''}}"
+          bindtap="toggleEmoji"
+        >
+          <image class="bar-action-btn-img" src="/images/emoji.png" mode="aspectFit" />
+        </view>
+        <view class="bar-action-switch">
+          <view
+            class="bar-action-btn bar-action-btn--plus {{showExtra ? 'bar-action-btn--on' : ''}} {{composeHasContent ? 'bar-action-switch--hidden' : ''}}"
+            bindtap="toggleExtra"
+          >
+            <image class="bar-action-btn-img" src="/images/extra-add.png" mode="aspectFit" />
+
+          </view>
+          <view
+            class="bar-action-btn bar-action-btn--send {{composeHasContent ? 'bar-action-switch--visible' : ''}}"
+            bindtap="send"
+          >
+            <image class="bar-action-btn-img" src="/images/send.png" mode="aspectFit" />
+          </view>
+        </view>
+      </view>
+    </view>
+    <view wx:if="{{showEmoji}}" class="emoji-panel">
+      <scroll-view scroll-x class="emoji-tabs" enable-flex>
+        <view
+          wx:for="{{emojiCategories}}"
+          wx:key="*this"
+          class="emoji-tab {{emojiCategoryIndex === index ? 'emoji-tab--on' : ''}}"
+          data-index="{{index}}"
+          bindtap="onEmojiCategoryTap"
+        >{{item}}</view>
+      </scroll-view>
+      <scroll-view scroll-y class="emoji-grid-scroll">
+        <view class="emoji-grid">
+          <view
+            wx:for="{{emojiCurrentList}}"
+            wx:key="key"
+            class="emoji-cell"
+            data-key="{{item.key}}"
+            bindtap="onEmojiPick"
+          >
+            <image class="emoji-cell-img" src="{{item.url}}" mode="aspectFit" />
+          </view>
+        </view>
+      </scroll-view>
     </view>
     <view wx:if="{{showExtra}}" class="extra-bar">
       <view class="extra-grid">

@@ -1,5 +1,7 @@
 const friendApi = require('../../service/friend.js');
 const cloudStorage = require('../../utils/cloudStorage.js');
+const chatEmoji = require('../../utils/chatEmoji.js');
+const chatComposeEditor = require('../../utils/chatComposeEditor.js');
 const { CLOUD_ENV, CLOUD_SERVICE } = require('../../service/config.js');
 const { showLoading, hideLoading, showError } = require('../../utils/util.js');
 const { getNavTotalHeight } = require('../../utils/navHeight.js');
@@ -41,7 +43,11 @@ function wxWindowWidth() {
 function parseBubble(msg) {
   const type = msg.type || 'text';
   if (type === 'text' || type === 'system') {
-    return { kind: 'text', text: String(msg.content || '') };
+    const text = String(msg.content || '');
+    const segments = chatEmoji.parseEmojiText(text);
+    const isEmojiOnly =
+      segments.length === 1 && segments[0].type === 'emoji';
+    return { kind: 'text', text, segments, isEmojiOnly };
   }
   if (type === 'image') {
     const c = String(msg.content || '').trim();
@@ -79,7 +85,7 @@ Page({
     myId: '',
     myAvatar: '',
     messages: [],
-    inputText: '',
+    composeHasContent: false,
     scrollTop: 0,
     scrollIntoView: '',
     connected: false,
@@ -88,6 +94,10 @@ Page({
     kbViewportShrunk: false,
     keyboardOpen: false,
     showExtra: false,
+    showEmoji: false,
+    emojiCategories: [],
+    emojiCategoryIndex: 0,
+    emojiCurrentList: [],
     loadingMore: false,
     hasMore: false,
     navHeight: 0,
@@ -102,6 +112,7 @@ Page({
     const title = (friendName && friendName.trim()) || '聊天';
 
     this._chatBaselineWinH = wxWindowHeight();
+    this._initEmojiPanel();
 
     this.setData({
       friendId,
@@ -115,6 +126,9 @@ Page({
     if (wx.onKeyboardHeightChange) {
       this._onKbHeight = (res) => {
         const kb = Math.max(0, Number(res && res.height) || 0);
+        // During send, ignore keyboard-close events to prevent flicker
+        // (setContents causes blur→focus, keyboard briefly reports height 0 then original)
+        if (this._sending && kb === 0) return;
         let viewportShrunk = false;
         try {
           const curWin = wxWindowHeight();
@@ -136,7 +150,8 @@ Page({
           {
             keyboardHeight: kb,
             kbViewportShrunk: viewportShrunk,
-            keyboardOpen: kb > 0
+            keyboardOpen: kb > 0,
+            showEmoji: kb > 0 ? false : this.data.showEmoji
           },
           () => this._scheduleRelayoutChat()
         );
@@ -220,10 +235,11 @@ Page({
       const r = await friendApi.getUserProfile(friendId);
       if (r && r.user) {
         const u = r.user;
-        const peerTitle = (u.nickName && u.nickName.trim()) || u.username || '聊天';
+        const remark = (r.myRemark && String(r.myRemark).trim()) || '';
+        const peerTitle = remark || (u.nickName && u.nickName.trim()) || u.username || '聊天';
         this.setData({
           friendAvatar: u.avatarUrl || '',
-          friendName: u.nickName || u.username || '',
+          friendName: remark || u.nickName || u.username || '',
           navTitle: peerTitle
         });
       }
@@ -234,11 +250,71 @@ Page({
 
   toggleExtra() {
     const show = !this.data.showExtra;
-    this.setData({ showExtra: show }, () => this._scheduleRelayoutChat());
+    this.setData(
+      { showExtra: show, showEmoji: show ? false : this.data.showEmoji },
+      () => this._scheduleRelayoutChat()
+    );
+  },
+
+  _initEmojiPanel() {
+    const cat = chatEmoji.getCatalog();
+    const first = cat.order[0] || '默认';
+    this.setData({
+      emojiCategories: cat.order,
+      emojiCategoryIndex: 0,
+      emojiCurrentList: this._emojiListForCategory(first)
+    });
+  },
+
+  _emojiListForCategory(category) {
+    const cat = chatEmoji.getCatalog();
+    const files = (cat.categories && cat.categories[category]) || [];
+    return files.map((filename) => {
+      const key = chatEmoji.emojiKey(category, filename);
+      return {
+        key,
+        url: chatEmoji.toCloudFileId(key)
+      };
+    });
+  },
+
+  async _setMessagesWithEmoji(rawList) {
+    const decorated = this.decorateMessages(rawList);
+    const withUrls = await chatEmoji.applyEmojiUrlsToMessages(
+      decorated,
+      await chatEmoji.resolveEmojiUrls(
+        chatEmoji.collectEmojiKeysFromMessages(decorated)
+      )
+    );
+    this.setData({ messages: withUrls });
   },
 
   decorateMessages(raw) {
-    return (raw || []).map((m) => ({ ...m, bubble: parseBubble(m) }));
+    const myId = this.data.myId;
+    return (raw || []).map((m, i, arr) => {
+      const prev = i > 0 ? arr[i - 1] : null;
+      const timeInfo = chatEmoji.formatChatTimeLabel(
+        m.createTime,
+        prev && prev.createTime
+      );
+      const recalled = !!m.recalled;
+      let bubble = null;
+      if (!recalled) {
+        bubble = parseBubble(m);
+      }
+      return {
+        ...m,
+        recalled,
+        recallHint: recalled
+          ? String(m.senderId) === String(myId)
+            ? '你撤回了一条消息'
+            : '对方撤回了一条消息'
+          : '',
+        showTime: timeInfo.show,
+        timeLabel: timeInfo.label,
+        bubble
+      };
+    });
   },
 
   async loadHistory() {
@@ -246,9 +322,8 @@ Page({
     if (!friendId) return;
     try {
       const res = await friendApi.getChatHistory(friendId, { limit: PAGE_SIZE });
-      const list = this.decorateMessages(res.list || []);
+      await this._setMessagesWithEmoji(res.list || []);
       this.setData({
-        messages: list,
         hasMore: !!res.hasMore,
         loadingMore: false
       });
@@ -268,10 +343,25 @@ Page({
         beforeId: first.id,
         limit: PAGE_SIZE
       });
-      const older = this.decorateMessages(res.list || []);
+      const existingRaw = this.data.messages.map((m) => ({
+        id: m.id,
+        senderId: m.senderId,
+        content: m.content,
+        type: m.type,
+        createTime: m.createTime,
+        recalled: m.recalled
+      }));
+      const mergedRaw = [...(res.list || []), ...existingRaw];
+      const decorated = this.decorateMessages(mergedRaw);
+      const withUrls = await chatEmoji.applyEmojiUrlsToMessages(
+        decorated,
+        await chatEmoji.resolveEmojiUrls(
+          chatEmoji.collectEmojiKeysFromMessages(decorated)
+        )
+      );
       const anchor = first.id;
       this.setData({
-        messages: [...older, ...this.data.messages],
+        messages: withUrls,
         hasMore: !!res.hasMore,
         loadingMore: false,
         scrollIntoView: `anchor-${anchor}`
@@ -303,15 +393,16 @@ Page({
           try {
             const data = JSON.parse(res.data);
             const fid = String(this.data.friendId || '');
+            if (data.type === 'recall' && data.data) {
+              this._applyRecallPatch(data.data.id);
+              return;
+            }
             if (
               data.type === 'message' &&
               data.data &&
               String(data.data.senderId) === fid
             ) {
-              const one = this.decorateMessages([data.data])[0];
-              const messages = [...this.data.messages, one];
-              this.setData({ messages });
-              this.scrollToBottom();
+              this._appendIncomingMessage(data.data);
             }
           } catch (e) {
             console.error('解析消息失败', e);
@@ -332,29 +423,172 @@ Page({
     });
   },
 
-  onInput(e) {
-    this.setData({ inputText: e.detail.value });
+  async _appendIncomingMessage(row) {
+    const merged = [...this.data.messages, row];
+    const decorated = this.decorateMessages(merged);
+    const withUrls = await chatEmoji.applyEmojiUrlsToMessages(
+      decorated,
+      await chatEmoji.resolveEmojiUrls(
+        chatEmoji.collectEmojiKeysFromMessages(decorated)
+      )
+    );
+    this.setData({ messages: withUrls });
+    this.scrollToBottom();
+  },
+
+  _applyRecallPatch(messageId) {
+    const raw = this.data.messages.map((m) =>
+      m.id === messageId ? { ...m, recalled: true } : m
+    );
+    this.setData({ messages: this.decorateMessages(raw) });
+  },
+
+  _ensureChatEditorContext() {
+    if (this._chatEditorCtx) {
+      return Promise.resolve(this._chatEditorCtx);
+    }
+    return new Promise((resolve) => {
+      const finish = (ctx) => {
+        if (ctx) this._chatEditorCtx = ctx;
+        resolve(this._chatEditorCtx || null);
+      };
+      wx.createSelectorQuery()
+        .in(this)
+        .select('#chatComposeEditor')
+        .context((res) => {
+          finish((res && res.context) || null);
+        })
+        .exec();
+    });
+  },
+
+  onChatEditorReady() {
+    this._ensureChatEditorContext();
+  },
+
+  onEditorInput(e) {
+    const detail = (e && e.detail) || {};
+    const hasContent = !chatComposeEditor.isComposeEmpty(detail);
+    const prev = this.data.composeHasContent;
+    this.setData({ composeHasContent: hasContent });
+    // When content appears, hide the extra panel since + is being replaced by send
+    if (hasContent && !prev && this.data.showExtra) {
+      this.setData({ showExtra: false }, () => this._scheduleRelayoutChat());
+    }
+  },
+
+  onEditorFocus() {
+    const changes = {};
+    if (this.data.showExtra) changes.showExtra = false;
+    if (this.data.showEmoji) changes.showEmoji = false;
+    if (Object.keys(changes).length) {
+      this.setData(changes, () => this._scheduleRelayoutChat());
+    }
+  },
+
+  onEditorBlur() {},
+
+  toggleEmoji() {
+    const show = !this.data.showEmoji;
+    this.setData(
+      {
+        showEmoji: show,
+        showExtra: show ? false : this.data.showExtra
+      },
+      () => {
+        this._scheduleRelayoutChat();
+        // Opening emoji panel: dismiss soft keyboard
+        if (show) {
+          this._ensureChatEditorContext().then((ctx) => {
+            if (ctx && typeof ctx.blur === 'function') ctx.blur();
+          });
+        }
+      }
+    );
+  },
+
+  onEmojiCategoryTap(e) {
+    const index = Number(e.currentTarget.dataset.index);
+    const category = this.data.emojiCategories[index];
+    if (!category) return;
+    this.setData({
+      emojiCategoryIndex: index,
+      emojiCurrentList: this._emojiListForCategory(category)
+    });
+  },
+
+  onEmojiPick(e) {
+    const key = e.currentTarget.dataset.key;
+    if (!key) return;
+    this._ensureChatEditorContext().then((ctx) => {
+      if (!ctx || typeof ctx.insertImage !== 'function') {
+        wx.showToast({ title: '编辑器未就绪', icon: 'none' });
+        return;
+      }
+      ctx.insertImage(chatComposeEditor.insertEmojiOptions(key));
+      this.setData({ composeHasContent: true });
+    });
   },
 
   async send() {
-    const { friendId, inputText } = this.data;
-    if (!inputText.trim() || !friendId) return;
+    const { friendId } = this.data;
+    if (!friendId) return;
 
+    const ctx = await this._ensureChatEditorContext();
+    if (!ctx || typeof ctx.getContents !== 'function') return;
+
+    ctx.getContents({
+      success: async (res) => {
+        const content = chatComposeEditor.deltaToContent(res).trim();
+        if (!content) return;
+        try {
+          this._sending = true;
+          const apiRes = await friendApi.sendMessage(friendId, content, 'text');
+          const row = {
+            id: apiRes.id,
+            senderId: this.data.myId,
+            content,
+            type: 'text',
+            createTime: apiRes.createTime,
+            recalled: false
+          };
+          chatComposeEditor.clearEditor(ctx);
+          this.setData({ composeHasContent: false });
+          await this._appendIncomingMessage(row);
+          // Brief guard: ignore keyboard-close events from setContents blur
+          setTimeout(() => { this._sending = false; }, 300);
+        } catch (err) {
+          this._sending = false;
+          wx.showToast({
+            title: (err && err.message) || '发送失败',
+            icon: 'none'
+          });
+        }
+      }
+    });
+  },
+
+  onBubbleLongPress(e) {
+    const msg = e.currentTarget.dataset.msg;
+    if (!msg || msg.recalled) return;
+    if (String(msg.senderId) !== String(this.data.myId)) return;
+    const age = Date.now() - new Date(msg.createTime).getTime();
+    if (age > 2 * 60 * 1000) return;
+    wx.showActionSheet({
+      itemList: ['撤回'],
+      success: (res) => {
+        if (res.tapIndex === 0) this.recallMessage(msg);
+      }
+    });
+  },
+
+  async recallMessage(msg) {
+    if (!msg || !msg.id) return;
     try {
-      const res = await friendApi.sendMessage(friendId, inputText.trim(), 'text');
-      const row = {
-        id: res.id,
-        senderId: this.data.myId,
-        content: inputText.trim(),
-        type: 'text',
-        createTime: res.createTime
-      };
-      const one = this.decorateMessages([row])[0];
-      const messages = [...this.data.messages, one];
-      this.setData({ inputText: '', messages });
-      this.scrollToBottom();
+      await friendApi.recallMessage(msg.id);
+      this._applyRecallPatch(msg.id);
     } catch (e) {
-      wx.showToast({ title: e.message || '发送失败', icon: 'none' });
+      wx.showToast({ title: (e && e.message) || '撤回失败', icon: 'none' });
     }
   },
 
@@ -384,11 +618,10 @@ Page({
             senderId: this.data.myId,
             content: url,
             type: 'image',
-            createTime: r.createTime
+            createTime: r.createTime,
+            recalled: false
           };
-          const one = this.decorateMessages([row])[0];
-          this.setData({ messages: [...this.data.messages, one] });
-          this.scrollToBottom();
+          await this._appendIncomingMessage(row);
         } catch (err) {
           showError((err && err.message) || '发送失败');
         } finally {
@@ -433,11 +666,10 @@ Page({
             senderId: this.data.myId,
             content: payload,
             type: 'attachment',
-            createTime: r.createTime
+            createTime: r.createTime,
+            recalled: false
           };
-          const one = this.decorateMessages([row])[0];
-          this.setData({ messages: [...this.data.messages, one] });
-          this.scrollToBottom();
+          await this._appendIncomingMessage(row);
         } catch (err) {
           showError((err && err.message) || '发送失败');
         } finally {
@@ -465,11 +697,10 @@ Page({
             senderId: this.data.myId,
             content: payload,
             type: 'location',
-            createTime: r.createTime
+            createTime: r.createTime,
+            recalled: false
           };
-          const one = this.decorateMessages([row])[0];
-          this.setData({ messages: [...this.data.messages, one] });
-          this.scrollToBottom();
+          await this._appendIncomingMessage(row);
         } catch (e) {
           wx.showToast({ title: (e && e.message) || '发送失败', icon: 'none' });
         }
