@@ -15,7 +15,8 @@
       <view class="chat-item" wx:for="{{chats}}" wx:key="_rowKey" bindtap="goToChat" data-user="{{item.user}}">
         <image class="avatar" src="{{item.user.avatarUrl || '/images/default-avatar.png'}}" mode="aspectFill"></image>
         <view class="info">
-          <text class="nickname">{{item.user.nickName || item.user.username}}</text>
+          <text class="nickname">{{item._remark || item.user.nickName || item.user.username}}</text>
+          <text wx:if="{{item._remark}}" class="sub-name">昵称：{{item.user.nickName || item.user.username}}</text>
           <text class="last-msg">{{item.lastMessage.content}}</text>
         </view>
         <view class="time">{{item.lastTimeText}}</view>

@@ -20,6 +20,8 @@ Page({
     unreadChatCount: 0
   },
 
+  _unsubWS: null,
+
   onLoad() {
     this.setData({ navHeight: getNavTotalHeight() });
     this.loadUserInfo();
@@ -28,6 +30,21 @@ Page({
   onShow() {
     this.setData({ navHeight: getNavTotalHeight() });
     this.loadUserInfo();
+    // Listen for real-time WS messages to update badges
+    const app = getApp();
+    this._unsubWS = app.onWSMessage((data) => {
+      if (data && data.type === 'message') {
+        this.refreshChatBadge();
+      }
+    });
+  },
+
+  onHide() {
+    if (this._unsubWS) { this._unsubWS(); this._unsubWS = null; }
+  },
+
+  onUnload() {
+    if (this._unsubWS) { this._unsubWS(); this._unsubWS = null; }
   },
 
   onRefresh() {
@@ -80,7 +97,7 @@ Page({
     try {
       const r = await getUnreadCount();
       const n = typeof r.count === 'number' ? r.count : parseInt(r.count, 10) || 0;
-      this.setData({ unreadChatCount: n > 99 ? 99 : n });
+      this.setData({ unreadChatCount: n > 99 ? '99+' : n });
     } catch (e) {
       this.setData({ unreadChatCount: 0 });
     }
@@ -157,6 +174,7 @@ Page({
         app.globalData.token = null;
         app.globalData.userId = null;
         app.globalData.userInfo = null;
+        app.disconnectWS();
         wx.reLaunch({ url: '/pages/login/login' });
       }
     });

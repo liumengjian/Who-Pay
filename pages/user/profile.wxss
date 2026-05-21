@@ -65,7 +65,7 @@ page {
 .user-card {
   background: transparent;
   padding: 48rpx 40rpx;
-  margin-top: -16rpx;
+  margin-top: 46rpx;
 }
 
 .user-header {

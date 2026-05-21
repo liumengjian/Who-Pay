@@ -2,6 +2,7 @@
 const { CLOUD_ENV } = require('./service/config.js');
 const { callAPI } = require('./utils/cloud.js');
 const { computeNavTotalHeight } = require('./utils/navHeight.js');
+const { CLOUD_ENV: WS_ENV, CLOUD_SERVICE } = require('./service/config.js');
 
 App({
   onLaunch() {
@@ -41,7 +42,10 @@ App({
     StatusBar: 0,
     Custom: null,
     CustomBar: 0,
-    NavTotalHeight: 0
+    NavTotalHeight: 0,
+    wsTask: null,
+    wsConnected: false,
+    _wsMessageHandlers: []
   },
 
   // 检查登录态
@@ -58,6 +62,8 @@ App({
         const userInfo = wx.getStorageSync('userInfo');
         if (userInfo) this.globalData.userInfo = userInfo;
       }
+      // Auto-connect global WebSocket
+      this.connectWS();
     }
   },
 
@@ -80,5 +86,81 @@ App({
   // 设置用户信息
   setUserInfo(userInfo) {
     this.globalData.userInfo = userInfo;
+  },
+
+  // ---- Global WebSocket ----
+
+  connectWS() {
+    const token = this.globalData.token || wx.getStorageSync('token');
+    if (!token) return;
+    if (this.globalData.wsTask) return; // already connected
+
+    wx.cloud.connectContainer({
+      env: WS_ENV,
+      service: CLOUD_SERVICE,
+      path: `/ws?token=${encodeURIComponent(token)}`,
+      success: (res) => {
+        const task = res.socketTask;
+        this.globalData.wsTask = task;
+
+        task.onOpen(() => {
+          this.globalData.wsConnected = true;
+        });
+
+        task.onMessage((res) => {
+          try {
+            const data = JSON.parse(res.data);
+            this._dispatchWSMessage(data);
+          } catch (e) {
+            console.error('[App WS] parse error', e);
+          }
+        });
+
+        task.onClose(() => {
+          this.globalData.wsTask = null;
+          this.globalData.wsConnected = false;
+        });
+
+        task.onError(() => {
+          this.globalData.wsTask = null;
+          this.globalData.wsConnected = false;
+        });
+      },
+      fail: (err) => {
+        console.error('[App WS] connect fail', err);
+      }
+    });
+  },
+
+  disconnectWS() {
+    if (this.globalData.wsTask) {
+      this.globalData.wsTask.close();
+      this.globalData.wsTask = null;
+      this.globalData.wsConnected = false;
+    }
+  },
+
+  /**
+   * Register a handler for incoming WS messages.
+   * Returns an unsubscribe function.
+   */
+  onWSMessage(handler) {
+    this.globalData._wsMessageHandlers.push(handler);
+    return () => {
+      const list = this.globalData._wsMessageHandlers;
+      const idx = list.indexOf(handler);
+      if (idx >= 0) list.splice(idx, 1);
+    };
+  },
+
+  _dispatchWSMessage(data) {
+    const handlers = this.globalData._wsMessageHandlers;
+    for (let i = 0; i < handlers.length; i++) {
+      try {
+        handlers[i](data);
+      } catch (e) {
+        console.error('[App WS] handler error', e);
+      }
+    }
   }
 });

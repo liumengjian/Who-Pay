@@ -2,7 +2,6 @@ const friendApi = require('../../service/friend.js');
 const cloudStorage = require('../../utils/cloudStorage.js');
 const chatEmoji = require('../../utils/chatEmoji.js');
 const chatComposeEditor = require('../../utils/chatComposeEditor.js');
-const { CLOUD_ENV, CLOUD_SERVICE } = require('../../service/config.js');
 const { showLoading, hideLoading, showError } = require('../../utils/util.js');
 const { getNavTotalHeight } = require('../../utils/navHeight.js');
 
@@ -172,9 +171,19 @@ Page({
   onShow() {
     this.setData({ navHeight: getNavTotalHeight() });
     this._scheduleRelayoutChat();
-    if (!this.data.connected) {
-      this.connectWS();
+    // Use global WS connection
+    const app = getApp();
+    if (app.globalData.wsConnected) {
+      this.setData({ connected: true });
     }
+    // Subscribe to global WS messages for this chat
+    this._unsubWS = app.onWSMessage((data) => {
+      this._onWSMessage(data);
+    });
+  },
+
+  onHide() {
+    if (this._unsubWS) { this._unsubWS(); this._unsubWS = null; }
   },
 
   onUnload() {
@@ -186,9 +195,7 @@ Page({
       wx.offWindowResize(this._onWinResize);
       this._onWinResize = null;
     }
-    if (this.socketTask) {
-      this.socketTask.close();
-    }
+    if (this._unsubWS) { this._unsubWS(); this._unsubWS = null; }
   },
 
   _scheduleRelayoutChat() {
@@ -371,56 +378,22 @@ Page({
     }
   },
 
-  connectWS() {
-    const token = wx.getStorageSync('token');
-    if (!token) {
-      console.log('未登录，无法连接WebSocket');
+  _onWSMessage(data) {
+    const fid = String(this.data.friendId || '');
+    if (data.type === 'recall' && data.data) {
+      this._applyRecallPatch(data.data.id);
       return;
     }
-
-    wx.cloud.connectContainer({
-      env: CLOUD_ENV,
-      service: CLOUD_SERVICE,
-      path: `/ws?token=${encodeURIComponent(token)}`,
-      success: (res) => {
-        this.socketTask = res.socketTask;
-
-        this.socketTask.onOpen(() => {
-          this.setData({ connected: true });
-        });
-
-        this.socketTask.onMessage((res) => {
-          try {
-            const data = JSON.parse(res.data);
-            const fid = String(this.data.friendId || '');
-            if (data.type === 'recall' && data.data) {
-              this._applyRecallPatch(data.data.id);
-              return;
-            }
-            if (
-              data.type === 'message' &&
-              data.data &&
-              String(data.data.senderId) === fid
-            ) {
-              this._appendIncomingMessage(data.data);
-            }
-          } catch (e) {
-            console.error('解析消息失败', e);
-          }
-        });
-
-        this.socketTask.onClose(() => {
-          this.setData({ connected: false });
-        });
-
-        this.socketTask.onError((res) => {
-          console.error('WebSocket 错误', res);
-        });
-      },
-      fail: (err) => {
-        console.error('WebSocket 连接失败', err);
-      }
-    });
+    if (
+      data.type === 'message' &&
+      data.data &&
+      String(data.data.senderId) === fid
+    ) {
+      this._appendIncomingMessage(data.data);
+    }
+    if (data.type === 'message') {
+      this.setData({ connected: true });
+    }
   },
 
   async _appendIncomingMessage(row) {
@@ -478,6 +451,7 @@ Page({
   },
 
   onEditorFocus() {
+    if (this._emojiPicking) return;
     const changes = {};
     if (this.data.showExtra) changes.showExtra = false;
     if (this.data.showEmoji) changes.showEmoji = false;
@@ -517,16 +491,22 @@ Page({
     });
   },
 
+  _emojiPicking: false,
+
   onEmojiPick(e) {
     const key = e.currentTarget.dataset.key;
     if (!key) return;
+    this._emojiPicking = true;
     this._ensureChatEditorContext().then((ctx) => {
       if (!ctx || typeof ctx.insertImage !== 'function') {
         wx.showToast({ title: '编辑器未就绪', icon: 'none' });
+        this._emojiPicking = false;
         return;
       }
       ctx.insertImage(chatComposeEditor.insertEmojiOptions(key));
-      this.setData({ composeHasContent: true });
+      this.setData({ composeHasContent: true }, () => {
+        this._emojiPicking = false;
+      });
     });
   },
 

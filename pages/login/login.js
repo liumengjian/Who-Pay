@@ -113,6 +113,7 @@ Page({
     app.globalData.token = token;
     app.globalData.userId = userId;
     app.globalData.userInfo = userInfo;
+    app.connectWS();
 
     showSuccess('登录成功');
     wx.switchTab({
@@ -144,6 +145,7 @@ Page({
         } else {
           app.getUserInfo(userId);
         }
+        app.connectWS();
 
         hideLoading();
         showSuccess('登录成功');
@@ -237,6 +239,7 @@ Page({
         } else {
           app.getUserInfo(userId);
         }
+        app.connectWS();
 
         hideLoading();
         wx.showToast({
