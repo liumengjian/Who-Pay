@@ -255,7 +255,7 @@
             <view class="title">活动宣言</view>
             <textarea placeholder="选填，一句话介绍活动" value="{{activitySlogan}}" bindinput="onActivitySloganInput" maxlength="512" auto-height placeholder-class="text-gray"></textarea>
           </view>
-          <view class="invite-friends-row" catchtap="openInviteFriendsModal">
+          <view class="invite-friends-row" wx:if="{{enableSocial}}" catchtap="openInviteFriendsModal">
             <text class="invite-friends-label">一键邀请</text>
             <view class="invite-friends-right">
               <text wx:if="{{invitedCount > 0}}" class="invite-friends-count">已选 {{invitedCount}} 位好友</text>
@@ -272,7 +272,7 @@
     </view>
 
     <!-- 邀请好友选择弹窗 -->
-    <view wx:if="{{showInviteFriends}}" class="cu-modal show" catchtap="hideInviteFriendsModal">
+    <view wx:if="{{enableSocial && showInviteFriends}}" class="cu-modal show" catchtap="hideInviteFriendsModal">
       <view class="cu-dialog invite-dialog" catchtap="stopPropagation">
         <view class="cu-bar bg-white justify-end">
           <view class="content text-black text-bold">邀请好友</view>

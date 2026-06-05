@@ -19,10 +19,10 @@
             wx:if="{{isSelf}}"
             bindtap="goEdit"
           />
-          <image 
+          <image
             class="avatar-ed"
             src='/images/edit.png'
-            wx:elif="{{relation === 'friend'}}"
+            wx:elif="{{enableSocial && relation === 'friend'}}"
             bindtap="toggleFriendMenu"
           />
         </view>
@@ -57,13 +57,13 @@
     </view>
   </view>
 
-  <view wx:if="{{showFriendMenu}}" class="friend-menu-mask" catchtap="closeFriendMenu"></view>
-  <view wx:if="{{showFriendMenu}}" class="friend-menu" catchtap="noop" style="top: {{navHeight * 2 + 172 }}rpx;">
+  <view wx:if="{{enableSocial && showFriendMenu}}" class="friend-menu-mask" catchtap="closeFriendMenu"></view>
+  <view wx:if="{{enableSocial && showFriendMenu}}" class="friend-menu" catchtap="noop" style="top: {{navHeight * 2 + 172 }}rpx;">
     <view class="friend-menu-item" bindtap="onClearChat">删除聊天记录</view>
     <view class="friend-menu-item" bindtap="onOpenRemarkEdit">修改备注</view>
   </view>
 
-  <view class="bottom-actions" wx:if="{{!isSelf}}">
+  <view class="bottom-actions" wx:if="{{enableSocial && !isSelf}}">
     <button
       wx:if="{{relation === 'none'}}"
       class="btn-full btn-primary"
@@ -86,7 +86,7 @@
   </view>
 </view>
 
-<view wx:if="{{showApplyModal}}" class="modal-mask" catchtap="closeApplyModal">
+<view wx:if="{{enableSocial && showApplyModal}}" class="modal-mask" catchtap="closeApplyModal">
   <view class="modal-box" catchtap="noop">
     <view class="modal-title">添加好友</view>
     <view class="modal-field">
@@ -111,7 +111,7 @@
   </view>
 </view>
 
-<view wx:if="{{showRemarkModal}}" class="modal-mask" catchtap="closeRemarkModal">
+<view wx:if="{{enableSocial && showRemarkModal}}" class="modal-mask" catchtap="closeRemarkModal">
   <view class="modal-box" catchtap="noop">
     <view class="modal-title">修改备注</view>
     <input class="modal-input" placeholder="备注名" maxlength="32" value="{{remarkDraft}}" bindinput="onRemarkDraft" />

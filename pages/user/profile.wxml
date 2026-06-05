@@ -37,7 +37,7 @@
         <image src="/images/pointer-right.png" mode="aspectFit" />
       </view>
     </view>
-    <view class="menu-item" bindtap="goToFriends">
+    <view class="menu-item" bindtap="goToFriends" wx:if="{{enableSocial}}">
       <view class="menu-left">
         <image class="menu-icon" src="/images/friend.png" mode="aspectFit" />
         <text class="menu-text">好友</text>
@@ -46,7 +46,7 @@
         <image src="/images/pointer-right.png" mode="aspectFit" />
       </view>
     </view>
-    <view class="menu-item" bindtap="goToChats">
+    <view class="menu-item" bindtap="goToChats" wx:if="{{enableSocial}}">
       <view class="menu-left">
         <image class="menu-icon" src="/images/chat.png" mode="aspectFit" />
         <text class="menu-text">聊天</text>

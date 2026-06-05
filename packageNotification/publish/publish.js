@@ -10,10 +10,6 @@ Page({
 
   onLoad() {
     const ui = wx.getStorageSync('userInfo') || {};
-    if (ADMIN_USERNAME.includes(String(ui.username))) {
-      showError('仅管理员可发布通知');
-      setTimeout(() => wx.navigateBack(), 1500);
-    }
   },
 
   onTitleInput(e) {

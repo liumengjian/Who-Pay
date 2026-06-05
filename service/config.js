@@ -37,6 +37,12 @@ const CLOUD_SERVICE = 'koa-eeo7';
 const API_BASE_URL =
   'https://koa-eeo7-243325-4-1413661498.sh.run.tcloudbase.com';
 
+/**
+ * 社交功能开关（好友 / 聊天 / 邀请好友等）
+ * true = 开启；false = 隐藏所有社交相关 UI 与入口
+ */
+const ENABLE_SOCIAL = false;
+
 module.exports = {
   API_BASE_URL,
   USE_CLOUD_CONTAINER,
@@ -44,5 +50,6 @@ module.exports = {
   CLOUD_SERVICE,
   CLOUD_STORAGE_BUCKET,
   CLOUD_STORAGE_REGION,
-  CLOUD_STORAGE_PATH_PREFIX
+  CLOUD_STORAGE_PATH_PREFIX,
+  ENABLE_SOCIAL
 };

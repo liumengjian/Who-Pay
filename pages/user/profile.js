@@ -7,6 +7,7 @@ const {
 const cloudStorage = require('../../utils/cloudStorage.js');
 const { getNavTotalHeight } = require('../../utils/navHeight.js');
 const { ADMIN_USERNAME } = require('../../utils/constants.js');
+const { ENABLE_SOCIAL } = require('../../service/config.js');
 
 Page({
   data: {
@@ -17,7 +18,8 @@ Page({
     isAdminUser: false,
     notificationBadgeCount: 0,
     notificationBadgeText: '',
-    unreadChatCount: 0
+    unreadChatCount: 0,
+    enableSocial: ENABLE_SOCIAL
   },
 
   _unsubWS: null,
@@ -32,11 +34,13 @@ Page({
     this.loadUserInfo();
     // Listen for real-time WS messages to update badges
     const app = getApp();
-    this._unsubWS = app.onWSMessage((data) => {
-      if (data && data.type === 'message') {
-        this.refreshChatBadge();
-      }
-    });
+    if (ENABLE_SOCIAL) {
+      this._unsubWS = app.onWSMessage((data) => {
+        if (data && data.type === 'message') {
+          this.refreshChatBadge();
+        }
+      });
+    }
   },
 
   onHide() {
@@ -64,7 +68,9 @@ Page({
     });
     this.migrateLegacyAvatarIfNeeded(userInfo);
     this.refreshNotificationBadge();
-    this.refreshChatBadge();
+    if (ENABLE_SOCIAL) {
+      this.refreshChatBadge();
+    }
   },
 
   goMyHome() {

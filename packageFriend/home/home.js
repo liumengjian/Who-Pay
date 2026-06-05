@@ -1,5 +1,6 @@
 const friendApi = require('../../service/friend.js');
 const { getNavTotalHeight } = require('../../utils/navHeight.js');
+const { ENABLE_SOCIAL } = require('../../service/config.js');
 
 Page({
   data: {
@@ -18,6 +19,7 @@ Page({
     showRemarkModal: false,
     remarkDraft: '',
     navHeight: 100,
+    enableSocial: ENABLE_SOCIAL
   },
 
   onLoad(options) {
@@ -79,6 +81,7 @@ Page({
   },
 
   toggleFriendMenu() {
+    if (!ENABLE_SOCIAL) return;
     this.setData({ showFriendMenu: !this.data.showFriendMenu });
   },
 
@@ -89,6 +92,7 @@ Page({
   noop() {},
 
   async onClearChat() {
+    if (!ENABLE_SOCIAL) return;
     this.closeFriendMenu();
     const ok = await new Promise((resolve) => {
       wx.showModal({
@@ -107,6 +111,7 @@ Page({
   },
 
   onOpenRemarkEdit() {
+    if (!ENABLE_SOCIAL) return;
     this.closeFriendMenu();
     this.setData({
       showRemarkModal: true,

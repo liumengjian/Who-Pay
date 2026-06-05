@@ -27,6 +27,7 @@ const {
   invokeOpenDocumentWithRetry
 } = require('../../utils/activityNoteLinks.js');
 const { getNavTotalHeight } = require('../../utils/navHeight.js');
+const { ENABLE_SOCIAL } = require('../../service/config.js');
 
 const HALL_PAGE_SIZE = 20;
 /** 与 showTabBar 动画、page-container duration 对齐，底部创建条在 tab 露完后再复位 */
@@ -72,7 +73,8 @@ Page({
       p: 'margin:0 0 22rpx 0;',
       a: 'text-decoration:none;-webkit-tap-highlight-color:transparent;',
       img: noteStore.NOTE_IMG_HTML_STYLE
-    }
+    },
+    enableSocial: ENABLE_SOCIAL
   },
 
   onLoad() {
@@ -667,18 +669,22 @@ Page({
       const invite = result.inviteCode ? `，邀请码 ${result.inviteCode}` : '';
 
       // 邀请已选好友
-      const selectedFriends = this._pendingInviteFriends || [];
-      if (selectedFriends.length > 0 && result.activityId) {
-        const friendIds = selectedFriends.map((f) => String(f.id));
-        this._pendingInviteFriends = null;
-        try {
-          const invRes = await inviteFriendsToActivity(result.activityId, friendIds);
-          const added = invRes.added || 0;
-          const friendMsg = added > 0 ? `，已邀请 ${added} 位好友` : '';
-          showSuccess(`创建成功${invite}${friendMsg}`);
-        } catch (invErr) {
-          console.warn('邀请好友失败:', invErr);
-          showSuccess(`创建成功${invite}，好友邀请失败`);
+      if (ENABLE_SOCIAL) {
+        const selectedFriends = this._pendingInviteFriends || [];
+        if (selectedFriends.length > 0 && result.activityId) {
+          const friendIds = selectedFriends.map((f) => String(f.id));
+          this._pendingInviteFriends = null;
+          try {
+            const invRes = await inviteFriendsToActivity(result.activityId, friendIds);
+            const added = invRes.added || 0;
+            const friendMsg = added > 0 ? `，已邀请 ${added} 位好友` : '';
+            showSuccess(`创建成功${invite}${friendMsg}`);
+          } catch (invErr) {
+            console.warn('邀请好友失败:', invErr);
+            showSuccess(`创建成功${invite}，好友邀请失败`);
+          }
+        } else {
+          showSuccess(`创建成功${invite}`);
         }
       } else {
         showSuccess(`创建成功${invite}`);
@@ -701,6 +707,7 @@ Page({
   },
 
   async openInviteFriendsModal() {
+    if (!ENABLE_SOCIAL) return;
     const previous = this._pendingInviteFriends || [];
     const prevIds = new Set(previous.map((f) => String(f.id)));
     this.setData({ showInviteFriends: true, inviteFriendLoading: true });

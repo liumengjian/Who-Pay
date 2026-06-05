@@ -40,6 +40,7 @@ const {
   inferWxOpenDocumentFileType,
   invokeOpenDocumentWithRetry
 } = require('../../utils/activityNoteLinks.js');
+const { ENABLE_SOCIAL } = require('../../service/config.js');
 
 Page({
   data: {
