@@ -15,40 +15,60 @@ function equalShareSlotTargetsOneDecimal(totalAmount, nSlots) {
 }
 
 /**
- * 按 teams 顺序，每团队内按 members 顺序，每人占一人次。
- * @returns {{ teamTargetSum: Object, userTargetTenths: Object, displaySharePerHead: number, nSlots: number }}
+ * 按 teams 顺序，每团队内按 members 顺序，每人按权重占位。
+ * @returns {{ teamTargetSum: Object, userTargetTenths: Object, displaySharePerHead: number, nSlots: number, totalWeight: number }}
  */
 function computeEqualShareFromTeamsData(teamsData, totalAmount) {
   const slots = [];
   for (const teamData of teamsData || []) {
     const tid = String(teamData._id || teamData.id);
     for (const m of teamData.members || []) {
-      slots.push({ userId: String(m.userId), teamId: tid });
+      const weight = parseFloat(m.weight != null ? m.weight : 1);
+      slots.push({ userId: String(m.userId), teamId: tid, weight });
     }
   }
-  const n = slots.length;
+  const totalWeight = slots.reduce((s, m) => s + m.weight, 0);
   const totalTenths = Math.round(parseFloat(totalAmount) * 10);
-  const base = n > 0 ? Math.floor(totalTenths / n) : 0;
-  const rem = n > 0 ? totalTenths - base * n : 0;
+
+  // 按权重比例分配
+  const allocs = slots.map((slot) => {
+    const rawShare = totalWeight > 0 ? (slot.weight / totalWeight) * parseFloat(totalAmount) : 0;
+    const rawTenths = rawShare * 10;
+    const baseTenths = Math.floor(rawTenths);
+    return { ...slot, baseTenths, frac: rawTenths - baseTenths };
+  });
+
+  let allocated = allocs.reduce((s, a) => s + a.baseTenths, 0);
+  let remainder = totalTenths - allocated;
+
+  if (remainder > 0) {
+    const sorted = allocs.map((a, i) => ({ ...a, idx: i }))
+      .sort((a, b) => b.frac - a.frac);
+    for (let i = 0; i < remainder && i < sorted.length; i++) {
+      allocs[sorted[i].idx].baseTenths += 1;
+    }
+  }
+
   const userTargetTenths = {};
   const teamTargetTenths = {};
-  for (let i = 0; i < n; i++) {
-    const slotTenths = base + (i < rem ? 1 : 0);
-    const uid = slots[i].userId;
-    const tid = slots[i].teamId;
-    userTargetTenths[uid] = (userTargetTenths[uid] || 0) + slotTenths;
-    teamTargetTenths[tid] = (teamTargetTenths[tid] || 0) + slotTenths;
+  for (const alloc of allocs) {
+    const uid = alloc.userId;
+    const tid = alloc.teamId;
+    const tenths = alloc.baseTenths;
+    userTargetTenths[uid] = (userTargetTenths[uid] || 0) + tenths;
+    teamTargetTenths[tid] = (teamTargetTenths[tid] || 0) + tenths;
   }
   const teamTargetSum = {};
   for (const tid of Object.keys(teamTargetTenths)) {
     teamTargetSum[tid] = teamTargetTenths[tid] / 10;
   }
-  const displaySharePerHead = n > 0 ? Math.round(totalTenths / n) / 10 : 0;
+  const displaySharePerHead = totalWeight > 0 ? Math.round(totalTenths / totalWeight) / 10 : 0;
   return {
     userTargetTenths,
     teamTargetSum,
     displaySharePerHead,
-    nSlots: n
+    nSlots: slots.length,
+    totalWeight
   };
 }
 

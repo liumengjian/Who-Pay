@@ -515,13 +515,46 @@ page {
 .member-info {
   flex: 1;
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4rpx;
+}
+
+.member-name-row {
+  display: flex;
   align-items: center;
+  gap: 8rpx;
 }
 
 .member-name {
   font-size: 28rpx;
   color: #333;
+}
+
+.member-weight-tag {
+  font-size: 22rpx;
+  color: #667eea;
+  background: #eef1fc;
+  padding: 2rpx 10rpx;
+  border-radius: 8rpx;
+  flex-shrink: 0;
+}
+
+.member-weight-gear {
+  width: 56rpx;
+  height: 56rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  color: #909399;
+  flex-shrink: 0;
+  margin-left: 8rpx;
+  border-radius: 50%;
+}
+
+.member-weight-gear:active {
+  background: #e8e8e8;
 }
 
 .member-amount {
@@ -1408,4 +1441,144 @@ page {
   max-width: 480rpx;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* ========== 权重编辑抽屉 ========== */
+.weight-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 2000;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s, visibility 0.25s;
+}
+
+.weight-mask-show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.weight-drawer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #fff;
+  border-radius: 24rpx 24rpx 0 0;
+  z-index: 2001;
+  transform: translateY(100%);
+  transition: transform 0.25s ease-out;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.weight-drawer-show {
+  transform: translateY(0);
+}
+
+.weight-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 32rpx 32rpx 20rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.weight-drawer-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #303133;
+}
+
+.weight-drawer-close {
+  font-size: 44rpx;
+  color: #909399;
+  padding: 0 8rpx;
+  line-height: 1;
+}
+
+.weight-drawer-body {
+  padding: 32rpx 32rpx 40rpx;
+}
+
+.weight-member-name {
+  font-size: 28rpx;
+  color: #606266;
+  margin-bottom: 12rpx;
+}
+
+.weight-desc {
+  font-size: 24rpx;
+  color: #909399;
+  margin: 12rpx 0 24rpx;
+  display: block;
+}
+
+.weight-presets {
+  display: flex;
+  gap: 20rpx;
+  margin-bottom: 24rpx;
+}
+
+.weight-preset {
+  flex: 1;
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f7f8fa;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  color: #606266;
+  border: 2rpx solid transparent;
+  transition: all 0.15s;
+}
+
+.weight-preset-active {
+  background: #eef1fc;
+  border-color: #667eea;
+  color: #667eea;
+  font-weight: 600;
+}
+
+.weight-field {
+  display: flex;
+  align-items: center;
+  background: #f7f8fa;
+  border-radius: 12rpx;
+  padding: 0 24rpx;
+  margin-bottom: 28rpx;
+}
+
+.weight-label {
+  width: 120rpx;
+  font-size: 28rpx;
+  color: #606266;
+  flex-shrink: 0;
+}
+
+.weight-input {
+  flex: 1;
+  height: 88rpx;
+  font-size: 28rpx;
+  color: #333;
+  text-align: right;
+}
+
+.weight-submit-btn {
+  width: 100%;
+  height: 80rpx;
+  line-height: 52rpx;
+  background: #667eea;
+  color: #fff;
+  border-radius: 44rpx;
+  font-size: 28rpx;
+  border: none;
+}
+
+.weight-submit-btn[disabled] {
+  background: #b0b8e0;
 }

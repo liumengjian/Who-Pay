@@ -9,7 +9,7 @@ const {
   roundAmount1,
   formatDateTime
 } = require('../../utils/util.js');
-const { equalShareSlotTargetsOneDecimal } = require('../../utils/equalShare.js');
+const { computeEqualShareFromTeamsData } = require('../../utils/equalShare.js');
 const { getNavTotalHeight } = require('../../utils/navHeight.js');
 const noteStore = require('../../utils/activityNoteStorage.js');
 const cloudStorage = require('../../utils/cloudStorage.js');
@@ -102,15 +102,14 @@ Page({
       const activityInfo = result.activityInfo;
 
       const teamsData = result.teams || [];
-      const teamCount = teamsData.length || 1;
       const totalAmount = parseFloat(result.totalAmount || 0);
-      const teamTargets = equalShareSlotTargetsOneDecimal(totalAmount, teamCount);
-      const shareAmount =
-        teamCount > 0 ? Math.round(totalAmount * 10 / teamCount) / 10 : 0;
+      const eq = computeEqualShareFromTeamsData(teamsData, totalAmount);
+      const shareAmount = eq.displaySharePerHead;
 
-      const teams = teamsData.map((teamData, idx) => {
+      const teams = teamsData.map((teamData) => {
+        const tid = String(teamData._id || teamData.id);
         const teamTotal = parseFloat(teamData.totalAmount || 0);
-        const teamShouldPay = teamTargets[idx] || 0;
+        const teamShouldPay = eq.teamTargetSum[tid] || 0;
         const diffAmount = roundAmount1(teamTotal - teamShouldPay);
         const diffAmountDisplay = formatAmount(Math.abs(diffAmount));
         const memberCount = (teamData.members || []).length || 1;

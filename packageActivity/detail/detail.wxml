@@ -108,9 +108,9 @@
         </view>
       </view>
       <view class="members-list">
-        <view 
-          class="member-item" 
-          wx:for="{{team.members}}" 
+        <view
+          class="member-item"
+          wx:for="{{team.members}}"
           wx:key="userId"
           wx:for-item="member"
           catchtap="viewMemberPayments"
@@ -118,8 +118,14 @@
         >
           <image class="member-avatar" src="{{member.avatarUrl || '/images/default-avatar.png'}}" mode="aspectFill" catchtap="goMemberProfile" data-uid="{{member.userId}}"></image>
           <view class="member-info">
-            <text class="member-name">{{member.nickName}}</text>
+            <view class="member-name-row">
+              <text class="member-name">{{member.nickName}}</text>
+              <text class="member-weight-tag">×{{member.weight || 1.0}}</text>
+            </view>
             <text class="member-amount">¥{{member.totalAmount}}</text>
+          </view>
+          <view wx:if="{{isCreator || team.iCreated}}" class="member-weight-gear" catchtap="openWeightEditor" data-teamid="{{team._id}}" data-userid="{{member.userId}}" data-nickname="{{member.nickName}}" data-weight="{{member.weight || 1.0}}">
+            <text>⚙</text>
           </view>
         </view>
         <view wx:if="{{team.members.length === 0}}" class="empty-members">
@@ -483,5 +489,29 @@
         <button class="btn-secondary" bindtap="hideDeletePayment">取消</button>
         <button class="btn-danger" bindtap="confirmDeletePayment">删除</button>
       </view>
+    </view>
+  </view>
+
+  <!-- 设置成员权重弹窗 -->
+  <view class="weight-mask {{showWeightEditor ? 'weight-mask-show' : ''}}" bindtap="closeWeightEditor"></view>
+  <view class="weight-drawer {{showWeightEditor ? 'weight-drawer-show' : ''}}">
+    <view class="weight-drawer-header">
+      <text class="weight-drawer-title">设置均摊权重</text>
+      <text class="weight-drawer-close" bindtap="closeWeightEditor">×</text>
+    </view>
+    <view class="weight-drawer-body">
+      <text class="weight-member-name">成员：{{weightTargetName}}</text>
+      <text class="weight-desc">权重越大，分摊金额越高（大人=1.0，小孩=0.5）</text>
+      <view class="weight-presets">
+        <view class="weight-preset {{weightValue === 0.5 ? 'weight-preset-active' : ''}}" bindtap="setWeightPreset" data-val="{{0.5}}">0.5</view>
+        <view class="weight-preset {{weightValue === 1.0 ? 'weight-preset-active' : ''}}" bindtap="setWeightPreset" data-val="{{1.0}}">1.0</view>
+        <view class="weight-preset {{weightValue === 1.5 ? 'weight-preset-active' : ''}}" bindtap="setWeightPreset" data-val="{{1.5}}">1.5</view>
+        <view class="weight-preset {{weightValue === 2.0 ? 'weight-preset-active' : ''}}" bindtap="setWeightPreset" data-val="{{2.0}}">2.0</view>
+      </view>
+      <view class="weight-field">
+        <text class="weight-label">自定义</text>
+        <input class="weight-input" type="digit" placeholder="输入权重值" value="{{weightCustomInput}}" bindinput="onWeightCustomInput" />
+      </view>
+      <button class="weight-submit-btn" bindtap="submitWeight" loading="{{weightSubmitting}}" disabled="{{weightSubmitting}}">确认修改</button>
     </view>
   </view>

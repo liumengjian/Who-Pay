@@ -294,6 +294,10 @@ function changePassword(oldPassword, newPassword) {
   return callAPI('/api/user/change-password', 'PUT', { oldPassword, newPassword });
 }
 
+function updateMemberWeight(teamId, userId, weight) {
+  return callAPI(`/api/team/${teamId}/member/${userId}/weight`, 'PUT', { weight });
+}
+
 module.exports = {
   callAPI,
   login,
@@ -349,5 +353,6 @@ module.exports = {
   updateFriendRemark,
   clearChatWithFriend,
   inviteFriendsToActivity,
-  changePassword
+  changePassword,
+  updateMemberWeight
 };

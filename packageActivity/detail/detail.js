@@ -14,7 +14,8 @@ const {
   getActivityPayments,
   deletePayment,
   applyForJoin,
-  settleEqualShare
+  settleEqualShare,
+  updateMemberWeight
 } = require('../../utils/cloud.js');
 const {
   computeEqualShareFromTeamsData
@@ -92,6 +93,14 @@ Page({
     deletePaymentAmount: '',
     deletePaymentRemark: '',
     deletePaymentUserId: '',
+    // 权重编辑
+    showWeightEditor: false,
+    weightTargetUserId: '',
+    weightTargetTeamId: '',
+    weightTargetName: '',
+    weightValue: 1.0,
+    weightCustomInput: '',
+    weightSubmitting: false,
     showEqualizeBtn: false,
     shareBalancedComplete: false,
     triggered: false,
@@ -224,14 +233,12 @@ Page({
           myTeam = team;
           myTeamDiff = team.diffAmount;
           isTeamCreator = String(team.creatorId) === String(userId);
-          if (team.diffAmount < 0) {
-            myPersonalDiffNum = parseFloat(
-              (Math.abs(team.diffAmount) / team.memberCount).toFixed(1)
-            );
-          } else if (team.diffAmount > 0) {
-            myPersonalDiffNum = parseFloat(
-              (team.diffAmount / team.memberCount).toFixed(1)
-            );
+          const myWeight = parseFloat(member.weight != null ? member.weight : 1);
+          const teamTotalWeight = team.members.reduce(
+            (s, m) => s + parseFloat(m.weight != null ? m.weight : 1), 0
+          );
+          if (teamTotalWeight > 0 && team.diffAmount !== 0) {
+            myPersonalDiffNum = roundAmount1(team.diffAmount * myWeight / teamTotalWeight);
           }
           break;
         }
@@ -433,6 +440,61 @@ Page({
       hideLoading();
       console.error('删除支付记录失败:', error);
       showError(error.message || '删除失败');
+    }
+  },
+
+  // ========== 成员权重编辑 ==========
+  openWeightEditor(e) {
+    const { teamid, userid, nickname, weight } = e.currentTarget.dataset;
+    const w = parseFloat(weight) || 1.0;
+    this.setData({
+      showWeightEditor: true,
+      weightTargetTeamId: teamid,
+      weightTargetUserId: userid,
+      weightTargetName: nickname,
+      weightValue: w,
+      weightCustomInput: String(w),
+      weightSubmitting: false
+    });
+  },
+
+  closeWeightEditor() {
+    this.setData({ showWeightEditor: false });
+  },
+
+  setWeightPreset(e) {
+    const val = parseFloat(e.currentTarget.dataset.val);
+    this.setData({
+      weightValue: val,
+      weightCustomInput: String(val)
+    });
+  },
+
+  onWeightCustomInput(e) {
+    const v = e.detail.value;
+    this.setData({
+      weightCustomInput: v,
+      weightValue: parseFloat(v) || 0
+    });
+  },
+
+  async submitWeight() {
+    const { weightTargetTeamId, weightTargetUserId, weightCustomInput } = this.data;
+    const w = parseFloat(weightCustomInput);
+    if (isNaN(w) || w <= 0 || w > 99.9) {
+      showError('请输入合法的权重值（> 0 且 ≤ 99.9）');
+      return;
+    }
+    this.setData({ weightSubmitting: true });
+    try {
+      await updateMemberWeight(weightTargetTeamId, weightTargetUserId, parseFloat(w.toFixed(1)));
+      showSuccess('权重已更新');
+      this.setData({ showWeightEditor: false });
+      await this.loadActivityDetail();
+    } catch (e) {
+      showError((e && e.message) || '修改失败');
+    } finally {
+      this.setData({ weightSubmitting: false });
     }
   },
 
