@@ -1,4 +1,4 @@
-const { updateUserInfo } = require('../../utils/cloud.js');
+const { updateUserInfo, changePassword } = require('../../utils/cloud.js');
 const cloudStorage = require('../../utils/cloudStorage.js');
 const { showLoading, hideLoading, showSuccess, showError, chooseImage } = require('../../utils/util.js');
 const { getNavTotalHeight } = require('../../utils/navHeight.js');
@@ -13,7 +13,15 @@ Page({
     region: '',
     regionPickerValue: [],
     albumUrls: [],
-    navHeight: 0
+    navHeight: 0,
+    pwdDrawerShow: false,
+    oldPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+    pwdSubmitting: false,
+    showOldPwd: false,
+    showNewPwd: false,
+    showConfirmPwd: false
   },
 
   onLoad() {
@@ -173,6 +181,82 @@ Page({
       showError((e && e.message) || '保存失败');
     } finally {
       hideLoading();
+    }
+  },
+
+  showPasswordDrawer() {
+    this.setData({
+      pwdDrawerShow: true,
+      oldPassword: '',
+      newPassword: '',
+      confirmPassword: '',
+      pwdSubmitting: false,
+      showOldPwd: false,
+      showNewPwd: false,
+      showConfirmPwd: false
+    });
+  },
+
+  closePasswordDrawer() {
+    this.setData({ pwdDrawerShow: false });
+  },
+
+  onOldPassword(e) {
+    this.setData({ oldPassword: e.detail.value });
+  },
+
+  onNewPassword(e) {
+    this.setData({ newPassword: e.detail.value });
+  },
+
+  onConfirmPassword(e) {
+    this.setData({ confirmPassword: e.detail.value });
+  },
+
+  toggleOldPwd() {
+    this.setData({ showOldPwd: !this.data.showOldPwd });
+  },
+
+  toggleNewPwd() {
+    this.setData({ showNewPwd: !this.data.showNewPwd });
+  },
+
+  toggleConfirmPwd() {
+    this.setData({ showConfirmPwd: !this.data.showConfirmPwd });
+  },
+
+  async submitChangePassword() {
+    const { oldPassword, newPassword, confirmPassword } = this.data;
+    if (!oldPassword || !String(oldPassword).trim()) {
+      showError('请输入原密码');
+      return;
+    }
+    if (!newPassword || !String(newPassword).trim()) {
+      showError('请输入新密码');
+      return;
+    }
+    if (String(newPassword).trim().length < 6) {
+      showError('新密码至少6位');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      showError('两次新密码不一致');
+      return;
+    }
+    if (oldPassword === newPassword) {
+      showError('新密码不能与原密码相同');
+      return;
+    }
+
+    this.setData({ pwdSubmitting: true });
+    try {
+      await changePassword(String(oldPassword).trim(), String(newPassword).trim());
+      showSuccess('密码修改成功');
+      this.setData({ pwdDrawerShow: false });
+    } catch (e) {
+      showError((e && e.message) || '修改失败');
+    } finally {
+      this.setData({ pwdSubmitting: false });
     }
   }
 });

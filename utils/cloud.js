@@ -290,6 +290,10 @@ function clearChatWithFriend(friendId) {
   return callAPI('/api/chat/clear', 'POST', { friendId });
 }
 
+function changePassword(oldPassword, newPassword) {
+  return callAPI('/api/user/change-password', 'PUT', { oldPassword, newPassword });
+}
+
 module.exports = {
   callAPI,
   login,
@@ -344,5 +348,6 @@ module.exports = {
   getUserProfile,
   updateFriendRemark,
   clearChatWithFriend,
-  inviteFriendsToActivity
+  inviteFriendsToActivity,
+  changePassword
 };

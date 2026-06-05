@@ -1,5 +1,5 @@
 <cu-custom bgColor="bg-gradual-blue" isBack="{{true}}">
-  <view slot="content" class="nav-title-white">编辑主页</view>
+  <view slot="content" class="nav-title-white">编辑</view>
 </cu-custom>
 <view class="page-edit-body" style="height: calc(100vh - {{navHeight}}px)">
   <scroll-view class="page-edit-scroll" scroll-y>
@@ -15,7 +15,7 @@
         <view class="row-body row-body-bg">
           <image wx:if="{{profileBackground}}" class="bg-preview" src="{{profileBackground}}" mode="aspectFill" />
           <text wx:else class="input-plain t-ph">点击上传</text>
-          <text wx:if="{{profileBackground}}" class="bg-clear" catchtap="clearBackground">清除</text>
+          <text wx:if="{{profileBackground}}" class="bg-clear" catchtap="clearBackground">×</text>
         </view>
       </view>
       <view class="row">
@@ -49,5 +49,36 @@
 
   <view class="bottom-bar">
     <button class="save-btn" bindtap="saveAll">保存</button>
+  </view>
+
+  <view class="pwd-link" bindtap="showPasswordDrawer">
+    <text>修改密码</text>
+  </view>
+</view>
+
+<!-- 修改密码抽屉 -->
+<view class="pwd-mask {{pwdDrawerShow ? 'pwd-mask-show' : ''}}" bindtap="closePasswordDrawer"></view>
+<view class="pwd-drawer {{pwdDrawerShow ? 'pwd-drawer-show' : ''}}">
+  <view class="pwd-drawer-header">
+    <text class="pwd-drawer-title">修改密码</text>
+    <text class="pwd-drawer-close" bindtap="closePasswordDrawer">×</text>
+  </view>
+  <view class="pwd-drawer-body">
+    <view class="pwd-field">
+      <text class="pwd-label">原密码</text>
+      <input class="pwd-input" password="{{!showOldPwd}}" placeholder="请输入原密码" value="{{oldPassword}}" bindinput="onOldPassword" />
+      <text class="pwd-eye {{showOldPwd ? 'pwd-eye-on' : ''}}" catchtap="toggleOldPwd">{{showOldPwd ? '👁' : '👁'}}</text>
+    </view>
+    <view class="pwd-field">
+      <text class="pwd-label">新密码</text>
+      <input class="pwd-input" password="{{!showNewPwd}}" placeholder="至少6位新密码" value="{{newPassword}}" bindinput="onNewPassword" />
+      <text class="pwd-eye {{showNewPwd ? 'pwd-eye-on' : ''}}" catchtap="toggleNewPwd">{{showNewPwd ? '👁' : '👁'}}</text>
+    </view>
+    <view class="pwd-field">
+      <text class="pwd-label">确认密码</text>
+      <input class="pwd-input" password="{{!showConfirmPwd}}" placeholder="再次输入新密码" value="{{confirmPassword}}" bindinput="onConfirmPassword" />
+      <text class="pwd-eye {{showConfirmPwd ? 'pwd-eye-on' : ''}}" catchtap="toggleConfirmPwd">{{showConfirmPwd ? '👁' : '👁'}}</text>
+    </view>
+    <button class="pwd-submit-btn" bindtap="submitChangePassword" loading="{{pwdSubmitting}}" disabled="{{pwdSubmitting}}">确认修改</button>
   </view>
 </view>
