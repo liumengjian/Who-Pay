@@ -1,9 +1,11 @@
 /**
- * 微信云托管对象存储：上传 / 删除 / 将历史 base64 等迁移为 cloud fileID
- * 文档：https://developers.weixin.qq.com/miniprogram/dev/wxcloudservice/wxcloudrun/src/development/storage/miniapp/upload.html
+ * 对象存储：上传 / 删除 / 将历史 base64 等迁移为 CDN URL
+ * 自建服务器模式：通过 HTTP 上传到后端 /api/files/upload，后端存到腾讯云 COS
+ * 云托管模式（回退）：通过 wx.cloud.* API
  */
 
-const { CLOUD_ENV, CLOUD_STORAGE_PATH_PREFIX } = require('../service/config.js');
+const { USE_CLOUD_CONTAINER, CLOUD_ENV, API_BASE_URL, COS_CDN_DOMAIN, CLOUD_STORAGE_PATH_PREFIX } = require('../service/config.js');
+const { normalizeStorageUrl } = require('./storageUrl.js');
 
 /** 与控制台存储路径对齐：自动加 files/ 等前缀（已含前缀则不再重复） */
 function normalizeUploadCloudPath(cloudPath) {
@@ -17,12 +19,29 @@ function normalizeUploadCloudPath(cloudPath) {
   return `${prefix}/${raw}`;
 }
 
+/**
+ * 自建服务器模式下，始终返回 true（只要配置了 API_BASE_URL）
+ * 云托管模式下，检查 wx.cloud.uploadFile 是否可用
+ */
 function cloudReady() {
+  if (!USE_CLOUD_CONTAINER) {
+    return !!API_BASE_URL;
+  }
   return !!(wx.cloud && typeof wx.cloud.uploadFile === 'function');
 }
 
+/**
+ * 检查是否为云存储 fileID（cloud:// 前缀）
+ * 自建服务器模式下不再使用 cloud://，但兼容历史数据
+ */
 function isCloudFileId(s) {
   return typeof s === 'string' && /^cloud:\/\//i.test(s.trim());
+}
+
+/** 是否为 CDN URL（自建服务器模式下的文件引用） */
+function isCdnUrl(s) {
+  if (!COS_CDN_DOMAIN) return false;
+  return typeof s === 'string' && s.trim().startsWith(COS_CDN_DOMAIN);
 }
 
 /** 是否为 data:image/...;base64,... */
@@ -45,6 +64,7 @@ function isImageStoredReference(u) {
   if (!u || typeof u !== 'string') return false;
   const s = u.trim();
   if (isCloudFileId(s)) return true;
+  if (isCdnUrl(s)) return true;
   if (s.startsWith('/images/')) return true;
   if (/^https:\/\//i.test(s) && !/^https?:\/\/(tmp|usr)\//i.test(s)) return true;
   if (/^http:\/\//i.test(s) && !/^http:\/\/(tmp|usr)\//i.test(s)) return true;
@@ -68,21 +88,67 @@ function compressLocalIfPossible(filePath, quality) {
 }
 
 /**
+ * 上传文件到后端 /api/files/upload（自建服务器模式）
+ * @param {string} filePath 本地临时路径
+ * @param {string} cloudPath 对象存储路径，如 users/1/a.jpg
+ * @returns {Promise<string>} CDN URL
+ */
+function uploadFileViaHttp(filePath, cloudPath) {
+  const token = wx.getStorageSync('token');
+  const finalPath = normalizeUploadCloudPath(cloudPath);
+  return new Promise((resolve, reject) => {
+    wx.uploadFile({
+      url: `${API_BASE_URL}/api/files/upload`,
+      filePath,
+      name: 'file',
+      formData: {
+        path: finalPath
+      },
+      header: {
+        'Authorization': `Bearer ${token}`
+      },
+      success: (res) => {
+        try {
+          const data = JSON.parse(res.data);
+          if (data.success && data.url) {
+            resolve(normalizeStorageUrl(data.url));
+          } else {
+            reject(new Error(data.message || '上传失败'));
+          }
+        } catch (e) {
+          reject(new Error('解析上传响应失败'));
+        }
+      },
+      fail: reject
+    });
+  });
+}
+
+/**
+ * 上传文件（兼容云托管和自建服务器两种模式）
  * @param {string} filePath 本地临时路径
  * @param {string} cloudPath 对象存储路径，勿以 / 开头，如 users/1/a.jpg
  */
 function uploadLocalFile(filePath, cloudPath) {
   return new Promise((resolve, reject) => {
     if (!cloudReady()) {
-      reject(new Error('云存储未初始化'));
+      reject(new Error('存储未初始化'));
       return;
     }
+
+    // 自建服务器模式：HTTP 上传
+    if (!USE_CLOUD_CONTAINER) {
+      uploadFileViaHttp(filePath, cloudPath).then(resolve).catch(reject);
+      return;
+    }
+
+    // 云托管模式（回退）：wx.cloud.uploadFile
     const finalPath = normalizeUploadCloudPath(cloudPath);
     wx.cloud.uploadFile({
       cloudPath: finalPath,
       filePath,
       config: { env: CLOUD_ENV },
-      success: (res) => resolve(res.fileID),
+      success: (res) => resolve(normalizeStorageUrl(res.fileID)),
       fail: reject
     });
   });
@@ -94,17 +160,45 @@ async function uploadLocalImage(filePath, cloudPath, options) {
   return uploadLocalFile(src, cloudPath);
 }
 
+/**
+ * 批量删除文件
+ */
 function deleteCloudFiles(fileList) {
   const ids = (fileList || [])
     .map((x) => String(x || '').trim())
-    .filter((x) => isCloudFileId(x));
+    .filter((x) => isCloudFileId(x) || isCdnUrl(x) || /^https?:\/\//i.test(x));
   if (!ids.length) return Promise.resolve();
+
+  // 自建服务器模式：HTTP 删除
+  if (!USE_CLOUD_CONTAINER) {
+    const token = wx.getStorageSync('token');
+    return new Promise((resolve) => {
+      wx.request({
+        url: `${API_BASE_URL}/api/files/delete`,
+        method: 'POST',
+        data: { urls: ids },
+        header: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        success: () => resolve(),
+        fail: (e) => {
+          console.warn('[cloudStorage] deleteFiles HTTP', e);
+          resolve();
+        }
+      });
+    });
+  }
+
+  // 云托管模式（回退）
+  const cloudIds = ids.filter((x) => isCloudFileId(x));
+  if (!cloudIds.length) return Promise.resolve();
   if (!cloudReady() || typeof wx.cloud.deleteFile !== 'function') {
     return Promise.resolve();
   }
   return new Promise((resolve) => {
     wx.cloud.deleteFile({
-      fileList: ids,
+      fileList: cloudIds,
       success: () => resolve(),
       fail: (e) => {
         console.warn('[cloudStorage] deleteFile', e);
@@ -144,14 +238,15 @@ function dataUrlToTempPath(dataUrl) {
 }
 
 /**
- * 若为 data:image base64，则上传并返回 fileID；已是 cloud:// / 合法网络 URL / 包内路径则原样返回。
+ * 若为 data:image base64，则上传并返回 URL；已是 CDN URL / cloud:// / 合法网络 URL / 包内路径则原样返回。
  * @param {string} url
  * @param {string} cloudPath 目标 cloudPath
  */
 async function migrateImageUrlToCloudIfNeeded(url, cloudPath) {
-  const u = String(url || '').trim();
+  const u = normalizeStorageUrl(String(url || '').trim());
   if (!u) return u;
   if (isCloudFileId(u)) return u;
+  if (isCdnUrl(u)) return u;
   if (u.startsWith('/images/')) return u;
   if (/^https?:\/\//i.test(u) && !isLikelyEphemeralLocal(u)) return u;
   if (!cloudReady()) return u;
@@ -186,12 +281,13 @@ async function migrateImageUrlToCloudIfNeeded(url, cloudPath) {
 }
 
 /**
- * 笔记附件：与 migrateImageUrlToCloudIfNeeded 同策略，走 wx.cloud.uploadFile（不压缩），目录与图片一致 activities/{id}/notes/
+ * 笔记附件：与 migrateImageUrlToCloudIfNeeded 同策略，走上传（不压缩）
  */
 async function migrateAttachmentUrlToCloudIfNeeded(url, cloudPath) {
-  const u = String(url || '').trim();
+  const u = normalizeStorageUrl(String(url || '').trim());
   if (!u) return u;
   if (isCloudFileId(u)) return u;
+  if (isCdnUrl(u)) return u;
   if (u.startsWith('/images/')) return u;
   if (/^https?:\/\//i.test(u) && !isLikelyEphemeralLocal(u)) return u;
   if (!cloudReady()) return u;
@@ -246,15 +342,34 @@ async function migrateAttachmentUrlToCloudIfNeeded(url, cloudPath) {
 
 /**
  * 笔记附件：拉取到本地临时路径供 wx.openDocument 使用。
- * 云文件优先 wx.cloud.downloadFile，避免临时 HTTPS 链接不在 downloadFile 合法域名内导致失败。
+ * 自建服务器模式：CDN URL 直接用 wx.downloadFile 下载
+ * 云托管模式：云文件优先 wx.cloud.downloadFile
  */
 function downloadNoteAttachmentToTempPath(url) {
-  const raw = String(url || '').trim();
+  const raw = normalizeStorageUrl(String(url || '').trim());
   if (!raw) return Promise.reject(new Error('附件地址无效'));
   if (raw.startsWith('data:')) {
     return Promise.reject(new Error('暂不支持预览此类附件'));
   }
 
+  // 自建服务器模式：直接用 wx.downloadFile + URL
+  if (!USE_CLOUD_CONTAINER) {
+    if (/^https?:\/\//i.test(raw)) {
+      return new Promise((resolve, reject) => {
+        wx.downloadFile({
+          url: raw,
+          success: (r) => {
+            if (r.statusCode === 200 && r.tempFilePath) resolve(r.tempFilePath);
+            else reject(new Error('下载失败'));
+          },
+          fail: reject
+        });
+      });
+    }
+    return Promise.resolve(raw);
+  }
+
+  // 以下为云托管模式（回退）
   const getTempUrlThenHttpDownload = () =>
     new Promise((resolve, reject) => {
       if (!wx.cloud || typeof wx.cloud.getTempFileURL !== 'function') {
@@ -323,16 +438,16 @@ function downloadNoteAttachmentToTempPath(url) {
 }
 
 /**
- * 是否需要做「上传云存储并换 URL」的迁移（当前仅对 data:image base64 为 true）
+ * 是否需要做「上传存储并换 URL」的迁移（当前仅对 data:image base64 为 true）
  */
 function needsMigrateToCloud(url) {
   return isDataImageUrl(url);
 }
 
 module.exports = {
-  CLOUD_ENV,
   cloudReady,
   isCloudFileId,
+  isCdnUrl,
   isDataImageUrl,
   isLikelyEphemeralLocal,
   isImageStoredReference,

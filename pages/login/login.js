@@ -25,7 +25,22 @@ Page({
 
   onLoad(options) {
     const token = wx.getStorageSync('token');
+    // 保存分享链接的重定向地址（如从分享页跳转过来）
+    if (options.redirect) {
+      this._redirectUrl = options.redirect;
+    }
     if (token) {
+      this._goHome();
+    }
+  },
+
+  _goHome() {
+    const url = this._redirectUrl;
+    this._redirectUrl = '';
+    if (url) {
+      // 重定向到分享的页面（可能是分包页面，用 reLaunch）
+      wx.reLaunch({ url });
+    } else {
       wx.switchTab({
         url: '/pages/activity/index'
       });
@@ -116,9 +131,7 @@ Page({
     app.connectWS();
 
     showSuccess('登录成功');
-    wx.switchTab({
-      url: '/pages/activity/index'
-    });
+    this._goHome();
   },
 
   async handleLogin(username, passwordPlain) {
@@ -149,9 +162,7 @@ Page({
 
         hideLoading();
         showSuccess('登录成功');
-        wx.switchTab({
-          url: '/pages/activity/index'
-        });
+        this._goHome();
       } else {
         throw new Error(result?.message || '登录失败，请重试');
       }
@@ -249,9 +260,7 @@ Page({
           mask: true
         });
         setTimeout(() => {
-          wx.switchTab({
-            url: '/pages/activity/index'
-          });
+          this._goHome();
         }, 1800);
       } else {
         throw new Error(result?.message || '注册失败，请重试');

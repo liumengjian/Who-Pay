@@ -11,11 +11,36 @@
   font-weight: 600;
 }
 
+/* Tab 切换栏 */
+.tab-bar {
+  display: flex;
+  background: #fff;
+  border-radius: 20rpx 20rpx 0 0;
+  overflow: hidden;
+}
+
+.tab-item {
+  flex: 1;
+  text-align: center;
+  padding: 24rpx 0;
+  font-size: 28rpx;
+  color: #666;
+  border-bottom: 4rpx solid transparent;
+  transition: all 0.2s;
+}
+
+.tab-item.tab-active {
+  color: #667eea;
+  border-bottom-color: #667eea;
+  font-weight: 600;
+}
+
 .form-card {
   background: #fff;
-  border-radius: 20rpx;
+  border-radius: 0 0 20rpx 20rpx;
   padding: 32rpx;
   box-shadow: 0 4rpx 16rpx rgba(102, 126, 234, 0.08);
+  margin-bottom: 24rpx;
 }
 
 .field-label {
@@ -47,6 +72,10 @@
   box-sizing: border-box;
 }
 
+.guide-textarea {
+  min-height: 500rpx;
+}
+
 .publish-btn {
   margin-top: 40rpx;
   height: 76rpx;
@@ -69,4 +98,81 @@
   font-size: 24rpx;
   color: #999;
   line-height: 1.5;
+}
+
+/* 新手指引编辑 */
+.guide-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12rpx;
+}
+
+.add-section-btn {
+  font-size: 24rpx;
+  color: #667eea;
+  background: none;
+  border: none;
+  padding: 8rpx 16rpx;
+  line-height: 1;
+}
+
+.add-section-btn::after {
+  border: none;
+}
+
+.field-hint {
+  display: block;
+  font-size: 22rpx;
+  color: #999;
+  margin-bottom: 24rpx;
+  line-height: 1.4;
+}
+
+.loading-hint {
+  text-align: center;
+  padding: 60rpx 0;
+  color: #999;
+  font-size: 26rpx;
+}
+
+.guide-section-card {
+  background: #f7f8fa;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 24rpx;
+}
+
+.guide-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20rpx;
+}
+
+.guide-section-index {
+  font-size: 24rpx;
+  color: #667eea;
+  font-weight: 600;
+}
+
+.guide-section-remove {
+  font-size: 24rpx;
+  color: #e74c3c;
+  padding: 6rpx 12rpx;
+}
+
+.input-group {
+  margin-bottom: 16rpx;
+}
+
+.input-label {
+  display: block;
+  font-size: 24rpx;
+  color: #666;
+  margin-bottom: 8rpx;
+}
+
+.required {
+  color: #e74c3c;
 }

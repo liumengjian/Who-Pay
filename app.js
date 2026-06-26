@@ -1,17 +1,10 @@
 // app.js
-const { CLOUD_ENV } = require('./service/config.js');
+const { API_BASE_URL } = require('./service/config.js');
 const { callAPI } = require('./utils/cloud.js');
 const { computeNavTotalHeight } = require('./utils/navHeight.js');
-const { CLOUD_ENV: WS_ENV, CLOUD_SERVICE } = require('./service/config.js');
 
 App({
   onLaunch() {
-    if (wx.cloud) {
-      wx.cloud.init({
-        env: CLOUD_ENV,
-        traceUser: true
-      });
-    }
     // 窗口信息，用于 cu-custom 导航栏（避免 getSystemInfo / getSystemInfoSync 废弃告警）
     try {
       const win =
@@ -95,12 +88,12 @@ App({
     if (!token) return;
     if (this.globalData.wsTask) return; // already connected
 
-    wx.cloud.connectContainer({
-      env: WS_ENV,
-      service: CLOUD_SERVICE,
-      path: `/ws?token=${encodeURIComponent(token)}`,
-      success: (res) => {
-        const task = res.socketTask;
+    // 构建 wss:// URL
+    const wsUrl = API_BASE_URL.replace(/^https/, 'wss') + `/ws?token=${encodeURIComponent(token)}`;
+
+    const task = wx.connectSocket({
+      url: wsUrl,
+      success: () => {
         this.globalData.wsTask = task;
 
         task.onOpen(() => {

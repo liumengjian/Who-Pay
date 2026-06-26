@@ -1,16 +1,31 @@
-const { publishSystemNotice } = require('../../utils/cloud.js');
+const { publishSystemNotice, getOnboardingGuide, saveOnboardingGuide } = require('../../utils/cloud.js');
 const { showLoading, hideLoading, showSuccess, showError } = require('../../utils/util.js');
 const { ADMIN_USERNAME } = require('../../utils/constants.js');
 
 Page({
   data: {
+    currentTab: 'notice',
+    // 更新公告
     title: '',
-    body: ''
+    body: '',
+    // 新手指引
+    guideBody: '',
+    guideLoading: false
   },
 
   onLoad() {
     const ui = wx.getStorageSync('userInfo') || {};
   },
+
+  switchTab(e) {
+    const tab = e.currentTarget.dataset.tab;
+    this.setData({ currentTab: tab });
+    if (tab === 'guide') {
+      this.loadGuide();
+    }
+  },
+
+  // ========== 更新公告 ==========
 
   onTitleInput(e) {
     this.setData({ title: e.detail.value });
@@ -42,6 +57,44 @@ Page({
     } catch (e) {
       hideLoading();
       showError(e.message || '发布失败');
+    }
+  },
+
+  // ========== 新手指引 ==========
+
+  async loadGuide() {
+    this.setData({ guideLoading: true });
+    try {
+      const result = await getOnboardingGuide();
+      this.setData({
+        guideBody: result.body || '',
+        guideLoading: false
+      });
+    } catch (e) {
+      console.error('加载新手指引失败:', e);
+      showError(e.message || '加载失败');
+      this.setData({ guideLoading: false });
+    }
+  },
+
+  onGuideBodyInput(e) {
+    this.setData({ guideBody: e.detail.value });
+  },
+
+  async onSaveGuide() {
+    const body = (this.data.guideBody || '').trim();
+    if (!body) {
+      showError('请填写新手指引内容');
+      return;
+    }
+    showLoading('保存中...');
+    try {
+      await saveOnboardingGuide(body);
+      hideLoading();
+      showSuccess('新手指引已保存');
+    } catch (e) {
+      hideLoading();
+      showError(e.message || '保存失败');
     }
   }
 });

@@ -20,7 +20,7 @@
     <view class="pay-card margin-bottom" wx:for="{{payments}}" wx:key="id">
       <view class="flex-between">
         <text class="text-bold">{{item.activityName || '活动'}}</text>
-        <text class="text-price">¥{{item.amount}}</text>
+        <text class="text-price">{{item.amount}}</text>
       </view>
       <text wx:if="{{item.remark}}" class="text-sm block margin-top-xs">{{item.remark}}</text>
       <text class="text-gray text-sm block margin-top-xs">{{item.createTime}}</text>

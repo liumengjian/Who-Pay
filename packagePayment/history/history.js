@@ -45,6 +45,13 @@ Page({
     });
   },
 
+  onShareAppMessage() {
+    return {
+      title: 'Who Pay - 支付流水',
+      path: '/packagePayment/history/history'
+    };
+  },
+
   onFilterActivityChange(e) {
     const idx = parseInt(e.detail.value, 10);
     const options = this.data.activityOptions || [];

@@ -1,7 +1,10 @@
 const { catalog } = require('./chatEmojiCatalog.js');
-const { CLOUD_ENV, CLOUD_STORAGE_BUCKET } = require('../service/config.js');
+const { CLOUD_ENV, CLOUD_STORAGE_BUCKET, COS_CDN_DOMAIN } = require('../service/config.js');
 
+/** 云托管模式（回退）：cloud:// 前缀 */
 const EMOJI_CLOUD_PREFIX = `cloud://${CLOUD_ENV}.${CLOUD_STORAGE_BUCKET}/files/emoji`;
+/** 自建服务器模式：COS CDN URL */
+const EMOJI_CDN_PREFIX = COS_CDN_DOMAIN ? `${COS_CDN_DOMAIN.replace(/\/+$/, '')}/whopay/emoji` : '';
 const EMOJI_TOKEN_RE = /\[emoji:([^\]]+)\]/g;
 const WEEK_LABELS = ['日', '一', '二', '三', '四', '五', '六'];
 
@@ -18,6 +21,11 @@ function emojiKey(category, filename) {
 function toCloudFileId(key) {
   const k = String(key || '').trim().replace(/^\/+/, '');
   if (!k) return '';
+  // 自建服务器模式：返回 CDN URL
+  if (EMOJI_CDN_PREFIX) {
+    return `${EMOJI_CDN_PREFIX}/${k}`;
+  }
+  // 云托管模式（回退）：返回 cloud:// fileID
   return `${EMOJI_CLOUD_PREFIX}/${k}`;
 }
 
@@ -81,6 +89,17 @@ function resolveEmojiUrls(keys) {
   });
   if (!pending.length) return Promise.resolve(out);
 
+  // 自建服务器模式：直接拼接 CDN URL，无需 getTempFileURL
+  if (EMOJI_CDN_PREFIX) {
+    pending.forEach((key) => {
+      const url = `${EMOJI_CDN_PREFIX}/${key}`;
+      out[key] = url;
+      _urlCache[key] = url;
+    });
+    return Promise.resolve(out);
+  }
+
+  // 云托管模式（回退）：通过 getTempFileURL 获取临时链接
   const fileList = pending.map(toCloudFileId).filter(Boolean);
   if (!fileList.length || !wx.cloud || typeof wx.cloud.getTempFileURL !== 'function') {
     pending.forEach((key) => {

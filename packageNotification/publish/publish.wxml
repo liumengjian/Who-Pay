@@ -1,7 +1,14 @@
 <cu-custom bgColor="bg-gradual-blue" isBack="{{true}}">
 </cu-custom>
 <view class="publish-page">
-  <view class="form-card">
+  <!-- Tab 切换栏 -->
+  <view class="tab-bar">
+    <view class="tab-item {{currentTab === 'notice' ? 'tab-active' : ''}}" data-tab="notice" bindtap="switchTab">更新公告</view>
+    <view class="tab-item {{currentTab === 'guide' ? 'tab-active' : ''}}" data-tab="guide" bindtap="switchTab">新手指引</view>
+  </view>
+
+  <!-- 更新公告 Tab -->
+  <view wx:if="{{currentTab === 'notice'}}" class="form-card">
     <text class="field-label">通知标题</text>
     <input
       class="field-input"
@@ -21,5 +28,25 @@
     />
     <button class="publish-btn" bindtap="onPublish">发布</button>
     <text class="publish-hint">将向所有注册用户推送一条「版本更新」类系统通知</text>
+  </view>
+
+  <!-- 新手指引 Tab -->
+  <view wx:if="{{currentTab === 'guide'}}" class="form-card">
+    <text class="field-label">新手指引内容</text>
+    <text class="field-hint">新用户注册时将自动收到此指引内容。支持多行文本，章节之间请用空行分隔。</text>
+
+    <view wx:if="{{guideLoading}}" class="loading-hint">加载中...</view>
+
+    <textarea
+      wx:if="{{!guideLoading}}"
+      class="field-textarea guide-textarea"
+      placeholder="请输入新手指引内容"
+      value="{{guideBody}}"
+      maxlength="10000"
+      auto-height
+      bindinput="onGuideBodyInput"
+    />
+
+    <button class="publish-btn" bindtap="onSaveGuide">保存</button>
   </view>
 </view>

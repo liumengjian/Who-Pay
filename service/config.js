@@ -4,38 +4,37 @@
  */
 
 /**
- * 真机走微信云托管时，用 wx.cloud.callContainer，无需配置合法域名到该 HTTPS。
- * 浏览器 / Postman / 未开通云开发时，仍可用 API_BASE_URL + wx.request。
+ * 自建服务器模式：false = 使用 wx.request 直连 HTTPS 后端
+ * 云托管模式（回退）：true = 使用 wx.cloud.callContainer
  */
-const USE_CLOUD_CONTAINER = true;
+const USE_CLOUD_CONTAINER = false;
 
-/** 云开发 / 云托管环境 ID（与 wx.cloud.init、callContainer、uploadFile 的 config.env 一致） */
+// ========== 以下为云托管模式配置（回退用，当前未启用） ==========
+/** 云开发 / 云托管环境 ID */
 const CLOUD_ENV = 'prod-4g6txya8d2f21745';
-
-/** 对象存储桶 ID（控制台对象存储 · 存储桶列表，与 fileID 中 bucket 段一致） */
+/** 对象存储桶 ID */
 const CLOUD_STORAGE_BUCKET = '7072-prod-4g6txya8d2f21745-1413661498';
-
 /** 对象存储地域 */
 const CLOUD_STORAGE_REGION = 'ap-shanghai';
-
-/**
- * 控制台「存储路径」中的业务目录前缀（7072-.../files → 上传 cloudPath 使用 files/...）
- * 设为 '' 则仍用代码里写的路径（如 users/、activities/）直传根目录。
- */
-const CLOUD_STORAGE_PATH_PREFIX = 'files';
-
-/**
- * 云托管服务名，必须与 callContainer 请求头 X-WX-SERVICE 一致
- * （控制台服务名，你示例里为 koa-eeo7）
- */
+/** 云托管服务名 */
 const CLOUD_SERVICE = 'koa-eeo7';
+const CLOUD_STORAGE_PATH_PREFIX = 'files';
+// ========== 云托管配置结束 ==========
 
 /**
- * wx.request 直连时的 HTTPS 根地址（仅当未使用 callContainer 时生效）
- * 与浏览器访问一致，例如：https://koa-eeo7-243325-4-1413661498.sh.run.tcloudbase.com
+ * 自建服务器 HTTPS 接口根地址（Nginx 通过 /whopay/ 前缀转发到后端）
+ * 例如：https://who-pay.example.com/whopay
  */
-const API_BASE_URL =
-  'https://koa-eeo7-243325-4-1413661498.sh.run.tcloudbase.com';
+const API_BASE_URL = 'https://www.prina.site/whopay';
+// const API_BASE_URL = 'http://111.229.133.119';
+
+/**
+ * 腾讯云 COS CDN 域名（对象存储文件访问）
+ * 存储桶：prina-1413661498，地域：ap-shanghai
+ */
+const COS_CDN_DOMAIN = 'https://prina-1413661498.cos.ap-shanghai.myqcloud.com';
+/** 当前对外展示/入库的存储资源前缀（Nginx 通过 /whopay 代理到新存储桶） */
+const STORAGE_URL_PREFIX = `${COS_CDN_DOMAIN}/whopay`;
 
 /**
  * 社交功能开关（好友 / 聊天 / 邀请好友等）
@@ -51,5 +50,7 @@ module.exports = {
   CLOUD_STORAGE_BUCKET,
   CLOUD_STORAGE_REGION,
   CLOUD_STORAGE_PATH_PREFIX,
-  ENABLE_SOCIAL
+  ENABLE_SOCIAL,
+  COS_CDN_DOMAIN,
+  STORAGE_URL_PREFIX,
 };

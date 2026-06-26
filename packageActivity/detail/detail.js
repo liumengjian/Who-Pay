@@ -6,6 +6,7 @@ const {
   getMemberPayments,
   createTeam,
   joinTeamByInvite,
+  joinActivity,
   dissolveTeam,
   updateActivity,
   updateTeam,
@@ -66,6 +67,8 @@ Page({
     showMemberPayments: false,
     paymentAmount: '',
     paymentRemark: '',
+    splitParticipants: [],
+    splitParticipantCount: 0,
     teamName: '',
     teamInviteCode: '',
     selectedMemberId: '',
@@ -140,8 +143,24 @@ Page({
       return;
     }
 
+    // 保存分享参数中的邀请码
+    if (options.invite) {
+      this._sharedInviteCode = options.invite;
+    }
+
     this._openCreateTeamAfterLoad =
       options.needSelectTeam === 'true' || options.needSelectTeam === true;
+
+    // 检查登录态
+    const token = wx.getStorageSync('token');
+    if (!token) {
+      // 未登录：跳转到登录页，完成后回到此页面
+      const redirect = `/packageActivity/detail/detail?id=${activityId}${options.invite ? `&invite=${options.invite}` : ''}`;
+      wx.redirectTo({
+        url: `/pages/login/login?redirect=${encodeURIComponent(redirect)}`
+      });
+      return;
+    }
 
     this.setData({
       activityId: activityId,
@@ -163,6 +182,22 @@ Page({
     this.loadActivityDetail().finally(() => {
       this.setData({ triggered: false });
     });
+  },
+
+  onShareAppMessage() {
+    const name = this.data.activityInfo && this.data.activityInfo.name;
+    const code = this.data.activityInfo && this.data.activityInfo.inviteCode;
+    const id = this.data.activityId;
+    const codeStr = code ? ` [${code}]` : '';
+    let path = id ? `/packageActivity/detail/detail?id=${id}` : '/pages/activity/index';
+    // 把邀请码带入 path，非参与者打开时可用
+    if (code) {
+      path += `&invite=${code}`;
+    }
+    return {
+      title: name ? `${name}${codeStr}` : 'Who Pay',
+      path: path
+    };
   },
 
   async loadActivityDetail() {
@@ -194,8 +229,13 @@ Page({
         const tid = String(teamData._id || teamData.id);
         const teamTotal = parseFloat(teamData.totalAmount || 0);
         const teamMemberCount = (teamData.members || []).length || 1;
-        const teamShouldPay = eq.teamTargetSum[tid] || 0;
-        const diffAmount = roundAmount1(teamTotal - teamShouldPay);
+        const teamShouldPay = teamData.targetAmount != null
+          ? parseFloat(teamData.targetAmount || 0)
+          : (eq.teamTargetSum[tid] || 0);
+        const backendDiff = teamData.diffAmount != null ? parseFloat(teamData.diffAmount) : null;
+        const diffAmount = backendDiff != null && !Number.isNaN(backendDiff)
+          ? roundAmount1(backendDiff)
+          : roundAmount1(teamTotal - teamShouldPay);
         const diffAmountDisplay = formatAmount(Math.abs(diffAmount));
         const memberShareAmount =
           teamMemberCount > 0 ? Math.abs(diffAmount) / teamMemberCount : 0;
@@ -217,6 +257,8 @@ Page({
           ),
           members: (teamData.members || []).map((m) => ({
             ...m,
+            targetAmount: formatAmount(m.targetAmount || 0),
+            diffAmount: formatAmount(m.diffAmount || 0),
             totalAmount: formatAmount(m.totalAmount || 0)
           }))
         };
@@ -250,9 +292,10 @@ Page({
         rawMemberCount > 0 &&
         teams.some((t) => Math.abs(t.diffAmount) >= 0.05);
 
-      /* 每人实付（角）与按人次拆分后的目标（角）一致，视为已均摊完成 */
+      const splitAwareTargets = result.splitSummary && result.splitSummary.userTargetTenths;
+      /* 每人实付（角）与分摊目标（角）一致，视为已均摊完成 */
       let shareBalancedComplete = false;
-      if (rawMemberCount > 0 && teamsData.length > 0 && eq.nSlots > 0) {
+      if (rawMemberCount > 0 && teamsData.length > 0 && (splitAwareTargets || eq.nSlots > 0)) {
         shareBalancedComplete = true;
         const paidTenthsByUser = {};
         for (const teamData of teamsData) {
@@ -263,8 +306,13 @@ Page({
             );
           }
         }
-        for (const uid of Object.keys(eq.userTargetTenths)) {
-          if (paidTenthsByUser[uid] !== eq.userTargetTenths[uid]) {
+        const targetTenths = splitAwareTargets || eq.userTargetTenths;
+        const allTargetUids = new Set([
+          ...Object.keys(targetTenths),
+          ...Object.keys(paidTenthsByUser)
+        ]);
+        for (const uid of allTargetUids) {
+          if ((paidTenthsByUser[uid] || 0) !== (targetTenths[uid] || 0)) {
             shareBalancedComplete = false;
             break;
           }
@@ -300,6 +348,38 @@ Page({
       }
     } catch (error) {
       console.error('加载活动详情失败:', error);
+      // 从分享链接打开但未加入活动：弹窗让用户直接加入
+      const invite = this._sharedInviteCode;
+      if (invite) {
+        hideLoading();
+        wx.showModal({
+          title: '未加入该活动',
+          content: `你还没有加入此活动「${this.data.activityInfo && this.data.activityInfo.name || ''}」。\n\n邀请码：${invite}\n\n点「加入活动」直接加入，或返回首页。`,
+          confirmText: '加入活动',
+          cancelText: '返回首页',
+          success: async (res) => {
+            if (res.confirm) {
+              try {
+                showLoading('加入中...');
+                const result = await joinActivity(invite);
+                hideLoading();
+                if (result && result.activityId) {
+                  wx.reLaunch({ url: `/packageActivity/detail/detail?id=${result.activityId}` });
+                } else {
+                  showSuccess('加入成功');
+                  wx.switchTab({ url: '/pages/activity/index' });
+                }
+              } catch (joinErr) {
+                hideLoading();
+                showError(joinErr.message || '加入失败，请在首页输入邀请码加入');
+              }
+            } else {
+              wx.switchTab({ url: '/pages/activity/index' });
+            }
+          }
+        });
+        return;
+      }
       showError(error.message || '加载失败');
       setTimeout(() => {
         wx.navigateBack();
@@ -327,7 +407,8 @@ Page({
       amount: formatAmount(p.amount),
       createTime: formatDateTime(p.createTime),
       dateKey: formatDate(p.createTime),
-      payerName: p.payerName || p.username || '未知'
+      payerName: p.payerName || p.username || '未知',
+      splitParticipantLabel: p.splitParticipantLabel || ''
     }));
 
     const totalMemberCount = this.data.totalMemberCount || 1;
@@ -591,6 +672,28 @@ Page({
     }
   },
 
+  buildDefaultSplitParticipants() {
+    const participants = [];
+    const seen = new Set();
+    for (const team of this.data.teams || []) {
+      for (const member of team.members || []) {
+        const uid = String(member.userId || '');
+        if (!uid || seen.has(uid)) continue;
+        seen.add(uid);
+        participants.push({
+          userId: uid,
+          nickName: member.nickName || '未命名成员',
+          avatarUrl: member.avatarUrl || '',
+          weight: member.weight != null ? member.weight : 1,
+          teamId: team._id || team.id,
+          teamName: team.name || '',
+          _selected: true
+        });
+      }
+    }
+    return participants;
+  },
+
   /** 右下角 +：无团队时创建团队，已在团队则记账 */
   handlePrimaryFab() {
     if (this.data.isEnded) {
@@ -604,16 +707,34 @@ Page({
       });
       return;
     }
+    const splitParticipants = this.buildDefaultSplitParticipants();
     this.setData({
       showAddPayment: true,
       paymentAmount: '',
-      paymentRemark: ''
+      paymentRemark: '',
+      splitParticipants,
+      splitParticipantCount: splitParticipants.length
     });
   },
 
   hideAddPaymentModal() {
     this.setData({
-      showAddPayment: false
+      showAddPayment: false,
+      splitParticipants: [],
+      splitParticipantCount: 0
+    });
+  },
+
+  toggleSplitParticipant(e) {
+    const uid = String(e.currentTarget.dataset.userid || '');
+    if (!uid) return;
+    const splitParticipants = (this.data.splitParticipants || []).map((item) => {
+      if (String(item.userId) !== uid) return item;
+      return { ...item, _selected: !item._selected };
+    });
+    this.setData({
+      splitParticipants,
+      splitParticipantCount: splitParticipants.filter((item) => item._selected).length
     });
   },
 
@@ -630,7 +751,7 @@ Page({
   },
 
   async handleAddPayment() {
-    const { paymentAmount, paymentRemark } = this.data;
+    const { paymentAmount, paymentRemark, splitParticipants } = this.data;
     const error = validateAmount(paymentAmount);
     if (error) {
       showError(error);
@@ -649,6 +770,14 @@ Page({
       return;
     }
 
+    const splitParticipantIds = (splitParticipants || [])
+      .filter((item) => item._selected)
+      .map((item) => String(item.userId));
+    if (splitParticipantIds.length === 0) {
+      showError('请选择至少一位分摊成员');
+      return;
+    }
+
     showLoading('添加中...');
     try {
       await addPayment(
@@ -656,7 +785,8 @@ Page({
         this.data.activityId,
         this.data.myTeam._id,
         paymentAmount,
-        paymentRemark
+        paymentRemark,
+        splitParticipantIds
       );
       hideLoading();
       showSuccess('添加成功');

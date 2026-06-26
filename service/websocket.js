@@ -1,8 +1,8 @@
 /**
  * WebSocket 服务封装
- * 使用 wx.cloud.connectContainer 连接云托管 WebSocket
+ * 使用 wx.connectSocket 直连自建服务器 WebSocket
  */
-const { CLOUD_ENV, CLOUD_SERVICE } = require('./config.js');
+const { API_BASE_URL } = require('./config.js');
 
 let socketTask = null;
 let messageCallback = null;
@@ -20,13 +20,13 @@ function connect() {
       reject(new Error('未登录'));
       return;
     }
-    wx.cloud.connectContainer({
-      env: CLOUD_ENV,
-      service: CLOUD_SERVICE,
-      path: `/ws?token=${encodeURIComponent(token)}`,
-      success: (res) => {
-        socketTask = res.socketTask;
-        console.log('[WS] 连接成功');
+    const wsUrl = API_BASE_URL.replace(/^https/, 'wss') + `/ws?token=${encodeURIComponent(token)}`;
+
+    const task = wx.connectSocket({
+      url: wsUrl,
+      success: () => {
+        socketTask = task;
+        console.log('[WS] 连接中...');
 
         socketTask.onOpen(() => {
           console.log('[WS] 已打开');

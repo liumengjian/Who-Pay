@@ -10,6 +10,7 @@ const {
   CLOUD_ENV,
   CLOUD_SERVICE
 } = require('./config.js');
+const { normalizeStorageResourceUrls } = require('../utils/storageUrl.js');
 
 /**
  * 获取请求头（所有接口携带 token）
@@ -39,7 +40,7 @@ function normalizeBody(raw) {
 
 function parseResponse(res) {
   const statusCode = res.statusCode;
-  const data = normalizeBody(res.data);
+  const data = normalizeStorageResourceUrls(normalizeBody(res.data));
   return { statusCode, data };
 }
 
@@ -83,7 +84,8 @@ function canUseCallContainer() {
  */
 function request(path, method = 'GET', data = {}) {
   const m = String(method || 'GET').toUpperCase();
-  const finalPath = pathWithQuery(path, m, data);
+  const normalizedData = normalizeStorageResourceUrls(data);
+  const finalPath = pathWithQuery(path, m, normalizedData);
   const containerPath = finalPath.startsWith('/') ? finalPath : `/${finalPath}`;
 
   return new Promise((resolve, reject) => {
@@ -99,7 +101,7 @@ function request(path, method = 'GET', data = {}) {
         path: containerPath,
         header,
         method: m,
-        data: m === 'GET' ? {} : data,
+        data: m === 'GET' ? {} : normalizedData,
         success(res) {
           handleResult(res, path, resolve, reject);
         },
@@ -112,7 +114,7 @@ function request(path, method = 'GET', data = {}) {
       wx.request({
         url: `${API_BASE_URL}${finalPath}`,
         method: m,
-        data: m === 'GET' ? {} : data,
+        data: m === 'GET' ? {} : normalizedData,
         header: getHeaders(),
         success(res) {
           handleResult(res, path, resolve, reject);

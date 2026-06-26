@@ -56,6 +56,13 @@ Page({
     this.setData({ triggered: false });
   },
 
+  onShareAppMessage() {
+    return {
+      title: 'Who Pay - 我的个人主页',
+      path: '/pages/user/profile'
+    };
+  },
+
   loadUserInfo() {
     const app = getApp();
     const userInfo = wx.getStorageSync('userInfo') || app.globalData.userInfo || {};

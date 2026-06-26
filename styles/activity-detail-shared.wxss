@@ -137,6 +137,7 @@ page {
 
 .activity-header-text {
   min-width: 0;
+  white-space: nowrap;
 }
 
 .activity-name {
@@ -151,25 +152,50 @@ page {
   opacity: 0.9;
   margin-top: 12rpx;
   line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-right: 12px;
+}
+.invite-code-box-container {
+  width: 100px;
 }
 
 .invite-code-box {
   display: flex;
   align-items: center;
+  gap: 12rpx;
   background-color: rgba(255, 255, 255, 0.2);
-  padding: 12rpx 20rpx;
+  padding: 12rpx 25rpx;
   border-radius: 8rpx;
 }
 
 .invite-code {
   font-size: 28rpx;
-  margin-right: 10rpx;
 }
 
 .invite-code-box .copy-icon {
   width: 32rpx;
   height: 32rpx;
   flex-shrink: 0;
+}
+
+.share-btn {
+  margin-top: 12rpx;
+  height: 56rpx;
+  line-height: 56rpx;
+  font-size: 24rpx;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1rpx solid rgba(255, 255, 255, 0.4);
+  border-radius: 8rpx;
+  padding: 0 24rpx;
+  text-align: center;
+  width: 100px !important;
+}
+
+.share-btn::after {
+  border: none;
 }
 
 .amount-info {
@@ -795,7 +821,87 @@ page {
   font-weight: 300;
 }
 
-/* 费用明细弹窗 */
+
+/* 新增支付：分摊成员选择 */
+.split-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14rpx;
+}
+
+.split-count {
+  font-size: 24rpx;
+  color: #667eea;
+}
+
+.split-participant-scroll {
+  max-height: 360rpx;
+  border-radius: 16rpx;
+  background: #f8f9fe;
+}
+
+.split-participant-item {
+  display: flex;
+  align-items: center;
+  padding: 18rpx 20rpx;
+  border-bottom: 2rpx solid rgba(255, 255, 255, 0.9);
+  transition: background 0.2s ease;
+}
+
+.split-participant-item:last-child {
+  border-bottom: none;
+}
+
+.split-participant-selected {
+  background: #eef1fc;
+}
+
+.split-participant-avatar {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  margin-right: 18rpx;
+  flex-shrink: 0;
+}
+
+.split-participant-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.split-participant-name {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: 500;
+}
+
+.split-participant-sub {
+  font-size: 22rpx;
+  color: #999;
+}
+
+.split-participant-check {
+  width: 42rpx;
+  height: 42rpx;
+  border-radius: 50%;
+  border: 2rpx solid #d6d9e6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 24rpx;
+  flex-shrink: 0;
+}
+
+.split-participant-check-on {
+  border-color: #667eea;
+  background: #667eea;
+}
+
 .expense-modal {
   align-items: flex-end;
 }
@@ -945,6 +1051,12 @@ page {
 .expense-time {
   font-size: 22rpx;
   color: #999;
+}
+
+.expense-split-label {
+  font-size: 22rpx;
+  color: #667eea;
+  margin-top: 4rpx;
 }
 
 .expense-amount {

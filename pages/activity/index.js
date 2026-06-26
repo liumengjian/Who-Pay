@@ -44,6 +44,9 @@ Page({
     hallPageOffset: 0,
     hallHasMore: true,
     hallLoadingMore: false,
+    hallSearching: false,
+    hallSearchPageOffset: 0,
+    hallSearchHasMore: true,
     myActivities: [],
     showCreate: false,
     showHallDetail: false,
@@ -111,6 +114,13 @@ Page({
     });
   },
 
+  onShareAppMessage() {
+    return {
+      title: 'Who Pay - 让AA分摊更简单',
+      path: '/pages/activity/index'
+    };
+  },
+
   checkLogin() {
     const token = wx.getStorageSync('token');
     if (!token) {
@@ -147,64 +157,113 @@ Page({
     await Promise.all([this.loadHall(), this.loadMyActivities()]);
   },
 
-  applyHallSearchFilter() {
-    const kw = (this.data.hallSearchKeyword || '').trim().toLowerCase();
-    const all = this.data.hallActivities || [];
-    const list = !kw ? all : all.filter((a) => (a.name || '').toLowerCase().includes(kw));
-    this.setData({ hallDisplayList: list });
-  },
-
+  /** 输入搜索关键词时触发后端搜索（防抖 300ms） */
   onHallSearchInput(e) {
-    this.setData({ hallSearchKeyword: e.detail.value }, () => this.applyHallSearchFilter());
+    const keyword = (e.detail.value || '').trim();
+    this.setData({ hallSearchKeyword: keyword });
+    if (this._searchTimer) {
+      clearTimeout(this._searchTimer);
+    }
+    this._searchTimer = setTimeout(() => {
+      this._searchTimer = null;
+      this._doSearch();
+    }, 300);
   },
 
-  async loadHall(reset = true) {
-    if (this._hallFetching) return;
-    if (!reset) {
+  _doSearch() {
+    const kw = this.data.hallSearchKeyword;
+    if (kw) {
+      this.loadHall(true, kw);
+    } else {
+      this.loadHall(true);
+    }
+  },
+
+  async loadHall(reset = true, searchKeyword) {
+    const isSearch = typeof searchKeyword === 'string' && searchKeyword.length > 0;
+
+    // 非搜索场景的节流
+    if (!isSearch && !reset) {
       if (!this.data.hallHasMore || this.data.hallLoadingMore) return;
       if ((this.data.hallActivities || []).length === 0) return;
     }
-    this._hallFetching = true;
+
     if (reset) {
-      this.setData({ hallHasMore: true });
+      this.setData({ hallHasMore: true, hallSearchHasMore: true });
     }
-    const offset = reset ? 0 : this.data.hallPageOffset;
+
+    let offset = 0;
     if (!reset) {
-      this.setData({ hallLoadingMore: true });
+      offset = isSearch ? this.data.hallSearchPageOffset : this.data.hallPageOffset;
     }
+    const loadKey = isSearch ? 'hallSearching' : 'hallLoadingMore';
+    if (!reset) {
+      this.setData({ [loadKey]: true });
+    }
+
+    const params = { offset, limit: HALL_PAGE_SIZE };
+    if (isSearch) {
+      params.name = searchKeyword;
+    }
+
     try {
-      const result = await getActivityHall({ offset, limit: HALL_PAGE_SIZE });
+      const result = await getActivityHall(params);
       const batch = result.activities || [];
       const hasMore =
         typeof result.hasMore === 'boolean'
           ? result.hasMore
           : batch.length >= HALL_PAGE_SIZE;
-      const merged = reset
-        ? batch
-        : (this.data.hallActivities || []).concat(batch);
-      this.setData(
-        {
-          hallActivities: merged,
-          hallPageOffset: offset + batch.length,
-          hallHasMore: hasMore,
-          ...(reset ? { hallSearchKeyword: '' } : {})
-        },
-        () => this.applyHallSearchFilter()
-      );
+      if (isSearch) {
+        const merged = reset
+          ? batch
+          : (this.data.hallDisplayList || []).concat(batch);
+        this.setData({
+          hallDisplayList: merged,
+          hallSearchPageOffset: offset + batch.length,
+          hallSearchHasMore: hasMore
+        });
+      } else {
+        const merged = reset
+          ? batch
+          : (this.data.hallActivities || []).concat(batch);
+        // 同步显示列表
+        const kw = (this.data.hallSearchKeyword || '').trim().toLowerCase();
+        const displayList = !kw ? merged : merged.filter((a) => (a.name || '').toLowerCase().includes(kw));
+        this.setData(
+          {
+            hallActivities: merged,
+            hallDisplayList: displayList,
+            hallPageOffset: offset + batch.length,
+            hallHasMore: hasMore,
+            ...(reset ? { hallSearchKeyword: '' } : {})
+          }
+        );
+      }
     } catch (error) {
       console.error('加载活动大厅失败:', error);
       showError(error.message || '加载大厅失败');
     } finally {
-      this._hallFetching = false;
       if (!reset) {
-        this.setData({ hallLoadingMore: false });
+        this.setData({ [loadKey]: false });
       }
     }
   },
 
+  onShareAppMessage() {
+    return {
+      title: 'Who Pay - 让AA分摊更简单',
+      path: '/pages/activity/index'
+    };
+  },
+
   onHallScrollToLower() {
     if (this.data.mainTab !== 'hall') return;
-    this.loadHall(false);
+    const kw = this.data.hallSearchKeyword;
+    if (kw) {
+      this.loadHall(false, kw);
+    } else {
+      this.loadHall(false);
+    }
   },
 
   async loadMyActivities() {

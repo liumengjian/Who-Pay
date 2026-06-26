@@ -24,9 +24,12 @@
           <text wx:if="{{activityInfo.slogan}}" class="activity-slogan">{{activityInfo.slogan}}</text>
         </view>
       </view>
-      <view class="invite-code-box" bindtap="copyInviteCode">
-        <text class="invite-code">{{activityInfo.inviteCode || ''}}</text>
-    <image class="copy-icon" src="/images/copy.png" mode="aspectFit"></image>
+      <view class="invite-code-box-container">
+        <view class="invite-code-box" bindtap="copyInviteCode">
+          <text class="invite-code">{{activityInfo.inviteCode || ''}}</text>
+          <image class="copy-icon" src="/images/copy.png" mode="aspectFit"></image>
+        </view>
+        <button class="share-btn" open-type="share" catchtap="stopPropagation">分享给朋友</button>
       </view>
     </view>
     <view class="amount-info">
@@ -374,6 +377,30 @@
             maxlength="50"
           />
         </view>
+        <view class="input-group">
+          <view class="split-header">
+            <text class="input-label">分摊成员 <text class="required">*</text></text>
+            <text class="split-count">已选 {{splitParticipantCount}} / {{splitParticipants.length}}</text>
+          </view>
+          <scroll-view class="split-participant-scroll" scroll-y>
+            <view
+              class="split-participant-item {{item._selected ? 'split-participant-selected' : ''}}"
+              wx:for="{{splitParticipants}}"
+              wx:key="userId"
+              bindtap="toggleSplitParticipant"
+              data-userid="{{item.userId}}"
+            >
+              <image class="split-participant-avatar" src="{{item.avatarUrl || '/images/default-avatar.png'}}" mode="aspectFill"></image>
+              <view class="split-participant-info">
+                <text class="split-participant-name">{{item.nickName}}</text>
+                <text class="split-participant-sub">{{item.teamName}} · 权重×{{item.weight || 1}}</text>
+              </view>
+              <view class="split-participant-check {{item._selected ? 'split-participant-check-on' : ''}}">
+                <text wx:if="{{item._selected}}" class="cuIcon-check"></text>
+              </view>
+            </view>
+          </scroll-view>
+        </view>
       </view>
       <view class="modal-footer">
         <button class="btn-secondary" bindtap="hideAddPaymentModal">取消</button>
@@ -439,7 +466,7 @@
           >
             <text class="date-tab-day">{{item.date}}</text>
             <text class="date-tab-amount">¥{{item.total}}</text>
-            <text class="date-tab-perperson">人均¥{{item.perPerson}}</text>
+            <text class="date-tab-perperson">参考人均¥{{item.perPerson}}</text>
           </view>
         </view>
       </scroll-view>
@@ -459,6 +486,7 @@
                 <text class="expense-name">{{item.payerName}}</text>
                 <text class="expense-remark" wx:if="{{item.remark}}">{{item.remark}}</text>
                 <text class="expense-time">{{item.createTime}}</text>
+                <text class="expense-split-label" wx:if="{{item.splitParticipantLabel}}">{{item.splitParticipantLabel}}</text>
               </view>
             </view>
             <text class="expense-amount">¥{{item.amount}}</text>

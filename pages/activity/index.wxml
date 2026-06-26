@@ -117,7 +117,7 @@
 
 <!-- 首页笔记入口：右下角悬浮 -->
 <view wx:if="{{!showFloatNotesPanel}}" class="float-notes-fab" hover-class="float-notes-fab--hover" hover-stay-time="100" bindtap="openFloatNotesPanel">
-  <image class="float-notes-fab__img" src="cloud://prod-4g6txya8d2f21745.7072-prod-4g6txya8d2f21745-1413661498/files/assets/float-icon.png" mode="aspectFit" />
+  <image class="float-notes-fab__img" src="https://prina-1413661498.cos.ap-shanghai.myqcloud.com/whopay/assets/float-icon.png" mode="aspectFit" />
 </view>
 
 <!--

@@ -24,11 +24,15 @@ function register(params) {
   return callAPI('/api/auth/register', 'POST', params);
 }
 
-/** 活动大厅（进行中活动，分页） @param {{ offset?: number, limit?: number }} q */
+/** 活动大厅（进行中活动，分页） @param {{ offset?: number, limit?: number, name?: string }} q */
 function getActivityHall(q = {}) {
   const offset = typeof q.offset === 'number' && q.offset >= 0 ? q.offset : 0;
   const limit = typeof q.limit === 'number' && q.limit > 0 ? q.limit : 20;
-  return callAPI('/api/activity/hall', 'GET', { offset, limit });
+  const params = { offset, limit };
+  if (q.name) {
+    params.name = q.name;
+  }
+  return callAPI('/api/activity/hall', 'GET', params);
 }
 
 /** 未加入也可查看：团队与成员预览 */
@@ -74,14 +78,18 @@ function leaveActivity(activityId) {
   return callAPI(`/api/activity/${activityId}/leave`, 'POST', {});
 }
 
-function addPayment(username, activityId, teamId, amount, remark = '') {
-  return callAPI('/api/payment/add', 'POST', {
+function addPayment(username, activityId, teamId, amount, remark = '', splitParticipantIds) {
+  const body = {
     username,
     activityId,
     teamId: parseInt(teamId, 10),
     amount: parseFloat(amount),
     remark
-  });
+  };
+  if (Array.isArray(splitParticipantIds)) {
+    body.splitParticipantIds = splitParticipantIds;
+  }
+  return callAPI('/api/payment/add', 'POST', body);
 }
 
 function updatePayment(paymentId, amount, remark = '') {
@@ -221,6 +229,18 @@ function publishSystemNotice(title, body) {
   return callAPI('/api/admin/system-notice/publish', 'POST', { title, body });
 }
 
+function getOnboardingGuide() {
+  return callAPI('/api/admin/onboarding-guide', 'GET');
+}
+
+function saveOnboardingGuide(bodyOrSections) {
+  // 兼容字符串 body 或 { sections: [...] } 格式
+  const payload = typeof bodyOrSections === 'string'
+    ? { body: bodyOrSections }
+    : bodyOrSections;
+  return callAPI('/api/admin/onboarding-guide', 'PUT', payload);
+}
+
 // 好友相关
 function getFriendList() {
   return callAPI('/api/friend/list', 'GET');
@@ -339,6 +359,8 @@ module.exports = {
   getSystemNotice,
   markSystemNoticeRead,
   publishSystemNotice,
+  getOnboardingGuide,
+  saveOnboardingGuide,
   getFriendList,
   getFriendRequests,
   searchUsers,
