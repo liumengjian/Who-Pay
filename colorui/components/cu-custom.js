@@ -72,7 +72,13 @@ Component({
       }
     },
     BackPage() {
-      wx.navigateBack({ delta: 1 });
+      const pages = getCurrentPages();
+      if (pages.length <= 1) {
+        // 从分享卡片等直接进入时，页面栈无上一页，跳转首页
+        wx.reLaunch({ url: '/pages/activity/index' });
+      } else {
+        wx.navigateBack({ delta: 1 });
+      }
     },
     toHome() {
       wx.reLaunch({ url: '/pages/activity/index' });

@@ -138,7 +138,12 @@ Page({
     if (!activityId) {
       showError('活动ID不存在');
       setTimeout(() => {
-        wx.navigateBack();
+        const pages = getCurrentPages();
+        if (pages.length <= 1) {
+          wx.reLaunch({ url: '/pages/activity/index' });
+        } else {
+          wx.navigateBack();
+        }
       }, 1500);
       return;
     }
@@ -354,7 +359,7 @@ Page({
         hideLoading();
         wx.showModal({
           title: '未加入该活动',
-          content: `你还没有加入此活动「${this.data.activityInfo && this.data.activityInfo.name || ''}」。\n\n邀请码：${invite}\n\n点「加入活动」直接加入，或返回首页。`,
+          content: `你还没有加入此活动「${this.data.activityInfo?.name || ''}」。\n\n邀请码：${invite}`,
           confirmText: '加入活动',
           cancelText: '返回首页',
           success: async (res) => {
@@ -382,7 +387,12 @@ Page({
       }
       showError(error.message || '加载失败');
       setTimeout(() => {
-        wx.navigateBack();
+        const pages = getCurrentPages();
+        if (pages.length <= 1) {
+          wx.reLaunch({ url: '/pages/activity/index' });
+        } else {
+          wx.navigateBack();
+        }
       }, 1500);
     } finally {
       hideLoading();

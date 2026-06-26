@@ -18,7 +18,7 @@ const CLOUD_STORAGE_BUCKET = '7072-prod-4g6txya8d2f21745-1413661498';
 const CLOUD_STORAGE_REGION = 'ap-shanghai';
 /** 云托管服务名 */
 const CLOUD_SERVICE = 'koa-eeo7';
-const CLOUD_STORAGE_PATH_PREFIX = 'files';
+const CLOUD_STORAGE_PATH_PREFIX = 'whopay';
 // ========== 云托管配置结束 ==========
 
 /**

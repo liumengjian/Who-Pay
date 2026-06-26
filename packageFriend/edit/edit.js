@@ -96,6 +96,7 @@ Page({
         const { filePathToBase64Compressed } = require('../../utils/util.js');
         avatar = await filePathToBase64Compressed(filePath);
       }
+      console.warn("+++",avatar)
       this.setData({ avatarUrl: avatar });
       showSuccess('头像已更新');
     } catch (e) {
