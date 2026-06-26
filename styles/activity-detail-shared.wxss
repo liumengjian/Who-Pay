@@ -382,7 +382,7 @@ page {
 
 /* 团队看板 */
 .teams-section {
-  padding: 20rpx;
+  padding: 0 20rpx;
 }
 
 .team-card {
@@ -391,6 +391,7 @@ page {
   padding: 30rpx;
   box-shadow: 0 4rpx 20rpx rgba(102, 126, 234, 0.12);
   transition: transform 0.2s ease;
+  margin-bottom: 14px;
 }
 
 .team-card-joinable {
@@ -419,6 +420,7 @@ page {
   background: linear-gradient(90deg, #eef2ff 0%, #f5f3ff 100%);
   border-radius: 12rpx;
   font-size: 24rpx;
+  width: max-content;
 }
 
 .team-invite-label {
