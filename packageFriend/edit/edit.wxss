@@ -224,7 +224,7 @@
 .pwd-link {
   flex-shrink: 0;
   text-align: center;
-  padding: 24rpx 32rpx calc(env(safe-area-inset-bottom));
+  padding: 24rpx 32rpx calc(env(safe-area-inset-bottom) + 8px);
   font-size: 26rpx;
   color: #e74c3c;
 }

@@ -67,17 +67,17 @@
     <view class="pwd-field">
       <text class="pwd-label">原密码</text>
       <input class="pwd-input" password="{{!showOldPwd}}" placeholder="请输入原密码" value="{{oldPassword}}" bindinput="onOldPassword" />
-      <text class="pwd-eye {{showOldPwd ? 'pwd-eye-on' : ''}}" catchtap="toggleOldPwd">{{showOldPwd ? '👁' : '👁'}}</text>
+      <text class="pwd-eye {{showOldPwd ? 'pwd-eye-on' : ''}} cuIcon-{{showOldPwd ? 'attentionforbid' : 'attention'}}" catchtap="toggleOldPwd"></text>
     </view>
     <view class="pwd-field">
       <text class="pwd-label">新密码</text>
       <input class="pwd-input" password="{{!showNewPwd}}" placeholder="至少6位新密码" value="{{newPassword}}" bindinput="onNewPassword" />
-      <text class="pwd-eye {{showNewPwd ? 'pwd-eye-on' : ''}}" catchtap="toggleNewPwd">{{showNewPwd ? '👁' : '👁'}}</text>
+      <text class="pwd-eye {{showNewPwd ? 'pwd-eye-on' : ''}} cuIcon-{{showNewPwd ? 'attentionforbid' : 'attention'}}" catchtap="toggleNewPwd"></text>
     </view>
     <view class="pwd-field">
       <text class="pwd-label">确认密码</text>
       <input class="pwd-input" password="{{!showConfirmPwd}}" placeholder="再次输入新密码" value="{{confirmPassword}}" bindinput="onConfirmPassword" />
-      <text class="pwd-eye {{showConfirmPwd ? 'pwd-eye-on' : ''}}" catchtap="toggleConfirmPwd">{{showConfirmPwd ? '👁' : '👁'}}</text>
+      <text class="pwd-eye {{showConfirmPwd ? 'pwd-eye-on' : ''}} cuIcon-{{showConfirmPwd ? 'attentionforbid' : 'attention'}}" catchtap="toggleConfirmPwd"></text>
     </view>
     <button class="pwd-submit-btn" bindtap="submitChangePassword" loading="{{pwdSubmitting}}" disabled="{{pwdSubmitting}}">确认修改</button>
   </view>
